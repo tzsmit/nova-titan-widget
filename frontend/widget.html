@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nova Titan Sports Widget - Embeddable Demo</title>
+    
+    <!-- Widget Styles -->
+    <style>
+      body {
+        font-family: Inter, system-ui, -apple-system, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: #f8fafc;
+      }
+      
+      .demo-container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      
+      .demo-header {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+      
+      .demo-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1e3a8a;
+        margin-bottom: 10px;
+      }
+      
+      .demo-subtitle {
+        color: #64748b;
+        font-size: 1.1rem;
+      }
+      
+      .embedding-examples {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+      
+      .code-block {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 16px;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 14px;
+        overflow-x: auto;
+        margin: 10px 0;
+      }
+      
+      .widget-container {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 10px 25px -3px rgba(30, 58, 138, 0.1);
+        margin-bottom: 30px;
+      }
+      
+      .legal-notice {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 20px;
+        font-size: 14px;
+        color: #92400e;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="demo-container">
+      <!-- Header -->
+      <div class="demo-header">
+        <h1 class="demo-title">Nova Titan Sports Widget</h1>
+        <p class="demo-subtitle">Embeddable AI-Powered Sports Predictions</p>
+      </div>
+
+      <!-- Embedding Examples -->
+      <div class="embedding-examples">
+        <h3 style="margin-top: 0; color: #1e3a8a;">How to Embed</h3>
+        
+        <h4>Basic Embedding:</h4>
+        <div class="code-block">
+&lt;script src="https://your-domain.com/widget.js" 
+        data-api-url="https://your-api.com"
+        data-theme="nova-titan"&gt;&lt;/script&gt;
+&lt;div id="nova-titan-widget"&gt;&lt;/div&gt;
+        </div>
+        
+        <h4>WordPress Integration:</h4>
+        <div class="code-block">
+// Add to your theme's functions.php
+function add_nova_titan_widget() {
+    wp_enqueue_script('nova-titan-widget', 
+        'https://your-domain.com/widget.js', 
+        array(), '1.0.0', true);
+}
+add_action('wp_enqueue_scripts', 'add_nova_titan_widget');
+
+// Use shortcode: [nova_titan_widget]
+        </div>
+
+        <h4>React Integration:</h4>
+        <div class="code-block">
+import { NovaTitanWidget } from '@nova-titan/react-widget';
+
+function App() {
+  return (
+    &lt;NovaTitanWidget
+      apiUrl="https://your-api.com"
+      theme="nova-titan"
+      leagues={['NBA', 'NFL']}
+      enablePredictions={true}
+    /&gt;
+  );
+}
+        </div>
+      </div>
+
+      <!-- Live Widget Demo -->
+      <div class="widget-container">
+        <h3 style="margin-top: 0; color: #1e3a8a;">Live Widget Demo</h3>
+        <div id="nova-titan-widget"></div>
+      </div>
+
+      <!-- Legal Notice -->
+      <div class="legal-notice">
+        <strong>⚠️ Important Legal Notice:</strong>
+        This widget is for entertainment and educational purposes only. Sports betting involves risk of loss. 
+        Users must be 18+ years old and comply with local gambling laws. Nova Titan is not responsible for 
+        betting decisions made using this tool.
+      </div>
+    </div>
+
+    <!-- Load the widget -->
+    <script type="module" src="/src/widget/index.tsx"></script>
+    
+    <!-- Initialize widget with demo config -->
+    <script>
+      // Wait for widget to load, then initialize
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+          if (window.NovaTitanWidget) {
+            window.NovaTitanWidget.init({
+              containerId: 'nova-titan-widget',
+              apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:3001/api',
+              theme: {
+                primary: '#1e3a8a',
+                accent: '#f59e0b',
+                neutral: '#718096'
+              },
+              features: {
+                showPredictions: true,
+                showOdds: true,
+                showParlays: true,
+                enableBetting: false, // Disabled in demo
+                showPlayerStats: true
+              },
+              leagues: ['NBA', 'NFL'],
+              maxGames: 8,
+              refreshInterval: 300,
+              requireAgeVerification: false, // Disabled in demo
+              enableAnalytics: false
+            });
+          }
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>
