@@ -33,7 +33,7 @@ const SPORTS = [
   { id: 'americanfootball_ncaaf', name: 'College Football', emoji: '🏈' },
   { id: 'basketball_ncaab', name: 'College Basketball', emoji: '🏀' },
   { id: 'baseball_mlb', name: 'MLB', emoji: '⚾' },
-  { id: 'boxing', name: 'Boxing', emoji: '🥊' }
+  { id: 'boxing_boxing', name: 'Boxing', emoji: '🥊' }
 ];
 
 const BOOKMAKERS = [
@@ -100,23 +100,19 @@ export const SimpleGamesTab: React.FC = () => {
           );
         }
 
-        // Filter by date (October 2025)
+        // Filter by date (October 2025) - ALWAYS apply date filter
         const today = new Date().toISOString().split('T')[0]; // Current format: 2025-10-14
         console.log(`📅 Today's date: ${today}, Selected date: ${selectedDate}`);
         
-        if (selectedDate !== today) {
-          const beforeFilter = processedGames.length;
-          processedGames = processedGames.filter(game => {
-            if (!game.commence_time) return false;
-            const gameDate = new Date(game.commence_time).toISOString().split('T')[0];
-            const matches = gameDate === selectedDate;
-            console.log(`📊 Game date: ${gameDate}, Selected: ${selectedDate}, Matches: ${matches}`);
-            return matches;
-          });
-          console.log(`📅 Date filter: ${beforeFilter} games → ${processedGames.length} games for ${selectedDate}`);
-        } else {
-          console.log(`📅 Showing all games for today (${today})`);
-        }
+        const beforeFilter = processedGames.length;
+        processedGames = processedGames.filter(game => {
+          if (!game.commence_time) return false;
+          const gameDate = new Date(game.commence_time).toISOString().split('T')[0];
+          const matches = gameDate === selectedDate;
+          console.log(`📊 Game date: ${gameDate}, Selected: ${selectedDate}, Matches: ${matches}`);
+          return matches;
+        });
+        console.log(`📅 Date filter applied: ${beforeFilter} games → ${processedGames.length} games for ${selectedDate}`);
 
         // Filter by search query
         if (searchQuery.trim()) {
@@ -284,7 +280,7 @@ export const SimpleGamesTab: React.FC = () => {
             className="text-center py-20"
           >
             <div className="text-slate-400 mb-4">
-              📅 No live games currently scheduled for {selectedSport === 'all' ? 'any sport' : selectedSport.toUpperCase()} on {selectedDate}
+              📅 No live games currently scheduled for {selectedSport === 'all' ? 'any sport' : SPORTS.find(s => s.id === selectedSport)?.name || selectedSport.toUpperCase()} on {selectedDate}
             </div>
             <div className="text-slate-500 text-sm mb-4">
               Try selecting a different sport or date. Real games are fetched from The Odds API.

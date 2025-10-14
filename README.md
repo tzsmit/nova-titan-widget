@@ -39,7 +39,23 @@ npm run build:production
 
 ## 🏆 Project Status: PRODUCTION READY
 
-### ✅ Recently Completed Features
+### ✅ Latest Critical Fixes (October 2025)
+
+**API Integration & Performance:**
+- ✅ Fixed "boxing" sport key to "boxing_boxing" for correct API calls
+- ✅ Added required date parameters (commenceTimeFrom/commenceTimeTo) to player props API calls
+- ✅ Narrowed sports list to core 6 leagues: NFL, NBA, NCAAF, NCAAB, MLB, Boxing
+- ✅ Fixed TypeError crashes in AI predictions service with proper null checks
+- ✅ Corrected date filtering logic to consistently apply selectedDate filter
+- ✅ Enhanced GitHub Actions deployment with improved permissions and debugging
+
+**API Rate Limiting & Optimization:**
+- ✅ Implemented 500ms delays between API calls to prevent rate limiting
+- ✅ Added comprehensive caching (5-10 minutes) to reduce redundant API calls
+- ✅ Disabled auto-running API tests to conserve API credits
+- ✅ Added proper error handling for 422, 429, and 401 API responses
+
+### ✅ Previously Completed Features
 
 **CFB Integration (College Football):**
 - ✅ Added CFB to all sport lists across the platform
@@ -135,7 +151,9 @@ The platform uses a comprehensive RESTful API for data persistence:
 - API Key: `effdb0775abef82ff5dd944ae2180cae`
 - 20,000 credits/month subscription
 - Real-time odds from major sportsbooks
-- Comprehensive sports coverage
+- **Optimized Coverage**: Limited to 6 core US sports for efficient API usage
+- **Sports**: NFL, NBA, College Football, College Basketball, MLB, Boxing
+- **Rate Limiting**: 500ms delays between calls, 5-10 minute caching
 
 **ESPN Sports API:**
 - Live games and scores integration
@@ -310,11 +328,15 @@ interface AIPrediction {
 - No real money transactions processed through platform
 - Companion tool for analysis and learning only
 
-### API Rate Limits
-- The Odds API: 20,000 credits/month (current subscription)
-- ESPN API: Standard rate limiting applies
-- Implement caching and reasonable refresh intervals
-- Monitor usage to stay within limits
+### API Rate Limits & Optimization
+- **The Odds API**: 20,000 credits/month (current subscription)
+  - Optimized to 6 core sports only (was 11+ sports)
+  - 500ms delays between sequential API calls
+  - 5-10 minute caching to prevent redundant requests
+  - Proper error handling for rate limit exceeded (429)
+- **ESPN API**: Standard rate limiting applies with graceful degradation
+- **Player Props**: Fixed 422 errors with proper date parameter formatting
+- **Boxing API**: Corrected sport key from "boxing" to "boxing_boxing"
 
 ## 🚀 Recommended Next Steps
 

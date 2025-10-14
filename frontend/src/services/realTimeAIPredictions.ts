@@ -116,10 +116,14 @@ class RealTimeAIPredictionsService {
    */
   private async analyzeSingleGame(game: LiveOddsData): Promise<RealAIPrediction | null> {
     try {
+      // Get team names from the correct fields
+      const homeTeam = game.home_team || game.homeTeam || 'Unknown Home';
+      const awayTeam = game.away_team || game.awayTeam || 'Unknown Away';
+      
       // Get team statistics
       const [homeStats, awayStats] = await Promise.all([
-        this.getTeamStats(game.homeTeam, game.sport),
-        this.getTeamStats(game.awayTeam, game.sport)
+        this.getTeamStats(homeTeam, game.sport),
+        this.getTeamStats(awayTeam, game.sport)
       ]);
 
       // Get current weather (for outdoor sports)
@@ -137,13 +141,13 @@ class RealTimeAIPredictionsService {
       const { value, riskLevel } = this.assessValueAndRisk(game, homeStats, awayStats);
 
       const prediction: RealAIPrediction = {
-        id: `ai_pred_${game.gameId}`,
-        gameId: game.gameId,
-        sport: game.sport,
-        homeTeam: game.homeTeam,
-        awayTeam: game.awayTeam,
-        gameTime: game.gameTime,
-        gameDate: game.gameDate,
+        id: `ai_pred_${game.id || game.gameId}`,
+        gameId: game.id || game.gameId || 'unknown',
+        sport: game.sport || 'Unknown',
+        homeTeam: homeTeam,
+        awayTeam: awayTeam,
+        gameTime: game.commence_time || game.gameTime || new Date().toISOString(),
+        gameDate: game.gameDate || new Date().toISOString().split('T')[0],
         
         predictions: {
           moneyline: moneylinePrediction,
@@ -168,7 +172,7 @@ class RealTimeAIPredictionsService {
       return prediction;
 
     } catch (error) {
-      console.error(`Error analyzing game ${game.gameId}:`, error);
+      console.error(`Error analyzing game ${game.id || game.gameId || 'unknown'}:`, error);
       return null;
     }
   }
@@ -203,6 +207,12 @@ class RealTimeAIPredictionsService {
    * Generate realistic team statistics based on real patterns
    */
   private generateRealisticTeamStats(teamName: string, sport: string): TeamStats {
+    // Guard against undefined teamName
+    if (!teamName || typeof teamName !== 'string') {
+      console.warn(`Invalid team name provided: ${teamName}`);
+      teamName = 'Unknown Team';
+    }
+    
     // Use team name hash to generate consistent "realistic" stats
     const teamHash = this.hashTeamName(teamName);
     const baseWinRate = 0.3 + (teamHash % 100) / 250; // 30-70% win rate range
@@ -316,8 +326,8 @@ class RealTimeAIPredictionsService {
     const predictedMargin = (homeMargin - awayMargin) + homeAdvantage;
     
     // Get current spread from first available bookmaker
-    const bookmakerIds = Object.keys(game.bookmakers);
-    const currentSpread = bookmakerIds.length > 0 ? game.bookmakers[bookmakerIds[0]].spread.line : 0;
+    const bookmakerIds = Object.keys(game.bookmakers || {});
+    const currentSpread = bookmakerIds.length > 0 ? game.bookmakers[bookmakerIds[0]]?.spread?.line || 0 : 0;
     
     const pick = predictedMargin > currentSpread ? 'home' : 'away';
     const confidence = Math.abs(predictedMargin - currentSpread) * 10;
@@ -355,8 +365,8 @@ class RealTimeAIPredictionsService {
     const predictedTotal = predictedHomeScore + predictedAwayScore;
     
     // Get current total from first available bookmaker
-    const bookmakerIds = Object.keys(game.bookmakers);
-    const currentTotal = bookmakerIds.length > 0 ? game.bookmakers[bookmakerIds[0]].total.line : predictedTotal;
+    const bookmakerIds = Object.keys(game.bookmakers || {});
+    const currentTotal = bookmakerIds.length > 0 ? game.bookmakers[bookmakerIds[0]]?.total?.line || predictedTotal : predictedTotal;
     
     const pick = predictedTotal > currentTotal ? 'over' : 'under';
     const difference = Math.abs(predictedTotal - currentTotal);
@@ -544,6 +554,11 @@ class RealTimeAIPredictionsService {
    * Utility methods
    */
   private hashTeamName(teamName: string): number {
+    // Guard against undefined or empty team name
+    if (!teamName || typeof teamName !== 'string') {
+      return 12345; // Default hash for invalid inputs
+    }
+    
     let hash = 0;
     for (let i = 0; i < teamName.length; i++) {
       const char = teamName.charCodeAt(i);
