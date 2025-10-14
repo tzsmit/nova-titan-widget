@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { realTimeAIPredictionsService, RealAIPrediction } from '../../../services/realTimeAIPredictions';
 import { realTimeOddsService } from '../../../services/realTimeOddsService';
+import { TEAM_LOGOS } from '../../../utils/gameDataHelper';
 import { 
   Calendar,
   Clock,
@@ -98,37 +99,9 @@ function getTeamAbbreviation(teamName: string): string {
   }
 }
 
-// Team logos mapping (you can replace with actual logo URLs)
-const TEAM_LOGOS = {
-  // NFL Teams
-  'Chiefs': 'https://a.espncdn.com/i/teamlogos/nfl/500/kc.png',
-  'Bills': 'https://a.espncdn.com/i/teamlogos/nfl/500/buf.png',
-  'Cowboys': 'https://a.espncdn.com/i/teamlogos/nfl/500/dal.png',
-  'Eagles': 'https://a.espncdn.com/i/teamlogos/nfl/500/phi.png',
-  'Packers': 'https://a.espncdn.com/i/teamlogos/nfl/500/gb.png',
-  'Lions': 'https://a.espncdn.com/i/teamlogos/nfl/500/det.png',
-  'Steelers': 'https://a.espncdn.com/i/teamlogos/nfl/500/pit.png',
-  'Ravens': 'https://a.espncdn.com/i/teamlogos/nfl/500/bal.png',
-  
-  // NBA Teams
-  'Lakers': 'https://a.espncdn.com/i/teamlogos/nba/500/lal.png',
-  'Warriors': 'https://a.espncdn.com/i/teamlogos/nba/500/gs.png',
-  'Celtics': 'https://a.espncdn.com/i/teamlogos/nba/500/bos.png',
-  'Heat': 'https://a.espncdn.com/i/teamlogos/nba/500/mia.png',
-  'Nuggets': 'https://a.espncdn.com/i/teamlogos/nba/500/den.png',
-  'Suns': 'https://a.espncdn.com/i/teamlogos/nba/500/phx.png',
-
-  // College Teams
-  'Alabama': 'https://a.espncdn.com/i/teamlogos/ncaa/500/333.png',
-  'Georgia': 'https://a.espncdn.com/i/teamlogos/ncaa/500/61.png',
-  'Michigan': 'https://a.espncdn.com/i/teamlogos/ncaa/500/130.png',
-  'Ohio State': 'https://a.espncdn.com/i/teamlogos/ncaa/500/194.png',
-  'Texas': 'https://a.espncdn.com/i/teamlogos/ncaa/500/251.png',
-  'Notre Dame': 'https://a.espncdn.com/i/teamlogos/ncaa/500/87.png',
-
-  // Default fallback
-  'default': 'https://via.placeholder.com/100x100/1a365d/ffffff?text=TEAM'
-};
+// Use the centralized TEAM_LOGOS from gameDataHelper.ts
+// Create a local fallback placeholder for this component
+const LOCAL_FALLBACK_LOGO = 'https://via.placeholder.com/100x100/1a365d/ffffff?text=TEAM';
 
 // Broadcast networks styling
 const BROADCAST_STYLES = {
@@ -168,9 +141,9 @@ export const PremiumEnhancedPredictionsTab: React.FC = () => {
       // Enhance predictions with team data, logos, and broadcast info
       const enhancedPredictions = predictions.map((pred): RealAIPrediction & { enhanced: EnhancedGameData } => {
         
-        // Get team logos
-        const homeTeamLogo = TEAM_LOGOS[pred.homeTeam as keyof typeof TEAM_LOGOS] || TEAM_LOGOS.default;
-        const awayTeamLogo = TEAM_LOGOS[pred.awayTeam as keyof typeof TEAM_LOGOS] || TEAM_LOGOS.default;
+        // Get team logos using centralized function
+        const homeTeamLogo = TEAM_LOGOS[pred.homeTeam as keyof typeof TEAM_LOGOS] || LOCAL_FALLBACK_LOGO;
+        const awayTeamLogo = TEAM_LOGOS[pred.awayTeam as keyof typeof TEAM_LOGOS] || LOCAL_FALLBACK_LOGO;
         
         // Generate realistic broadcast networks based on sport and teams
         const generateBroadcastNetworks = (sport: string, teams: string[]): string[] => {
@@ -753,7 +726,7 @@ export const PremiumEnhancedPredictionsTab: React.FC = () => {
                                   className="w-12 h-12 rounded-lg shadow-lg"
                                   onError={(e) => {
                                     const img = e.target as HTMLImageElement;
-                                    img.src = TEAM_LOGOS.default;
+                                    img.src = LOCAL_FALLBACK_LOGO;
                                   }}
                                 />
                                 <div>
@@ -782,7 +755,7 @@ export const PremiumEnhancedPredictionsTab: React.FC = () => {
                                   className="w-12 h-12 rounded-lg shadow-lg"
                                   onError={(e) => {
                                     const img = e.target as HTMLImageElement;
-                                    img.src = TEAM_LOGOS.default;
+                                    img.src = LOCAL_FALLBACK_LOGO;
                                   }}
                                 />
                                 <div>

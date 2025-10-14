@@ -228,9 +228,20 @@ function processGameTime(gameTime: string | undefined): { displayTime: string; d
   }
 
   try {
-    const date = new Date(gameTime);
+    let date: Date;
+    
+    // Check if gameTime is just a time (like "8:16 PM") without date
+    if (gameTime.match(/^\d{1,2}:\d{2}\s?(AM|PM)$/i)) {
+      // If it's just time, combine with today's date
+      const today = new Date().toISOString().split('T')[0]; // Get YYYY-MM-DD
+      date = new Date(`${today} ${gameTime}`);
+    } else {
+      // Try parsing as ISO string or other date format
+      date = new Date(gameTime);
+    }
+    
     if (isNaN(date.getTime())) {
-      throw new Error('Invalid date');
+      throw new Error('Invalid date after parsing');
     }
 
     const displayTime = date.toLocaleString('en-US', {
