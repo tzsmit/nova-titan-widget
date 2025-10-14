@@ -39,8 +39,9 @@ const SPORTS = [
   { id: 'soccer_uefa_champs_league', name: 'Champions League', emoji: '🏆' },
   { id: 'basketball_ncaab', name: 'College Basketball', emoji: '🏀' },
   { id: 'soccer_usa_mls', name: 'MLS', emoji: '⚽' },
-  { id: 'mixed_martial_arts_ufc', name: 'UFC', emoji: '🥊' },
-  { id: 'boxing_wba_wbc_ibf_wbo', name: 'Boxing', emoji: '🥊' }
+  { id: 'basketball_wnba', name: 'WNBA', emoji: '🏀' },
+  { id: 'soccer_fifa_world_cup', name: 'World Cup', emoji: '🏆' }
+  // Removed UFC and Boxing - not supported by The Odds API
 ];
 
 const BOOKMAKERS = [

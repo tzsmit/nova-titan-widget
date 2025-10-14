@@ -3,6 +3,8 @@
  * Fetches complete team rosters from ESPN APIs for all sports
  */
 
+import { deploymentConfig } from '../config/deployment';
+
 interface PlayerData {
   id: string;
   name: string;
@@ -41,6 +43,11 @@ class RosterSyncService {
    * Sync all rosters for all sports
    */
   async syncAllRosters(): Promise<void> {
+    if (!deploymentConfig.hasBackend) {
+      console.warn('🌐 Roster sync skipped in static production (no backend available)');
+      return;
+    }
+    
     console.log('🔄 Starting complete roster sync for all sports...');
     
     const sports = [
@@ -97,6 +104,11 @@ class RosterSyncService {
    * Fetch teams from ESPN API
    */
   private async fetchTeams(sportKey: string, league: string, sport: string): Promise<TeamData[]> {
+    if (!deploymentConfig.hasBackend) {
+      console.warn(`🌐 Team fetch skipped for ${league} in static production (ESPN CORS blocked)`);
+      return [];
+    }
+    
     const cacheKey = `teams_${sportKey}`;
     const cached = this.getFromCache(cacheKey);
     if (cached) return cached;
@@ -148,6 +160,11 @@ class RosterSyncService {
    * Fetch team roster from ESPN API
    */
   private async fetchTeamRoster(teamId: string, sportKey: string, team: TeamData): Promise<PlayerData[]> {
+    if (!deploymentConfig.hasBackend) {
+      console.warn(`🌐 Roster fetch skipped for ${team.name} in static production (ESPN CORS blocked)`);
+      return [];
+    }
+    
     const cacheKey = `roster_${teamId}`;
     const cached = this.getFromCache(cacheKey);
     if (cached) return cached;
