@@ -2,13 +2,14 @@
  * Simplified Games Tab - Clean, Fast, and User-Friendly
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { realTimeOddsService } from '../../../services/realTimeOddsService';
 import { DateSelector } from '../../ui/DateSelector';
 import { SearchBar } from '../../ui/SearchBar';
 import { processGameData, generateMockGames, formatOdds, ProcessedGame } from '../../../utils/gameDataHelper';
+import { testOddsAPI } from '../../../utils/apiTester';
 import { 
   Calendar,
   Clock,
@@ -48,6 +49,11 @@ export const SimpleGamesTab: React.FC = () => {
   const [searchFilters, setSearchFilters] = useState({ type: 'all' as const, sport: 'all' as const });
   const [showLegend, setShowLegend] = useState(false);
 
+  // Test API on component mount
+  useEffect(() => {
+    testOddsAPI();
+  }, []);
+
   // Fetch games with proper error handling and fallback to mock data
   const { data: games = [], isLoading, error, refetch } = useQuery({
     queryKey: ['simple-games', selectedSport, selectedDate],
@@ -56,11 +62,21 @@ export const SimpleGamesTab: React.FC = () => {
       
       try {
         // Try to fetch real data first
+        console.log('🔄 Attempting to fetch live odds from API...');
         const allGames = await realTimeOddsService.getLiveOddsAllSports();
-        console.log(`📊 Fetched ${allGames.length} raw games from API`);
+        console.log(`📊 API Response: ${allGames.length} games received`);
         
-        // If no games from API or very few, use mock data for demonstration
-        const rawGames = allGames.length > 0 ? allGames : generateMockGames();
+        // Always use real data from API, even if empty
+        let rawGames = allGames;
+        
+        // Only use mock data if specifically requested or if it's a development environment
+        if (allGames.length === 0) {
+          console.warn('⚠️ No live games currently scheduled from API');
+          console.log('🎮 Using mock data to demonstrate platform functionality');
+          rawGames = generateMockGames();
+        } else {
+          console.log('✅ Using live data from The Odds API');
+        }
         
         // Process games using the helper
         let processedGames = processGameData(rawGames, selectedBookmaker);
@@ -95,7 +111,8 @@ export const SimpleGamesTab: React.FC = () => {
         return processedGames;
         
       } catch (error) {
-        console.error('Error fetching games, using mock data:', error);
+        console.error('❌ API Error - Failed to fetch live data:', error);
+        console.log('🔄 Using mock data as fallback');
         // Fallback to mock data if API fails
         const mockGames = generateMockGames();
         return processGameData(mockGames, selectedBookmaker);
