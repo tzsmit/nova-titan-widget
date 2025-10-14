@@ -207,7 +207,7 @@ export const GamesTab: React.FC = () => {
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: config.theme?.accent || '#4299e1' }}
                 ></div>
-                <span className="font-semibold text-gray-900">
+                <span className="font-semibold text-gray-800">
                   {game.league} • {formatTime(game.startTime)}
                 </span>
               </div>
@@ -229,14 +229,14 @@ export const GamesTab: React.FC = () => {
                     {game.awayTeam.abbreviation}
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">{game.awayTeam.name}</div>
-                    <div className="text-sm text-gray-500">
+                    <div className="font-semibold text-gray-800">{game.awayTeam.name}</div>
+                    <div className="text-sm text-gray-600">
                       {game.awayTeam.record.wins}-{game.awayTeam.record.losses}
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm text-gray-600">@ {game.venue?.city}</div>
+                  <div className="text-sm text-gray-700">@ {game.venue?.city}</div>
                 </div>
               </div>
               
@@ -249,8 +249,8 @@ export const GamesTab: React.FC = () => {
                     {game.homeTeam.abbreviation}
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">{game.homeTeam.name}</div>
-                    <div className="text-sm text-gray-500">
+                    <div className="font-semibold text-gray-800">{game.homeTeam.name}</div>
+                    <div className="text-sm text-gray-600">
                       {game.homeTeam.record.wins}-{game.homeTeam.record.losses}
                     </div>
                   </div>
@@ -261,29 +261,29 @@ export const GamesTab: React.FC = () => {
             {/* Odds */}
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-xs text-gray-600 mb-1">
+                <div className="text-xs text-gray-700 mb-1">
                   Moneyline
                   <HelpTooltip content="Bet on which team wins straight up, regardless of score" />
                 </div>
-                <div className="font-semibold text-gray-900">
+                <div className="font-semibold text-gray-800">
                   {formatOdds(game.odds.moneyline.home)}
                 </div>
               </div>
               <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-xs text-gray-600 mb-1">
+                <div className="text-xs text-gray-700 mb-1">
                   Spread
                   <HelpTooltip content="Point spread betting - favorite must win by more than the spread" />
                 </div>
-                <div className="font-semibold text-gray-900">
+                <div className="font-semibold text-gray-800">
                   {game.odds.spread.home > 0 ? '+' : ''}{game.odds.spread.home}
                 </div>
               </div>
               <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-xs text-gray-600 mb-1">
+                <div className="text-xs text-gray-700 mb-1">
                   Total
                   <HelpTooltip content="Bet on whether total combined score goes over or under this number" />
                 </div>
-                <div className="font-semibold text-gray-900">
+                <div className="font-semibold text-gray-800">
                   O/U {game.odds.total}
                 </div>
               </div>
@@ -323,20 +323,20 @@ export const GamesTab: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div className="bg-white/50 rounded-lg p-3">
-                  <div className="text-xs text-gray-600 uppercase tracking-wide font-medium mb-1">
+                  <div className="text-xs text-gray-700 uppercase tracking-wide font-medium mb-1">
                     Best Value
                   </div>
-                  <div className="font-bold text-gray-900">{game.homeTeam.abbreviation} Moneyline</div>
+                  <div className="font-bold text-gray-800">{game.homeTeam.abbreviation} Moneyline</div>
                   <div className="text-sm text-green-600 font-medium">
                     {formatOdds(game.odds.moneyline.home)} • Fair: -135
                   </div>
                 </div>
                 
                 <div className="bg-white/50 rounded-lg p-3">
-                  <div className="text-xs text-gray-600 uppercase tracking-wide font-medium mb-1">
+                  <div className="text-xs text-gray-700 uppercase tracking-wide font-medium mb-1">
                     Edge Detected
                   </div>
-                  <div className="font-bold text-gray-900">Market Inefficiency</div>
+                  <div className="font-bold text-gray-800">Market Inefficiency</div>
                   <div className="text-sm text-blue-600 font-medium">
                     Books undervaluing by 8%
                   </div>

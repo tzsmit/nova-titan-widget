@@ -1,18 +1,16 @@
 /**
- * Main Widget Component
- * Core component that orchestrates the entire widget experience
+ * Simplified Main Widget - Clean and User-Friendly Interface
  */
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWidgetStore } from '../../stores/widgetStore';
 import ErrorBoundary from '../ui/ErrorBoundary';
-import { LoadingSpinner } from '../ui/LoadingSpinner';
-import { WidgetHeader } from './WidgetHeader';
-import { WidgetNavigation } from './WidgetNavigation';
-import { NovaTitanEliteGamesTab } from './tabs/NovaTitanEliteGamesTab';
-import { NovaTitanElitePredictionsTab } from './tabs/NovaTitanElitePredictionsTab';
+import { SimpleHeader } from './SimpleHeader';
+import { SimpleNavigation } from './SimpleNavigation';
+import { SimpleGamesTab } from './tabs/SimpleGamesTab';
+import { SimplePredictionsTab } from './tabs/SimplePredictionsTab';
 import { NovaTitanEliteAIInsightsTab } from './tabs/NovaTitanEliteAIInsightsTab';
 import { NovaTitanEliteParlaysTab } from './tabs/NovaTitanEliteParlaysTab';
 import { NovaTitanEliteSettingsTab } from './tabs/NovaTitanEliteSettingsTab';
@@ -21,26 +19,22 @@ import { LegalDisclaimer } from '../legal/LegalDisclaimer';
 import { TerminologyGuide } from '../ui/TerminologyGuide';
 import { CacheStatsIndicator } from '../ui/CacheStatsIndicator';
 
-
-export const MainWidget: React.FC = () => {
+export const SimpleMainWidget: React.FC = () => {
   const {
     config,
     selectedTab,
-    setGames,
     setGamesLoading,
     setGamesError
   } = useWidgetStore();
 
-  const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
-  const [showTerminologyGuide, setShowTerminologyGuide] = useState(false);
+  const [showTerminologyGuide, setShowTerminologyGuide] = React.useState(false);
 
-  // Health check for services (minimal data fetching in main widget)
+  // Simplified service status check
   const { data: serviceStatus, isLoading, error, refetch } = useQuery({
     queryKey: ['service-health'],
     queryFn: async () => {
-      console.log('🔍 Checking service health...');
+      console.log('🔍 Checking service status...');
       try {
-        // Just verify services are working - actual data fetching happens in individual tabs
         return { success: true, status: 'healthy', timestamp: new Date().toISOString() };
       } catch (error) {
         return { success: false, status: 'error', error: error.message };
@@ -61,33 +55,8 @@ export const MainWidget: React.FC = () => {
     setGamesLoading(isLoading);
   }, [serviceStatus, error, isLoading, setGamesError, setGamesLoading]);
 
-  // Auto-refresh disabled to prevent excessive credit usage
-  // Manual refresh available via refresh button
-  useEffect(() => {
-    // Auto-refresh disabled
-    return () => {
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
-      }
-    };
-  }, [refreshInterval]);
-
-  // Clean up interval on unmount
-  useEffect(() => {
-    return () => {
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
-      }
-    };
-  }, [refreshInterval]);
-
-  // Handle loading state
-  useEffect(() => {
-    setGamesLoading(isLoading);
-  }, [isLoading, setGamesLoading]);
-
-  // Listen for terminology guide open events
-  useEffect(() => {
+  // Listen for terminology guide events
+  React.useEffect(() => {
     const handleOpenTerminologyGuide = () => {
       setShowTerminologyGuide(true);
     };
@@ -96,13 +65,13 @@ export const MainWidget: React.FC = () => {
     return () => window.removeEventListener('openTerminologyGuide', handleOpenTerminologyGuide);
   }, []);
 
-  // Render tab content
+  // Render tab content with simplified components
   const renderTabContent = () => {
     switch (selectedTab) {
       case 'games':
-        return <NovaTitanEliteGamesTab />;
+        return <SimpleGamesTab />;
       case 'predictions':
-        return <NovaTitanElitePredictionsTab />;
+        return <SimplePredictionsTab />;
       case 'player-props':
         return <NovaTitanElitePlayerPropsTab />;
       case 'ai-insights':
@@ -112,29 +81,26 @@ export const MainWidget: React.FC = () => {
       case 'settings':
         return <NovaTitanEliteSettingsTab />;
       default:
-        return <NovaTitanEliteGamesTab />;
+        return <SimpleGamesTab />;
     }
   };
 
   // Error state
   if (error) {
     return (
-      <div className="widget-container">
-        <WidgetHeader onRefresh={async () => {
-          console.log('🔄 Manual refresh triggered...');
-          refetch();
-        }} />
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <SimpleHeader onRefresh={() => refetch()} />
         <div className="p-6 text-center">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <h3 className="text-red-800 font-semibold mb-2">
+          <div className="bg-red-900/30 border border-red-700 rounded-xl p-6 max-w-md mx-auto">
+            <h3 className="text-red-400 font-semibold mb-2">
               Unable to Load Widget
             </h3>
-            <p className="text-red-600 text-sm mb-4">
+            <p className="text-red-300 text-sm mb-4">
               {error instanceof Error ? error.message : 'An unexpected error occurred'}
             </p>
             <button
               onClick={() => refetch()}
-              className="btn-primary btn-sm"
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
             >
               Try Again
             </button>
@@ -146,62 +112,46 @@ export const MainWidget: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <div className="widget-container">
-        {/* Widget Header */}
-        <WidgetHeader onRefresh={async () => {
-          console.log('🔄 Manual refresh triggered...');
-          refetch();
-        }} />
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        {/* Simplified Header */}
+        <SimpleHeader onRefresh={() => refetch()} />
 
-        {/* Navigation Tabs */}
-        <WidgetNavigation />
+        {/* Simplified Navigation */}
+        <SimpleNavigation />
 
-        {/* Main Content Area */}
-        <div className="relative min-h-[400px]">
+        {/* Main Content */}
+        <div className="relative">
           <AnimatePresence mode="wait">
             <motion.div
               key={selectedTab}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="p-4 md:p-6"
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
             >
               {renderTabContent()}
             </motion.div>
           </AnimatePresence>
-
-          {/* Loading Overlay */}
-          {isLoading && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center"
-            >
-              <LoadingSpinner size="lg" />
-            </motion.div>
-          )}
         </div>
 
-        {/* Legal Disclaimer */}
+        {/* Footer */}
         {config.showDisclaimers && (
-          <div className="border-t border-gray-200 bg-gray-50">
+          <div className="border-t border-slate-700 bg-slate-800/50">
             <LegalDisclaimer />
           </div>
         )}
 
-        {/* Terminology Guide Modal */}
+        {/* Terminology Guide */}
         <TerminologyGuide 
           isOpen={showTerminologyGuide}
           onClose={() => setShowTerminologyGuide(false)}
         />
 
-        {/* Cache Stats Indicator */}
+        {/* Cache Stats */}
         <CacheStatsIndicator />
       </div>
     </ErrorBoundary>
   );
 };
 
-export default MainWidget;
+export default SimpleMainWidget;

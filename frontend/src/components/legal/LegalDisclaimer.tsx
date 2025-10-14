@@ -3,11 +3,13 @@
  * Displays required legal information and disclaimers
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useWidgetStore } from '../../stores/widgetStore';
+import { TermsOfService } from './TermsOfService';
 
 export const LegalDisclaimer: React.FC = () => {
   const { config } = useWidgetStore();
+  const [showTerms, setShowTerms] = useState(false);
 
   return (
     <div className="p-3 text-center">
@@ -28,6 +30,29 @@ export const LegalDisclaimer: React.FC = () => {
           Past performance does not guarantee future results.
         </p>
         
+        <div className="border-t border-gray-300 pt-2 mt-2">
+          <p className="font-medium">
+            © 2025 Nova Titan Systems. All rights reserved.
+          </p>
+          <div className="flex items-center justify-center gap-4 mt-1">
+            <button 
+              onClick={() => setShowTerms(true)} 
+              className="text-blue-600 hover:text-blue-800 underline text-xs"
+            >
+              Terms of Service
+            </button>
+            <span className="text-gray-400">•</span>
+            <a 
+              href="https://novatitan.net/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline text-xs"
+            >
+              Nova Titan Systems
+            </a>
+          </div>
+        </div>
+        
         <div className="flex items-center justify-center space-x-4 mt-2">
           <a 
             href="https://www.ncpgambling.org/" 
@@ -47,6 +72,12 @@ export const LegalDisclaimer: React.FC = () => {
           </a>
         </div>
       </div>
+      
+      {/* Terms of Service Modal */}
+      <TermsOfService 
+        isOpen={showTerms} 
+        onClose={() => setShowTerms(false)} 
+      />
     </div>
   );
 };

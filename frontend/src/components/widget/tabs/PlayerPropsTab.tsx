@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
-import { liveSportsService, PlayerProp } from '../../../services/liveSportsService';
+import { realTimeOddsService, RealPlayerProp } from '../../../services/realTimeOddsService';
 
 export const PlayerPropsTab: React.FC = () => {
   const [selectedSport, setSelectedSport] = useState('NFL');
@@ -14,14 +14,25 @@ export const PlayerPropsTab: React.FC = () => {
 
   const { data: playerProps, isLoading, error, refetch } = useQuery({
     queryKey: ['player-props', selectedSport, selectedProp],
-    queryFn: () => liveSportsService.getPlayerProps(),
-    refetchInterval: false, // Smart caching handles refreshes
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    queryFn: async () => {
+      console.log(`🎯 Fetching live player props for ${selectedSport}...`);
+      const sportMap: { [key: string]: string } = {
+        'NFL': 'americanfootball_nfl',
+        'NBA': 'basketball_nba',
+        'CFB': 'americanfootball_ncaaf'
+      };
+      const apiSport = sportMap[selectedSport] || 'americanfootball_nfl';
+      const props = await realTimeOddsService.getLivePlayerProps(apiSport);
+      console.log(`✅ Found ${props.length} live player props`);
+      return props;
+    },
+    refetchInterval: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes for live props
   });
 
   const filteredProps = playerProps?.filter(prop => {
-    if (selectedProp !== 'all' && prop.prop !== selectedProp) return false;
-    if (showOnlyActive && prop.status !== 'active') return false;
+    if (selectedProp !== 'all' && prop.propType !== selectedProp) return false;
+    if (showOnlyActive && !prop.isActive) return false;
     return true;
   }) || [];
 

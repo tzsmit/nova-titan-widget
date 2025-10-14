@@ -1,0 +1,523 @@
+/**
+ * Nova Titan Elite Parlays Tab - Empire-Grade Parlay Builder Interface
+ * Professional design with deep colors, excellent contrast, and branded experience
+ */
+
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import { useWidgetStore } from '../../../stores/widgetStore';
+import { HelpTooltip } from '../../ui/HelpTooltip';
+import { CornerHelpTooltip } from '../../ui/CornerHelpTooltip';
+import { realTimeOddsService } from '../../../services/realTimeOddsService';
+import { realTimeAIPredictionsService } from '../../../services/realTimeAIPredictions';
+import { 
+  Plus, 
+  Trash2, 
+  Calculator, 
+  TrendingUp, 
+  Zap, 
+  AlertTriangle,
+  DollarSign,
+  Target,
+  Calendar,
+  Loader2,
+  Award,
+  Shield,
+  Globe,
+  Activity,
+  Sparkles,
+  Crown,
+  Star
+} from 'lucide-react';
+
+interface ParlayLeg {
+  id: string;
+  game: string;
+  team: string; // Can be team name OR player name
+  bet: string;
+  odds: number;
+  confidence?: number;
+  sport: string;
+  gameDate?: string;
+  venue?: string;
+  bookmaker?: string;
+}
+
+interface ParlayBuilder {
+  legs: ParlayLeg[];
+  stake: number;
+  totalOdds: number;
+  potentialPayout: number;
+  impliedProbability: number;
+  expectedValue: number;
+}
+
+export const NovaTitanEliteParlaysTab: React.FC = () => {
+  const { config } = useWidgetStore();
+  const [parlayBuilder, setParlayBuilder] = useState<ParlayBuilder>({
+    legs: [],
+    stake: 100,
+    totalOdds: 1,
+    potentialPayout: 0,
+    impliedProbability: 0,
+    expectedValue: 0
+  });
+  const [showParlayBuilder, setShowParlayBuilder] = useState(false);
+  const [selectedSport, setSelectedSport] = useState('all');
+
+  // Load available bets for parlay building
+  const { data: availableBets = [], isLoading: betsLoading } = useQuery({
+    queryKey: ['parlay-bets', selectedSport],
+    queryFn: async () => {
+      console.log('🎯 Loading parlay betting options...');
+      try {
+        // Mock parlay options with Nova Titan Elite data
+        const mockParlayBets = [
+          {
+            id: 'bet-1',
+            game: 'Lakers vs Warriors',
+            team: 'Lakers',
+            bet: 'Moneyline',
+            odds: 110,
+            confidence: 87,
+            sport: 'basketball',
+            gameDate: new Date().toISOString(),
+            venue: 'Crypto.com Arena',
+            bookmaker: 'FanDuel'
+          },
+          {
+            id: 'bet-2',
+            game: 'Chiefs vs Bills',
+            team: 'Chiefs',
+            bet: 'Spread -3.5',
+            odds: 105,
+            confidence: 92,
+            sport: 'football',
+            gameDate: new Date().toISOString(),
+            venue: 'Arrowhead Stadium',
+            bookmaker: 'DraftKings'
+          },
+          {
+            id: 'bet-3',
+            game: 'Rangers vs Bruins',
+            team: 'Over 6.5',
+            bet: 'Total Goals',
+            odds: 115,
+            confidence: 78,
+            sport: 'hockey',
+            gameDate: new Date().toISOString(),
+            venue: 'Madison Square Garden',
+            bookmaker: 'BetMGM'
+          }
+        ];
+
+        return selectedSport === 'all' 
+          ? mockParlayBets 
+          : mockParlayBets.filter(bet => bet.sport === selectedSport);
+      } catch (error) {
+        console.error('Error loading parlay bets:', error);
+        return [];
+      }
+    },
+    staleTime: 60000, // 1 minute
+    refetchInterval: 120000 // 2 minutes
+  });
+
+  // Calculate parlay odds and payouts
+  const calculateParlayMetrics = (legs: ParlayLeg[], stake: number) => {
+    if (legs.length === 0) {
+      return {
+        totalOdds: 1,
+        potentialPayout: 0,
+        impliedProbability: 0,
+        expectedValue: 0
+      };
+    }
+
+    const totalOdds = legs.reduce((acc, leg) => {
+      const decimal = leg.odds > 0 ? (leg.odds / 100) + 1 : (100 / Math.abs(leg.odds)) + 1;
+      return acc * decimal;
+    }, 1);
+
+    const potentialPayout = stake * totalOdds;
+    const impliedProbability = (1 / totalOdds) * 100;
+    const expectedValue = (potentialPayout - stake) / stake * 100;
+
+    return {
+      totalOdds,
+      potentialPayout,
+      impliedProbability,
+      expectedValue
+    };
+  };
+
+  // Add leg to parlay with duplicate prevention
+  const addLegToParlay = (bet: any) => {
+    // Check for duplicates - prevent same game/team/bet combination
+    const isDuplicate = parlayBuilder.legs.some(leg => 
+      leg.game === bet.game && 
+      leg.team === bet.team && 
+      leg.bet === bet.bet
+    );
+
+    if (isDuplicate) {
+      // Could add a toast notification here
+      console.warn('Duplicate bet prevented:', bet.game, bet.team, bet.bet);
+      return;
+    }
+
+    const newLeg: ParlayLeg = {
+      ...bet,
+      id: `leg-${Date.now()}`
+    };
+    
+    const newLegs = [...parlayBuilder.legs, newLeg];
+    const metrics = calculateParlayMetrics(newLegs, parlayBuilder.stake);
+    
+    setParlayBuilder({
+      ...parlayBuilder,
+      legs: newLegs,
+      ...metrics
+    });
+  };
+
+  // Remove leg from parlay
+  const removeLegFromParlay = (legId: string) => {
+    const newLegs = parlayBuilder.legs.filter(leg => leg.id !== legId);
+    const metrics = calculateParlayMetrics(newLegs, parlayBuilder.stake);
+    
+    setParlayBuilder({
+      ...parlayBuilder,
+      legs: newLegs,
+      ...metrics
+    });
+  };
+
+  // Update stake
+  const updateStake = (stake: number) => {
+    const metrics = calculateParlayMetrics(parlayBuilder.legs, stake);
+    setParlayBuilder({
+      ...parlayBuilder,
+      stake,
+      ...metrics
+    });
+  };
+
+  // Elite animations
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.6,
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
+  if (betsLoading) {
+    return (
+      <div className="flex items-center justify-center h-96 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="text-center">
+          <div className="relative">
+            <Loader2 className="h-12 w-12 animate-spin text-blue-400 mx-auto mb-4" />
+            <div className="absolute inset-0 h-12 w-12 animate-ping rounded-full bg-blue-400/20 mx-auto"></div>
+          </div>
+          <div className="text-slate-100 text-lg font-semibold mb-2">Nova Titan Elite</div>
+          <div className="text-slate-300 text-sm">Loading parlay opportunities...</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Elite Header */}
+      <motion.div 
+        className="bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 border-b border-slate-700 shadow-2xl"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="px-6 py-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-lg">
+                  <Calculator className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-slate-100">Elite Parlay Builder</h1>
+                  <p className="text-slate-300 text-sm">Professional multi-bet construction</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-slate-400">
+                <Globe className="h-3 w-3" />
+                <span>Powered by </span>
+                <a href="https://novatitan.net/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline hover:underline transition-colors font-medium">
+                  novatitan.net
+                </a>
+                <div className="w-1 h-1 bg-slate-500 rounded-full"></div>
+                <span>Live Market Data</span>
+              </div>
+            </div>
+            
+            <div className="text-right">
+              <div className="text-2xl font-bold text-blue-400">
+                {parlayBuilder.legs.length > 0 ? `${parlayBuilder.legs.length} Legs` : 'Build Parlay'}
+              </div>
+              {parlayBuilder.legs.length > 0 && (
+                <div className="text-sm text-slate-300">
+                  Potential: ${parlayBuilder.potentialPayout.toFixed(2)}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Elite Controls */}
+      <div className="p-6">
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 shadow-xl p-4 mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <select 
+                value={selectedSport} 
+                onChange={(e) => setSelectedSport(e.target.value)}
+                className="bg-slate-900 border border-slate-600 text-slate-100 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">All Sports</option>
+                <option value="football">NFL Football</option>
+                <option value="college_football">CFB College Football</option>
+                <option value="basketball">NBA Basketball</option>
+                <option value="hockey">NHL Hockey</option>
+                <option value="baseball">MLB Baseball</option>
+              </select>
+              
+              <button
+                onClick={() => setShowParlayBuilder(!showParlayBuilder)}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  showParlayBuilder
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
+                    : 'bg-slate-700 text-slate-200 hover:bg-slate-600'
+                }`}
+              >
+                <Calculator className="h-4 w-4 inline mr-2" />
+                Parlay Builder
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm text-slate-400">
+              <Activity className="h-4 w-4" />
+              <span>Live Odds</span>
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Available Bets */}
+          <motion.div 
+            className="xl:col-span-2"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 shadow-xl">
+              <div className="p-6 border-b border-slate-700">
+                <div className="flex items-center gap-3">
+                  <Target className="h-5 w-5 text-blue-400" />
+                  <h2 className="text-lg font-semibold text-slate-100">Available Bets</h2>
+                  <div className="ml-auto text-sm text-slate-400">
+                    {availableBets.length} options
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
+                {availableBets.map((bet) => (
+                  <motion.div
+                    key={bet.id}
+                    variants={itemVariants}
+                    className="bg-slate-900/50 rounded-lg border border-slate-600 p-4 hover:border-blue-500 transition-all group cursor-pointer"
+                    onClick={() => addLegToParlay(bet)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-slate-100">{bet.game}</h3>
+                          <span className="text-xs bg-blue-900/50 text-blue-300 px-2 py-1 rounded">
+                            {bet.sport.toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="text-slate-300 text-sm mb-1">
+                          {bet.team} - {bet.bet}
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-slate-400">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            Today
+                          </span>
+                          <span>{bet.venue}</span>
+                          <span>{bet.bookmaker}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-slate-100 mb-1">
+                          {bet.odds > 0 ? '+' : ''}{bet.odds}
+                        </div>
+                        <div className="flex items-center gap-1 text-xs">
+                          <Star className="h-3 w-3 text-yellow-400" />
+                          <span className="text-slate-300">{bet.confidence}% conf.</span>
+                        </div>
+                      </div>
+
+                      <Plus className="h-5 w-5 text-blue-400 ml-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Parlay Builder */}
+          {showParlayBuilder && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4 }}
+              className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 shadow-xl"
+            >
+              <div className="p-6 border-b border-slate-700">
+                <div className="flex items-center gap-3">
+                  <Award className="h-5 w-5 text-purple-400" />
+                  <h2 className="text-lg font-semibold text-slate-100">Your Parlay</h2>
+                </div>
+              </div>
+
+              <div className="p-6">
+                {/* Parlay Legs */}
+                <div className="space-y-3 mb-6 max-h-48 overflow-y-auto">
+                  {parlayBuilder.legs.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Sparkles className="h-8 w-8 text-slate-500 mx-auto mb-3" />
+                      <p className="text-slate-400 text-sm">Add bets to build your parlay</p>
+                    </div>
+                  ) : (
+                    parlayBuilder.legs.map((leg, index) => (
+                      <div key={leg.id} className="bg-slate-900/50 rounded-lg border border-slate-600 p-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-slate-100 mb-1 truncate">
+                              {leg.team}
+                            </div>
+                            <div className="text-xs text-slate-300 mb-1 truncate">
+                              {leg.bet}
+                            </div>
+                            <div className="text-xs text-slate-400 truncate">
+                              {leg.game}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 ml-3">
+                            <span className="text-sm font-bold text-slate-100">
+                              {leg.odds > 0 ? '+' : ''}{leg.odds}
+                            </span>
+                            <button
+                              onClick={() => removeLegFromParlay(leg.id)}
+                              className="text-red-400 hover:text-red-300 transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {parlayBuilder.legs.length > 0 && (
+                  <>
+                    {/* Stake Input */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-slate-200 mb-2">
+                        Stake Amount
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <input
+                          type="number"
+                          value={parlayBuilder.stake}
+                          onChange={(e) => updateStake(Number(e.target.value))}
+                          className="w-full bg-slate-900 border border-slate-600 text-slate-100 rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Enter stake"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Parlay Metrics */}
+                    <div className="space-y-3 mb-6">
+                      <div className="bg-slate-900/50 rounded-lg p-3">
+                        <div className="text-xs text-slate-400 mb-1">Total Odds</div>
+                        <div className="text-lg font-bold text-slate-100">
+                          {parlayBuilder.totalOdds > 0 ? '+' : ''}{(parlayBuilder.totalOdds * 100 - 100).toFixed(0)}
+                        </div>
+                      </div>
+                      
+                      <div className="bg-slate-900/50 rounded-lg p-3">
+                        <div className="text-xs text-slate-400 mb-1">Potential Payout</div>
+                        <div className="text-lg font-bold text-green-400">
+                          ${parlayBuilder.potentialPayout.toFixed(2)}
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-900/50 rounded-lg p-3">
+                        <div className="text-xs text-slate-400 mb-1">Win Probability</div>
+                        <div className="text-lg font-bold text-blue-400">
+                          {parlayBuilder.impliedProbability.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Place Bet Button */}
+                    <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg transition-all transform hover:scale-105 shadow-lg">
+                      <Crown className="h-4 w-4 inline mr-2" />
+                      Place Elite Parlay
+                    </button>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </div>
+
+      {/* Nova Titan Elite Branding */}
+      <div className="text-center p-6 border-t border-slate-700">
+        <div className="flex items-center justify-center gap-2 text-xs text-slate-500">
+          <Shield className="h-3 w-3" />
+          <a href="https://novatitan.net/" target="_blank" rel="noopener noreferrer" className="hover:text-slate-400 underline hover:underline transition-colors">
+            Nova Titan Elite Platform
+          </a>
+          <div className="w-1 h-1 bg-slate-600 rounded-full"></div>
+          <span>Professional Sports Intelligence</span>
+        </div>
+      </div>
+
+      {/* Help Tooltips */}
+      <CornerHelpTooltip 
+        content="Build parlays by selecting multiple bets from different games. Higher payouts but lower win probability."
+        position="bottom-right"
+      />
+    </div>
+  );
+};
+
+export default NovaTitanEliteParlaysTab;

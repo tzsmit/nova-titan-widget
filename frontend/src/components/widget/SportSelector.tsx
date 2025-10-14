@@ -144,7 +144,7 @@ export const SportSelector: React.FC<SportSelectorProps> = ({ onClose }) => {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
-          <h3 className="text-lg font-semibold text-gray-900">Select Sports & Leagues</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Select Sports & Leagues</h3>
           <HelpTooltip 
             content="Choose which sports and leagues you want to see predictions for. More sports = more betting opportunities!" 
             term="Sport Selection"
@@ -153,7 +153,7 @@ export const SportSelector: React.FC<SportSelectorProps> = ({ onClose }) => {
         </div>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 transition-colors"
+          className="text-gray-600 hover:text-gray-800 transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -165,17 +165,17 @@ export const SportSelector: React.FC<SportSelectorProps> = ({ onClose }) => {
       <div className="flex space-x-2 mb-6">
         <button
           onClick={selectAllSports}
-          className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors"
+          className="px-3 py-1 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors"
         >
           Select All
         </button>
         <button
           onClick={clearAll}
-          className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+          className="px-3 py-1 bg-gray-100 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
         >
           Clear All
         </button>
-        <div className="text-sm text-gray-500 flex items-center">
+        <div className="text-sm text-gray-700 flex items-center">
           {config.leagues?.length || 0} leagues selected
         </div>
       </div>
@@ -193,7 +193,7 @@ export const SportSelector: React.FC<SportSelectorProps> = ({ onClose }) => {
               className={`border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 ${
                 isSelected 
                   ? 'border-blue-500 bg-blue-50 shadow-md' 
-                  : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                  : 'border-gray-300 bg-white hover:border-gray-400 hover:shadow-sm'
               }`}
               onClick={() => toggleSport(sport)}
             >
@@ -204,8 +204,8 @@ export const SportSelector: React.FC<SportSelectorProps> = ({ onClose }) => {
                     {sportConfig.icon}
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">{sportConfig.name}</h4>
-                    <p className="text-xs text-gray-600">{sportConfig.description}</p>
+                    <h4 className="font-semibold text-gray-800">{sportConfig.name}</h4>
+                    <p className="text-xs text-gray-700">{sportConfig.description}</p>
                   </div>
                 </div>
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
@@ -221,7 +221,7 @@ export const SportSelector: React.FC<SportSelectorProps> = ({ onClose }) => {
 
               {/* Leagues */}
               <div className="space-y-2">
-                <div className="text-xs font-medium text-gray-700 uppercase tracking-wide">Leagues:</div>
+                <div className="text-xs font-medium text-gray-800 uppercase tracking-wide">Leagues:</div>
                 <div className="flex flex-wrap gap-2">
                   {sportConfig.leagues.map((league) => {
                     const isLeagueSelected = config.leagues?.includes(league as LeagueType) || false;
@@ -236,7 +236,7 @@ export const SportSelector: React.FC<SportSelectorProps> = ({ onClose }) => {
                         className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
                           isLeagueSelected
                             ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                         }`}
                         title={LEAGUE_DESCRIPTIONS[league as keyof typeof LEAGUE_DESCRIPTIONS]}
                       >

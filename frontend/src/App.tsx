@@ -1,8 +1,9 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MainWidget } from './components/widget/MainWidget';
+import { SimpleMainWidget } from './components/widget/SimpleMainWidget';
 import ErrorBoundary from './components/ui/ErrorBoundary';
-import './App.css';
+import { useEffect } from 'react';
+// import './App.css';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -16,13 +17,16 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  useEffect(() => {
+    // App initialized
+    console.log('Nova Titan Elite App initialized');
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary>
-        <div className="min-h-screen bg-gradient-to-br from-nova-metallic-900 via-nova-navy-900 to-nova-metallic-800 p-4">
-          <div className="max-w-6xl mx-auto">
-            <MainWidget />
-          </div>
+        <div className="min-h-screen">
+          <SimpleMainWidget />
         </div>
       </ErrorBoundary>
     </QueryClientProvider>

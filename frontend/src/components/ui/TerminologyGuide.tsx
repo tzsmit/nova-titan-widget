@@ -83,26 +83,26 @@ export const TerminologyGuide: React.FC<TerminologyGuideProps> = ({ isOpen, onCl
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-start justify-center p-4 pt-16 overflow-y-auto"
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+        className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden border border-slate-600"
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-4">
+        <div className="bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 text-white px-6 py-4 border-b border-slate-700">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold">Sports Betting Glossary</h2>
-              <p className="text-blue-100 text-sm mt-1">
-                Understand every term and make smarter betting decisions
+              <h2 className="text-2xl font-bold text-slate-100">Nova Titan Elite Glossary</h2>
+              <p className="text-slate-300 text-sm mt-1">
+                Professional sports betting terminology • <a href="https://novatitan.net/" target="_blank" rel="noopener noreferrer" className="text-purple-300 hover:text-purple-200 underline transition-colors">novatitan.net</a>
               </p>
             </div>
             <button
               onClick={onClose}
-              className="text-white hover:text-gray-200 transition-colors"
+              className="text-slate-300 hover:text-white transition-colors p-2 hover:bg-slate-700 rounded-lg"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -111,13 +111,13 @@ export const TerminologyGuide: React.FC<TerminologyGuideProps> = ({ isOpen, onCl
           </div>
         </div>
 
-        <div className="flex h-[calc(90vh-120px)]">
+        <div className="flex h-[calc(80vh-120px)]">
           {/* Sidebar */}
-          <div className="w-64 border-r border-gray-200 bg-gray-50">
+          <div className="w-64 border-r border-slate-700 bg-slate-800/50">
             {/* Search */}
-            <div className="p-4 border-b border-gray-200">
+            <div className="p-4 border-b border-slate-700">
               <div className="relative">
-                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <input
@@ -128,7 +128,7 @@ export const TerminologyGuide: React.FC<TerminologyGuideProps> = ({ isOpen, onCl
                     setSearchTerm(e.target.value);
                     setSelectedCategory(null);
                   }}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-600 text-slate-100 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm placeholder-slate-400"
                 />
               </div>
             </div>
@@ -142,8 +142,8 @@ export const TerminologyGuide: React.FC<TerminologyGuideProps> = ({ isOpen, onCl
                 }}
                 className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors mb-1 ${
                   !selectedCategory && !searchTerm
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? 'bg-purple-600 text-white'
+                    : 'text-slate-300 hover:bg-slate-700'
                 }`}
               >
                 All Terms
@@ -190,10 +190,10 @@ export const TerminologyGuide: React.FC<TerminologyGuideProps> = ({ isOpen, onCl
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 text-base mb-2">
+                            <h4 className="font-semibold text-gray-800 text-base mb-2">
                               {term}
                             </h4>
-                            <p className="text-gray-600 text-sm leading-relaxed">
+                            <p className="text-gray-700 text-sm leading-relaxed">
                               {definition}
                             </p>
                           </div>
@@ -215,8 +215,8 @@ export const TerminologyGuide: React.FC<TerminologyGuideProps> = ({ isOpen, onCl
                   <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No terms found</h3>
-                  <p className="text-gray-600">Try a different search term or browse categories.</p>
+                  <h3 className="text-lg font-medium text-gray-800 mb-2">No terms found</h3>
+                  <p className="text-gray-700">Try a different search term or browse categories.</p>
                 </div>
               )}
             </div>

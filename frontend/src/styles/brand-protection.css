@@ -1,0 +1,96 @@
+/**
+ * Brand Protection Styles
+ * Prevents users from modifying or extracting branding elements
+ */
+
+/* Protect logo images */
+img[alt*="Nova Titan"], 
+img[src*="nova-titan-logo"] {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+  -khtml-user-drag: none !important;
+  -moz-user-drag: none !important;
+  -o-user-drag: none !important;
+  user-drag: none !important;
+  -webkit-touch-callout: none !important;
+  pointer-events: auto !important;
+}
+
+/* Prevent right-click on branding elements */
+img[alt*="Nova Titan"]::-webkit-context-menu,
+img[src*="nova-titan-logo"]::-webkit-context-menu {
+  display: none !important;
+}
+
+/* Protect branding text links */
+a[href*="novatitan.net"],
+a[href*="Nova TitanAI"] {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  position: relative;
+}
+
+/* Add overlay protection for branding elements */
+.nova-titan-logo-container {
+  position: relative;
+}
+
+.nova-titan-logo-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  background: transparent;
+}
+
+/* Disable text selection on branding */
+.nova-titan-branding,
+.nova-titan-branding * {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+/* Prevent print stylesheet modifications */
+@media print {
+  img[alt*="Nova Titan"], 
+  img[src*="nova-titan-logo"],
+  .nova-titan-branding {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+}
+
+/* Disable developer tools selection helpers */
+.nova-titan-protected {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+  user-drag: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Additional protection against common extraction methods */
+.nova-titan-protected::-moz-selection {
+  background: transparent;
+}
+
+.nova-titan-protected::selection {
+  background: transparent;
+}

@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Brand Protection Styles */
+.nova-titan-protected {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+  user-drag: none !important;
+  -webkit-touch-callout: none !important;
+}
+
 /* Nova Titan Custom Styles */
 
 @layer base {
@@ -38,105 +49,32 @@
 @layer components {
   /* Button Components */
   .btn-primary {
-    @apply bg-nova-gradient text-white px-6 py-3 rounded-xl font-semibold shadow-nova hover:shadow-nova-lg transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-nova-blue-400 focus:ring-offset-2;
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2;
   }
   
   .btn-secondary {
-    @apply bg-nova-metallic text-white px-6 py-3 rounded-xl font-semibold shadow-nova-metallic hover:bg-nova-silver-700 transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-nova-silver-400 focus:ring-offset-2;
-  }
-  
-  .btn-outline {
-    @apply border-2 border-nova-navy-800 text-nova-navy-800 px-6 py-3 rounded-xl font-semibold hover:bg-nova-navy-800 hover:text-white hover:shadow-nova transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-nova-navy-500 focus:ring-offset-2;
-  }
-  
-  .btn-ghost {
-    @apply text-nova-metallic-700 px-6 py-3 rounded-xl font-medium hover:bg-nova-silver-100 hover:text-nova-navy-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-nova-silver-300;
-  }
-  
-  .btn-sm {
-    @apply px-3 py-1.5 text-sm;
-  }
-  
-  .btn-lg {
-    @apply px-6 py-3 text-lg;
+    @apply bg-slate-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-slate-600 transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2;
   }
 
   /* Card Components */
   .card {
-    @apply bg-white rounded-2xl shadow-nova border border-nova-silver-200;
+    @apply bg-white rounded-2xl shadow-lg border border-slate-200;
   }
   
   .card-hover {
-    @apply hover:shadow-nova-lg hover:-translate-y-1 transform transition-all duration-300;
-  }
-  
-  .card-interactive {
-    @apply bg-gradient-to-br from-white to-nova-silver-50 rounded-2xl shadow-nova border border-nova-silver-200 hover:shadow-nova-lg hover:-translate-y-2 hover:border-nova-blue-300 transform transition-all duration-300 cursor-pointer;
-  }
-  
-  .card-metallic {
-    @apply bg-nova-silver text-white rounded-2xl shadow-nova-metallic border border-nova-silver-600;
-  }
-  
-  .card-header {
-    @apply px-6 py-4 border-b border-gray-200;
-  }
-  
-  .card-body {
-    @apply px-6 py-4;
-  }
-  
-  .card-footer {
-    @apply px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-xl;
+    @apply hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300;
   }
 
   /* Form Components */
   .form-input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-nova-navy-500 focus:border-transparent transition-colors duration-200;
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200;
   }
   
   .form-label {
     @apply block text-sm font-medium text-gray-700 mb-2;
   }
-  
-  .form-error {
-    @apply text-red-600 text-sm mt-1;
-  }
-
-  /* Badge Components */
-  .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
-  }
-  
-  .badge-success {
-    @apply bg-green-100 text-green-800;
-  }
-  
-  .badge-warning {
-    @apply bg-yellow-100 text-yellow-800;
-  }
-  
-  .badge-danger {
-    @apply bg-red-100 text-red-800;
-  }
-  
-  .badge-info {
-    @apply bg-blue-100 text-blue-800;
-  }
-  
-  .badge-primary {
-    @apply bg-nova-navy-100 text-nova-navy-800;
-  }
-  
-  .badge-gold {
-    @apply bg-nova-gold-100 text-nova-gold-800;
-  }
 
   /* Odds Display */
-  .odds-american {
-    @apply font-mono font-semibold text-nova-navy-900;
-  }
-  
   .odds-positive {
     @apply text-green-600;
   }
@@ -144,104 +82,17 @@
   .odds-negative {
     @apply text-red-600;
   }
-  
-  .odds-favorite {
-    @apply bg-red-50 border-red-200;
-  }
-  
-  .odds-underdog {
-    @apply bg-green-50 border-green-200;
-  }
-
-  /* Prediction Confidence */
-  .confidence-high {
-    @apply bg-green-100 text-green-800 border-green-200;
-  }
-  
-  .confidence-medium {
-    @apply bg-yellow-100 text-yellow-800 border-yellow-200;
-  }
-  
-  .confidence-low {
-    @apply bg-red-100 text-red-800 border-red-200;
-  }
 
   /* Loading States */
   .loading-pulse {
     @apply animate-pulse bg-gray-200 rounded;
   }
-  
-  .loading-skeleton {
-    @apply bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-[shimmer_1.5s_infinite];
-  }
 
   /* Widget Specific */
   .widget-container {
-    @apply bg-gradient-to-br from-white via-nova-silver-50 to-white rounded-3xl shadow-nova-lg border border-nova-silver-200 overflow-hidden;
+    @apply bg-gradient-to-br from-white via-slate-50 to-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden;
     max-width: 100%;
     min-height: 500px;
-    backdrop-filter: blur(10px);
-  }
-  
-  .widget-header {
-    @apply bg-nova-gradient text-white px-8 py-6 relative overflow-hidden;
-  }
-  
-  .widget-header::before {
-    content: '';
-    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 transform translate-x-full;
-    animation: shimmer 3s ease-in-out infinite;
-  }
-  
-  @keyframes shimmer {
-    0% { transform: translateX(-100%) skewX(-12deg); }
-    100% { transform: translateX(200%) skewX(-12deg); }
-  }
-  
-  .widget-header {
-    @apply bg-gradient-to-r from-nova-navy-900 to-nova-navy-800 text-white px-6 py-4;
-  }
-  
-  .widget-nav {
-    @apply bg-gradient-to-r from-nova-metallic-800 via-nova-navy-800 to-nova-metallic-800 px-4 py-3 shadow-inner;
-  }
-  
-  .widget-nav-item {
-    @apply px-6 py-4 mx-2 text-sm font-semibold text-nova-silver-300 hover:text-white hover:bg-white/20 cursor-pointer transition-all duration-300 rounded-xl border border-transparent backdrop-blur-sm;
-  }
-  
-  .widget-nav-item.active {
-    @apply text-white bg-white/25 border-white/40 shadow-lg transform scale-105 font-bold;
-  }
-  
-  .widget-nav-item:hover {
-    @apply transform scale-105 shadow-md;
-  }
-
-  /* Team Colors (can be dynamically overridden) */
-  .team-primary {
-    @apply bg-nova-navy-600 text-white;
-  }
-  
-  .team-secondary {
-    @apply bg-gray-600 text-white;
-  }
-
-  /* Responsive breakpoints helpers */
-  .container-widget {
-    @apply w-full max-w-4xl mx-auto px-4;
-  }
-  
-  @screen sm {
-    .container-widget {
-      @apply px-6;
-    }
-  }
-  
-  @screen lg {
-    .container-widget {
-      @apply px-8;
-    }
   }
 }
 
@@ -250,66 +101,16 @@
   .animate-fade-in {
     animation: fadeIn 0.5s ease-in-out;
   }
-  
-  .animate-slide-up {
-    animation: slideUp 0.3s ease-out;
-  }
-  
-  .animate-pulse-glow {
-    animation: pulseGlow 2s infinite;
-  }
 
   /* Text utilities */
   .text-gradient {
-    @apply bg-gradient-to-r from-nova-navy-900 to-nova-gold-600 bg-clip-text text-transparent;
-  }
-  
-  /* Background utilities */
-  .bg-gradient-nova {
-    @apply bg-gradient-to-br from-nova-navy-900 via-nova-navy-800 to-nova-navy-700;
-  }
-  
-  .bg-gradient-gold {
-    @apply bg-gradient-to-br from-nova-gold-500 via-nova-gold-400 to-nova-gold-600;
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
   }
 
-  /* Shadow utilities */
-  .shadow-glow {
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
   }
-  
-  .shadow-glow-blue {
-    box-shadow: 0 0 20px rgba(30, 58, 138, 0.3);
-  }
-
-  /* Border utilities */
-  .border-gradient {
-    border-image: linear-gradient(45deg, #1e3a8a, #f59e0b) 1;
-  }
-
-  /* Custom keyframes */
-  @keyframes shimmer {
-    0% {
-      background-position: -200% 0;
-    }
-    100% {
-      background-position: 200% 0;
-    }
-  }
-}
-
-/* Custom scrollbars for webkit browsers */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  @apply bg-gray-100 rounded-lg;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-nova-navy-300 rounded-lg hover:bg-nova-navy-400;
 }
 
 /* Print styles */
@@ -320,21 +121,6 @@
   
   body {
     @apply bg-white text-black;
-  }
-  
-  .card {
-    @apply border border-gray-300 shadow-none;
-  }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .btn-primary {
-    @apply bg-black text-white border-2 border-white;
-  }
-  
-  .btn-secondary {
-    @apply bg-white text-black border-2 border-black;
   }
 }
 
@@ -348,13 +134,4 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-}
-
-/* Dark mode support (future enhancement) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-  }
-  
-  /* Dark mode styles would go here */
 }

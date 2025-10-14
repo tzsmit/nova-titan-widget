@@ -1,259 +1,323 @@
-# 🏆 Nova TitanAI Sports Widget
+# Nova Titan Elite Sports Betting Platform
 
-> **The most advanced AI-powered sports betting companion platform**  
-> Secure. Optimize. Innovate.
+A comprehensive, full-featured sports betting companion platform built with React 18, TypeScript, and cutting-edge AI integration. This platform provides real-time odds, AI-powered predictions, advanced parlay builders, and comprehensive educational resources for sports betting enthusiasts.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-blue?style=for-the-badge)](https://nova-titan-widget.netlify.app)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-2.1.0-purple?style=for-the-badge)](package.json)
+## 🏆 Project Status: FINALIZED
 
-## 🎯 **What is Nova TitanAI Sports Widget?**
+### ✅ Recently Completed Features
 
-Nova TitanAI is a revolutionary **AI-powered sports betting companion** that provides industry-leading analysis, real-time odds comparison, and intelligent recommendations across all major sports. Built as a **companion platform** (no real money transactions), it's designed to educate users and help them make informed betting decisions.
+**CFB Integration (College Football):**
+- ✅ Added CFB to all sport lists across the platform
+- ✅ SimpleGamesTab.tsx - Games page sport filter
+- ✅ SimplePredictionsTab.tsx - AI predictions page
+- ✅ NovaTitanEliteParlaysTab.tsx - Elite parlay builder
+- ✅ NovaTitanElitePlayerPropsTab.tsx - Elite player props (already included)
 
-### **🧠 Powered by Nova TitanAI v2.1**
-Our proprietary AI analyzes thousands of data points including team performance, player statistics, historical trends, and market inefficiencies to deliver predictions with **70%+ confidence scores**.
+**Comprehensive Help System:**
+- ✅ Added explanatory tooltips to all major sections
+- ✅ Created SportsBettingLegend.tsx - comprehensive terminology guide
+- ✅ Interactive legend covering odds, bet types, parlays, AI features, and strategy
+- ✅ Smart tooltip positioning to prevent off-page spillage
+- ✅ Guide buttons integrated into all major tabs
 
----
+**Enhanced User Experience:**
+- ✅ HelpTooltip components with smart positioning (top, bottom, left, right)
+- ✅ Beginner-friendly explanations for all betting concepts
+- ✅ Professional brand protection and security features
+- ✅ Responsive design with excellent mobile support
 
-## ✨ **Key Features**
+## 🚀 Core Features
 
-### **🎮 Live Sports Coverage**
-- **🏀 Basketball (NBA + NCAAB)** - Complete player props and team betting
-- **🏈 Football (NFL + NCAAF)** - Comprehensive coverage including college games
-- **🏒 Hockey (NHL)** - Full game and player prop analysis
-- **⚾ Baseball (MLB)** - Advanced sabermetrics integration
-- **⚽ Soccer (MLS)** - Growing coverage with AI predictions
+### 🎯 Live Sports Data & Odds
+- **Real-time odds** from 10+ major sportsbooks (DraftKings, FanDuel, BetMGM, Caesars, etc.)
+- **Live game tracking** with Central Standard Time conversion
+- **Multi-sport coverage**: NFL, CFB, NBA, MLB, NHL
+- **Advanced filtering** by sport, date, sportsbook, and search
+- **Comprehensive tooltips** explaining moneyline, spread, and totals
 
-### **🔥 Industry-Leading AI Features**
-- **Edge Detection** - Identify market inefficiencies across 40+ sportsbooks
-- **Value Betting** - AI-calculated expected value (EV) for every bet
-- **Arbitrage Scanner** - Real-time risk-free betting opportunities
-- **Kelly Criterion** - Mathematically optimal bet sizing recommendations
-- **Parlay Optimizer** - Advanced correlation analysis for multi-game bets
+### 🤖 AI-Powered Predictions
+- **Nova-AI-v3.1 integration** with confidence scoring
+- **Machine learning analysis** of team performance, stats, and trends
+- **Confidence-based filtering** (60%-90%+ confidence levels)
+- **Expected Value (EV) calculations** for long-term profitability
+- **Real-time predictions** updated every 5 minutes
 
-### **📊 Live Odds Integration**
-- **Real-time odds** from major sportsbooks including Underdog Fantasy
-- **Odds comparison** across 10+ platforms
-- **Line movement tracking** with historical data
-- **Best odds finder** with automatic updates
+### 🎰 Advanced Parlay Builder
+- **Elite parlay constructor** with duplicate prevention
+- **AI-optimized suggestions** for maximum expected value
+- **Real-time odds calculation** with automatic updates
+- **Correlation detection** to avoid conflicting bets
+- **Professional risk management** features
 
-### **🛡️ Companion Mode Features**
-- **No Real Money Transactions** - Pure education and analysis
-- **Bet Tracking** - Monitor your theoretical performance
-- **Learning Mode** - Understand profitable betting strategies
-- **Risk-Free Practice** - Build confidence before real betting
+### 👤 Elite Player Props
+- **Individual player statistics betting** (yards, touchdowns, points, etc.)
+- **Live player performance data** integration
+- **Multi-sport prop coverage** (NFL passing/rushing, NBA scoring/rebounds)
+- **Advanced filtering** by player, prop type, and confidence
+- **Professional-grade interface** with real-time updates
 
----
+### 📚 Educational Resources
+- **Comprehensive Sports Betting Legend** with 6 major sections:
+  - Understanding Odds (positive/negative odds explanation)
+  - Types of Bets (moneyline, spread, totals, props)
+  - Parlay Betting (legs, calculations, strategies)
+  - AI Features (confidence scores, EV, analysis)
+  - Betting Strategy (bankroll management, line shopping)
+  - Important Warnings (responsible gambling, legal considerations)
+- **Interactive tooltips** on every major feature
+- **Beginner-friendly explanations** throughout the platform
 
-## 🚀 **Quick Start**
+## 🛡️ Security & Brand Protection
+- **CSS-based brand protection** against logo modification
+- **JavaScript event handler security** for brand elements
+- **Secure CDN integration** for logo assets
+- **Professional copyright notices** and Terms of Service
 
-### **Online Access**
-Visit our live platform: **[nova-titan-widget.netlify.app](https://nova-titan-widget.netlify.app)**
+## 🗄️ Data Management
 
-### **Local Development**
-```bash
-# Clone the repository
-git clone https://github.com/tzsmit/nova-titan-widget.git
-cd nova-titan-widget
+### RESTful Table API Integration
+The platform uses a comprehensive RESTful API for data persistence:
 
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Open http://localhost:5173
+```typescript
+// GET /tables/{table} - List records with pagination
+// GET /tables/{table}/{id} - Get single record
+// POST /tables/{table} - Create new record  
+// PUT /tables/{table}/{id} - Full update
+// PATCH /tables/{table}/{id} - Partial update
+// DELETE /tables/{table}/{id} - Soft delete
 ```
 
+**System Fields (Auto-managed):**
+- `id` - Unique UUID identifier
+- `gs_project_id` - Project identifier
+- `gs_table_name` - Table name
+- `created_at` - Creation timestamp
+- `updated_at` - Last modification timestamp
+
+### External API Integrations
+
+**The Odds API:**
+- API Key: `effdb0775abef82ff5dd944ae2180cae`
+- 20,000 credits/month subscription
+- Real-time odds from major sportsbooks
+- Comprehensive sports coverage
+
+**ESPN Sports API:**
+- Live games and scores integration
+- Real-time game updates
+- Team statistics and performance data
+
+## 💻 Technology Stack
+
+**Frontend Framework:**
+- React 18 with TypeScript for type safety
+- Zustand for state management
+- Framer Motion for animations
+- Tailwind CSS for styling
+- Vite for build optimization
+
+**Data & API:**
+- @tanstack/react-query for data fetching
+- RESTful Table API for persistence
+- The Odds API for live sports data
+- ESPN API for game information
+
+**UI/UX:**
+- Lucide React for icons
+- Motion animations and transitions
+- Responsive design with mobile-first approach
+- Nova Titan Elite color scheme (deep slate backgrounds)
+
+## 📁 File Structure
+
+```
+frontend/src/
+├── components/
+│   ├── ui/
+│   │   ├── HelpTooltip.tsx          # Smart tooltip component
+│   │   ├── SportsBettingLegend.tsx  # Comprehensive betting guide
+│   │   ├── DateSelector.tsx         # 14-day date selection
+│   │   ├── SearchBar.tsx           # Advanced search functionality
+│   │   └── NovaTitanLogo.tsx       # Protected brand logo
+│   ├── widget/tabs/
+│   │   ├── SimpleGamesTab.tsx       # Main games interface ✅ CFB + tooltips
+│   │   ├── SimplePredictionsTab.tsx # AI predictions ✅ CFB + tooltips  
+│   │   ├── NovaTitanEliteParlaysTab.tsx      # Parlay builder ✅ CFB
+│   │   └── NovaTitanElitePlayerPropsTab.tsx  # Player props ✅ CFB + tooltips
+│   └── legal/
+│       ├── LegalDisclaimer.tsx      # Copyright notices
+│       └── TermsOfService.tsx       # Comprehensive ToS
+├── services/
+│   ├── realTimeOddsService.ts       # Live odds API integration
+│   ├── realTimeAIPredictions.ts     # AI prediction service
+│   └── liveSportsService.ts         # ESPN integration
+└── stores/
+    └── widgetStore.ts               # Zustand state management
+```
+
+## 🎮 User Interface Features
+
+### Comprehensive Tooltips System
+- **Smart positioning** prevents tooltips from spilling off-page
+- **Size variants** (sm, md, lg) for different content lengths  
+- **Position options** (top, bottom, left, right) with automatic fallbacks
+- **Interactive help buttons** (purple ? icons) throughout the interface
+
+### Sports Betting Legend
+- **Modal-based comprehensive guide** accessible from all major tabs
+- **6 detailed sections** covering all aspects of sports betting
+- **Interactive sidebar navigation** between topics
+- **Real examples** and practical explanations for each concept
+- **Beginner-friendly language** with professional depth
+
+### Advanced Filtering & Search
+- **Multi-criteria filtering** by sport, date, sportsbook, confidence
+- **Real-time search** across teams, players, and games
+- **Debounced input** for optimal performance
+- **Comprehensive sports coverage** including new CFB support
+
+## 🔗 Public URLs & Deployment
+
+**Production Deployment:**
+- Platform will be deployed via Netlify (deployment handled through Publish tab)
+- Custom domain integration supported
+- CDN optimization for global performance
+
+**API Endpoints:**
+- The Odds API: `https://api.the-odds-api.com/v4/`
+- ESPN Sports API: `https://site.api.espn.com/`
+- Logo CDN: `https://cdn1.genspark.ai/user-upload-image/gpt_image_edited/90a28898-de41-49b6-8ac8-ec5478c81614.png`
+
+## 📊 Data Models & Storage
+
+### Parlay Builder Data Structure
+```typescript
+interface ParlayLeg {
+  id: string;
+  game: string;
+  team: string;
+  bet: string;  
+  odds: number;
+  confidence?: number;
+  sport: string;
+  gameDate?: string;
+  venue?: string;
+  bookmaker?: string;
+}
+
+interface ParlayBuilder {
+  legs: ParlayLeg[];
+  stake: number;
+  totalOdds: number;
+  potentialPayout: number;
+  expectedValue?: number;
+}
+```
+
+### AI Prediction Data Structure
+```typescript
+interface AIPrediction {
+  id: string;
+  sport: string;
+  homeTeam: string;
+  awayTeam: string;
+  gameDate: string;
+  predictions: {
+    moneyline: {
+      pick: string;
+      confidence: number;
+      expectedValue: number;
+    };
+    spread?: {
+      pick: string;
+      confidence: number;
+    };
+    total?: {
+      pick: string;
+      confidence: number;
+    };
+  };
+  analysis: string;
+}
+```
+
+## 🔧 Development Guidelines
+
+### Adding New Sports
+1. Update `SPORTS` constants in affected tab components
+2. Add sport mappings to `realTimeOddsService.ts`
+3. Update API integration for new sport coverage
+4. Add appropriate emojis and display names
+
+### Extending Tooltip System
+1. Use existing `HelpTooltip` component for consistency
+2. Choose appropriate positioning to avoid page spillage
+3. Keep content concise but informative
+4. Test on mobile devices for accessibility
+
+### Brand Protection Requirements
+- Never modify logo URLs or brand elements
+- Maintain copyright notices and attribution
+- Keep Nova Titan branding consistent across platform
+- Preserve security features for brand assets
+
+## ⚠️ Important Notes
+
+### Responsible Gambling
+- All predictions are estimates with no guaranteed outcomes
+- Platform includes comprehensive warnings and disclaimers
+- Educational content promotes responsible betting practices
+- Links to gambling addiction resources where appropriate
+
+### Legal Compliance
+- Platform serves educational and entertainment purposes
+- Users responsible for checking local sports betting laws
+- No real money transactions processed through platform
+- Companion tool for analysis and learning only
+
+### API Rate Limits
+- The Odds API: 20,000 credits/month (current subscription)
+- ESPN API: Standard rate limiting applies
+- Implement caching and reasonable refresh intervals
+- Monitor usage to stay within limits
+
+## 🚀 Recommended Next Steps
+
+1. **Performance Optimization**
+   - Implement advanced caching strategies
+   - Add service worker for offline functionality
+   - Optimize bundle size and loading speeds
+
+2. **Enhanced Features**
+   - Add more sports (soccer, tennis, etc.)
+   - Implement betting history tracking
+   - Create advanced analytics dashboard
+   - Add social sharing features
+
+3. **Mobile Enhancement**
+   - Native mobile app development
+   - Push notifications for game updates
+   - Enhanced touch interactions
+   - Offline data access
+
+4. **AI Improvements**
+   - Enhanced prediction algorithms
+   - Historical performance tracking
+   - Machine learning model refinements
+   - Advanced correlation analysis
+
+## 🎯 Platform Goals
+
+The Nova Titan Elite Sports Betting Platform aims to be the premier educational and analytical tool for sports betting enthusiasts, providing:
+
+- **Professional-grade analysis tools** with AI-powered insights
+- **Comprehensive educational resources** for beginners and experts
+- **Real-time data integration** from industry-leading sources
+- **Responsible gambling promotion** with built-in safety features
+- **Cutting-edge user experience** with modern web technologies
+
 ---
 
-## 🎯 **How It Works**
+**© 2025 Nova Titan Systems. All rights reserved.**
 
-### **1. 🎮 Games Tab**
-- View live games with AI predictions
-- Compare odds across multiple sportsbooks
-- Access detailed team and player statistics
-- Get Nova TitanAI confidence scores
-
-### **2. 🔮 Predictions Tab**
-- AI-powered game forecasts with reasoning
-- Filter by sport, confidence level, and expected value
-- Track prediction accuracy over time
-- Export predictions for analysis
-
-### **3. 🧠 AI Pro Intelligence**
-- Advanced edge detection algorithms
-- Arbitrage opportunity alerts
-- Value betting recommendations
-- Professional bankroll management tools
-
-### **4. 🎯 Parlay Builder**
-- AI-optimized multi-game combinations
-- Correlation analysis to avoid related outcomes
-- Expected value calculations for parlays
-- Risk assessment and recommendations
-
-### **5. ⚙️ Settings**
-- Customize AI confidence thresholds
-- Set betting limits and preferences
-- Choose theme and display options
-- Configure notification preferences
-
----
-
-## 📊 **Performance Stats**
-
-### **Nova TitanAI Track Record:**
-- **68.7% Win Rate** across all predictions
-- **+$1,247 Profit** in simulation tracking
-- **2,847 Games Analyzed** and growing
-- **78%+ Average Confidence** on recommended bets
-
-### **Coverage Statistics:**
-- **5 Major Sports** with comprehensive coverage
-- **75+ Betting Options** across all games
-- **40+ Sportsbooks** monitored for odds
-- **Real-time Updates** every 30 seconds
-
----
-
-## 🛡️ **Why Companion Mode?**
-
-### **For Users:**
-- ✅ **Learn Without Risk** - Practice betting strategies safely
-- ✅ **Track Performance** - See how good your picks would be
-- ✅ **AI Education** - Understand profitable betting principles
-- ✅ **Build Confidence** - Develop skills before real money
-
-### **Legal & Compliance:**
-- ✅ **No Gambling License Required** - Educational platform only
-- ✅ **Broader Market Appeal** - Accessible to all users
-- ✅ **Focus on Intelligence** - Emphasizes analysis over gambling
-- ✅ **Responsible Gaming** - Promotes educated decision-making
-
----
-
-## 🏆 **What Makes Us Industry-Leading**
-
-### **vs. DraftKings/FanDuel:**
-- ✅ **Advanced AI Analysis** (they have basic stats)
-- ✅ **Real-time Edge Detection** (they show basic odds)
-- ✅ **Comprehensive Player Props** (more extensive coverage)
-- ✅ **Educational Focus** (companion mode vs. direct gambling)
-
-### **vs. Action Network/ESPN:**
-- ✅ **Live Parlay Optimization** (theirs is static)
-- ✅ **Personalized AI Learning** (their AI doesn't adapt)
-- ✅ **College Sports Integration** (better coverage)
-- ✅ **Professional Tools** (Kelly Criterion built-in)
-
-### **vs. Sharp Services ($500+/month):**
-- ✅ **Comparable Edge Detection** (at a fraction of cost)
-- ✅ **User-friendly Interface** (sharps use complex tools)
-- ✅ **All Sports Integration** (most sharps specialize)
-- ✅ **Accessible to Everyone** (not just professionals)
-
----
-
-## 🛠️ **Technology Stack**
-
-### **Frontend:**
-- **React 18** with TypeScript for type safety
-- **Vite** for lightning-fast development and builds
-- **Tailwind CSS** for responsive, utility-first styling
-- **Framer Motion** for smooth animations and transitions
-- **Zustand** for lightweight state management
-
-### **Data & APIs:**
-- **The Odds API** for real-time sportsbook odds
-- **RESTful Table API** for data persistence and CRUD operations
-- **Custom AI Engine** for predictions and analysis
-- **Real-time WebSocket** connections for live updates
-
-### **Deployment & Infrastructure:**
-- **Netlify** hosting with automatic CI/CD
-- **GitHub** for version control and collaboration
-- **CDN Distribution** for global performance
-- **SSL/HTTPS** security by default
-
----
-
-## 🌟 **Getting Started Guide**
-
-### **For Beginners:**
-1. **Start with Games Tab** - Explore live games and basic odds
-2. **Check AI Predictions** - See how our AI analyzes games
-3. **Learn the Terminology** - Use built-in help tooltips
-4. **Practice with Parlays** - Build theoretical multi-game bets
-5. **Track Your Progress** - Monitor your theoretical performance
-
-### **For Advanced Users:**
-1. **Access AI Pro Intelligence** - Advanced edge detection tools
-2. **Use Arbitrage Scanner** - Find risk-free betting opportunities
-3. **Apply Kelly Criterion** - Optimal bankroll management
-4. **Analyze Market Inefficiencies** - Spot value betting opportunities
-5. **Export Data** - Download predictions for further analysis
-
----
-
-## 🎯 **Roadmap & Future Features**
-
-### **Phase 2 (Coming Soon):**
-- 🔴 **Live Streaming Integration** - Watch games while analyzing
-- 📱 **Mobile App** - Native iOS and Android applications
-- 🎮 **Gamification** - Leaderboards, achievements, and challenges
-- 🤝 **Social Features** - Share picks and follow other analysts
-
-### **Phase 3 (Future):**
-- 🏆 **Tournament Mode** - Compete in prediction contests
-- 📊 **Advanced Analytics** - Deep statistical analysis tools
-- 🔗 **Third-party Integrations** - Connect with betting platforms
-- 🌍 **International Sports** - Expand beyond US markets
-
----
-
-## 🤝 **Connect With Nova Titan**
-
-### **Social Media:**
-- 📱 **TikTok**: [@novatitan1](https://www.tiktok.com/@novatitan1) - Daily sports betting tips and AI insights
-- 📘 **Facebook**: [Nova Titan Systems](https://www.facebook.com/NovaTitanSystems/) - Company updates and community
-
-### **Business Inquiries:**
-- 💼 **Partnerships** - Integration and white-label opportunities
-- 🎓 **Educational** - Schools and training programs
-- 🏢 **Enterprise** - Custom solutions for organizations
-
----
-
-## 📄 **License & Legal**
-
-### **Open Source License:**
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-### **Disclaimer:**
-Nova TitanAI Sports Widget is an **educational and analytical tool only**. It does not facilitate real money gambling and is designed for informational purposes. Users should gamble responsibly and within their means when using real betting platforms.
-
-### **Data Sources:**
-All odds data is sourced from licensed providers including The Odds API. Team and player statistics are from publicly available sources and official league data feeds.
-
----
-
-## 🏆 **Built by Nova Titan Systems**
-
-**Secure. Optimize. Innovate.**
-
-Nova Titan Systems is dedicated to creating cutting-edge AI solutions for the sports and entertainment industry. Our mission is to democratize access to professional-level sports analysis through advanced artificial intelligence.
-
----
-
-<div align="center">
-
-**⭐ Star this repository if you find it valuable!**
-
-[![GitHub stars](https://img.shields.io/github/stars/tzsmit/nova-titan-widget?style=social)](https://github.com/tzsmit/nova-titan-widget/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/tzsmit/nova-titan-widget?style=social)](https://github.com/tzsmit/nova-titan-widget/network)
-
-**Made with ❤️ by Nova Titan Systems**
-
-</div>
+*This platform is designed for educational and entertainment purposes. Please gamble responsibly and check your local laws regarding sports betting.*
