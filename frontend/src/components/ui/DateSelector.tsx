@@ -20,7 +20,7 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
 }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  // Generate array of next 14 days
+  // Generate array of next 14 days in CST to match game filtering
   const generateDateOptions = () => {
     const dates = [];
     const today = new Date();
@@ -29,11 +29,15 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       
-      const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+      // Use CST timezone for consistency with game data
+      const cstDate = new Date(date.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+      const dateStr = cstDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+      
       const displayDate = date.toLocaleDateString('en-US', {
         weekday: 'short',
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
+        timeZone: 'America/Chicago'
       });
       
       dates.push({

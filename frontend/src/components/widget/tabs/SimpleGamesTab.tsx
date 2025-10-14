@@ -100,16 +100,17 @@ export const SimpleGamesTab: React.FC = () => {
           );
         }
 
-        // Filter by date (October 2025) - ALWAYS apply date filter
-        const today = new Date().toISOString().split('T')[0]; // Current format: 2025-10-14
-        console.log(`📅 Today's date: ${today}, Selected date: ${selectedDate}`);
+        // Filter by date (October 2025) - ALWAYS apply date filter using CST
+        const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' }); // YYYY-MM-DD in CST
+        console.log(`📅 Today's date (CST): ${today}, Selected date: ${selectedDate}`);
         
         const beforeFilter = processedGames.length;
         processedGames = processedGames.filter(game => {
           if (!game.commence_time) return false;
-          const gameDate = new Date(game.commence_time).toISOString().split('T')[0];
+          // Convert game time to CST date
+          const gameDate = new Date(game.commence_time).toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
           const matches = gameDate === selectedDate;
-          console.log(`📊 Game date: ${gameDate}, Selected: ${selectedDate}, Matches: ${matches}`);
+          console.log(`📊 Game date (CST): ${gameDate}, Selected: ${selectedDate}, Matches: ${matches}`);
           return matches;
         });
         console.log(`📅 Date filter applied: ${beforeFilter} games → ${processedGames.length} games for ${selectedDate}`);

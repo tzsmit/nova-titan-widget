@@ -213,8 +213,8 @@ function getTeamLogo(teamName: string): string {
     .toUpperCase()
     .slice(0, 3);
   
-  // Ensure initials are valid for URL
-  const validInitials = initials.replace(/[^A-Z0-9]/g, 'T'); // Replace invalid chars with 'T'
+  // Ensure initials are valid for URL - minimum 1 character
+  const validInitials = initials.length > 0 ? initials.replace(/[^A-Z0-9]/g, 'T') : 'TEAM';
   
   return `https://via.placeholder.com/64x64/1e293b/ffffff?text=${encodeURIComponent(validInitials)}`;
 }
@@ -248,6 +248,9 @@ function processGameTime(gameTime: string | undefined): { displayTime: string; d
       month: 'short',
       day: 'numeric'
     });
+
+    // Debug logging to check date conversion
+    console.log(`🕰️ Time conversion: ${gameTime} -> ${displayTime} (${date.toISOString().split('T')[0]} CST)`);
 
     return { displayTime, displayDate };
   } catch (error) {
