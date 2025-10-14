@@ -2,7 +2,7 @@
  * Help Tooltip Component for Terminology and Explanations
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface HelpTooltipProps {
@@ -19,29 +19,135 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({
   size = 'sm' 
 }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const positionClasses = {
-    top: 'bottom-full right-0 mb-2',
-    bottom: 'top-full right-0 mt-2', 
-    left: 'right-full top-0 mr-2',
-    right: 'left-full top-0 ml-2'
+  // Simple, reliable positioning
+  const getTooltipStyles = () => {
+    const width = size === 'sm' ? '12rem' : size === 'md' ? '16rem' : '20rem';
+    
+    const baseStyle = {
+      position: 'absolute' as const,
+      zIndex: 9999,
+      width,
+      maxWidth: '90vw',
+    };
+
+    switch (position) {
+      case 'top':
+        return {
+          ...baseStyle,
+          bottom: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          marginBottom: '0.5rem',
+        };
+      case 'bottom':
+        return {
+          ...baseStyle,
+          top: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          marginTop: '0.5rem',
+        };
+      case 'left':
+        return {
+          ...baseStyle,
+          right: '100%',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          marginRight: '0.5rem',
+        };
+      case 'right':
+        return {
+          ...baseStyle,
+          left: '100%',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          marginLeft: '0.5rem',
+        };
+      default:
+        return {
+          ...baseStyle,
+          bottom: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          marginBottom: '0.5rem',
+        };
+    }
   };
 
-  const arrowClasses = {
-    top: 'top-full right-4 border-t-gray-900 border-l-transparent border-r-transparent border-b-transparent',
-    bottom: 'bottom-full right-4 border-b-gray-900 border-l-transparent border-r-transparent border-t-transparent',
-    left: 'left-full top-2 border-l-gray-900 border-t-transparent border-b-transparent border-r-transparent',
-    right: 'right-full top-2 border-r-gray-900 border-t-transparent border-b-transparent border-l-transparent'
+  // Simple arrow styles
+  const getArrowStyles = () => {
+    const baseStyle = {
+      position: 'absolute' as const,
+      width: 0,
+      height: 0,
+    };
+
+    switch (position) {
+      case 'top':
+        return {
+          ...baseStyle,
+          top: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          borderLeft: '6px solid transparent',
+          borderRight: '6px solid transparent',
+          borderTop: '6px solid rgb(17, 24, 39)',
+        };
+      case 'bottom':
+        return {
+          ...baseStyle,
+          bottom: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          borderLeft: '6px solid transparent',
+          borderRight: '6px solid transparent',
+          borderBottom: '6px solid rgb(17, 24, 39)',
+        };
+      case 'left':
+        return {
+          ...baseStyle,
+          left: '100%',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          borderTop: '6px solid transparent',
+          borderBottom: '6px solid transparent',
+          borderLeft: '6px solid rgb(17, 24, 39)',
+        };
+      case 'right':
+        return {
+          ...baseStyle,
+          right: '100%',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          borderTop: '6px solid transparent',
+          borderBottom: '6px solid transparent',
+          borderRight: '6px solid rgb(17, 24, 39)',
+        };
+      default:
+        return {
+          ...baseStyle,
+          top: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          borderLeft: '6px solid transparent',
+          borderRight: '6px solid transparent',
+          borderTop: '6px solid rgb(17, 24, 39)',
+        };
+    }
   };
 
   return (
-    <span className="relative inline-flex items-center">
+    <span className="relative inline-block ml-1">
       <button
+        ref={buttonRef}
         onMouseEnter={() => setIsVisible(true)}
         onMouseLeave={() => setIsVisible(false)}
         onClick={() => setIsVisible(!isVisible)}
-        className="inline-flex items-center justify-center w-4 h-4 ml-1 text-xs bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition-colors"
+        className="inline-flex items-center justify-center w-5 h-5 text-xs bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-all duration-200 shadow-lg hover:shadow-purple-500/25 focus:outline-none focus:ring-1 focus:ring-purple-400 focus:ring-opacity-50"
         type="button"
+        aria-label="Show help information"
       >
         ?
       </button>
@@ -49,20 +155,20 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({
       <AnimatePresence>
         {isVisible && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.15 }}
-            className={`absolute z-50 ${positionClasses[position]} ${
-              size === 'sm' ? 'w-48' : size === 'md' ? 'w-64' : 'w-80'
-            }`}
+            style={getTooltipStyles()}
           >
-            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg">
+            <div className="bg-gray-900 text-white text-sm rounded-lg px-4 py-3 shadow-2xl border border-gray-600 backdrop-blur-sm relative pointer-events-none">
               {term && (
-                <div className="font-semibold text-blue-300 mb-1">{term}</div>
+                <div className="font-semibold text-blue-300 mb-2 text-xs uppercase tracking-wide">{term}</div>
               )}
-              <div className="leading-relaxed">{content}</div>
-              <div className={`absolute w-0 h-0 border-4 ${arrowClasses[position]}`} />
+              <div className="leading-relaxed break-words">{content}</div>
+              
+              {/* Arrow */}
+              <div style={getArrowStyles()}></div>
             </div>
           </motion.div>
         )}

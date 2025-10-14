@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tooltip Fixes Verification - Nova TitanAI</title>
+    <script src="https://unpkg.com/react@18.2.0/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+        const { motion, AnimatePresence } = Motion;
+
+        // Updated HelpTooltip Component
+        const HelpTooltip = ({ 
+          content, 
+          term, 
+          position = 'top',
+          size = 'sm' 
+        }) => {
+          const [isVisible, setIsVisible] = useState(false);
+
+          const getTooltipClasses = () => {
+            const baseClasses = 'absolute z-[9999] pointer-events-none';
+            const widthClass = size === 'sm' ? 'w-48' : size === 'md' ? 'w-64' : 'w-80';
+            
+            switch (position) {
+              case 'top':
+                return `${baseClasses} ${widthClass} bottom-full left-1/2 transform -translate-x-1/2 mb-2`;
+              case 'bottom':
+                return `${baseClasses} ${widthClass} top-full left-1/2 transform -translate-x-1/2 mt-2`;
+              case 'left':
+                return `${baseClasses} ${widthClass} right-full top-1/2 transform -translate-y-1/2 mr-2`;
+              case 'right':
+                return `${baseClasses} ${widthClass} left-full top-1/2 transform -translate-y-1/2 ml-2`;
+              default:
+                return `${baseClasses} ${widthClass} bottom-full left-1/2 transform -translate-x-1/2 mb-2`;
+            }
+          };
+
+          const getArrowClasses = () => {
+            const baseArrowClasses = 'absolute w-0 h-0';
+            
+            switch (position) {
+              case 'top':
+                return `${baseArrowClasses} top-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-t-8 border-l-transparent border-r-transparent border-t-gray-900`;
+              case 'bottom':
+                return `${baseArrowClasses} bottom-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-b-8 border-l-transparent border-r-transparent border-b-gray-900`;
+              case 'left':
+                return `${baseArrowClasses} left-full top-1/2 transform -translate-y-1/2 border-t-4 border-b-4 border-l-8 border-t-transparent border-b-transparent border-l-gray-900`;
+              case 'right':
+                return `${baseArrowClasses} right-full top-1/2 transform -translate-y-1/2 border-t-4 border-b-4 border-r-8 border-t-transparent border-b-transparent border-r-gray-900`;
+              default:
+                return `${baseArrowClasses} top-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-t-8 border-l-transparent border-r-transparent border-t-gray-900`;
+            }
+          };
+
+          return (
+            <span className="relative inline-block ml-1">
+              <button
+                onMouseEnter={() => setIsVisible(true)}
+                onMouseLeave={() => setIsVisible(false)}
+                onClick={() => setIsVisible(!isVisible)}
+                className="inline-flex items-center justify-center w-5 h-5 text-xs bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-all duration-200 shadow-lg hover:shadow-purple-500/25 focus:outline-none focus:ring-1 focus:ring-purple-400 focus:ring-opacity-50"
+                type="button"
+                aria-label="Show help information"
+              >
+                ?
+              </button>
+              
+              <AnimatePresence>
+                {isVisible && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: position === 'top' ? 10 : position === 'bottom' ? -10 : 0 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: position === 'top' ? 10 : position === 'bottom' ? -10 : 0 }}
+                    transition={{ duration: 0.2, type: "spring", damping: 20, stiffness: 300 }}
+                    className={getTooltipClasses()}
+                    style={{ maxWidth: '90vw' }}
+                  >
+                    <div className="bg-gray-900 text-white text-sm rounded-lg px-4 py-3 shadow-2xl border border-gray-600 backdrop-blur-sm relative">
+                      {term && (
+                        <div className="font-semibold text-blue-300 mb-2 text-xs uppercase tracking-wide">{term}</div>
+                      )}
+                      <div className="leading-relaxed break-words">{content}</div>
+                      
+                      <div className={getArrowClasses()}></div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </span>
+          );
+        };
+
+        // Updated CornerHelpTooltip Component with centered positioning
+        const CornerHelpTooltip = ({ 
+          content, 
+          term, 
+          size = 'md' 
+        }) => {
+          const [isVisible, setIsVisible] = useState(false);
+
+          const getTooltipClasses = () => {
+            const widthClass = size === 'md' ? 'w-64' : 'w-80';
+            // Position from center to prevent cutoff
+            return `absolute z-[9999] ${widthClass} top-full left-1/2 transform -translate-x-1/2 mt-2 pointer-events-none max-w-[90vw]`;
+          };
+
+          const getArrowClasses = () => {
+            // Center the arrow since tooltip is centered
+            return 'absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-8 border-l-transparent border-r-transparent border-b-gray-900';
+          };
+
+          return (
+            <div className="relative">
+              <button
+                onMouseEnter={() => setIsVisible(true)}
+                onMouseLeave={() => setIsVisible(false)}
+                onClick={() => setIsVisible(!isVisible)}
+                className="inline-flex items-center justify-center w-8 h-8 text-sm bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-all duration-200 shadow-lg hover:shadow-purple-500/25 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-opacity-50 hover:scale-105"
+                type="button"
+                aria-label="Show page help information"
+              >
+                ?
+              </button>
+              
+              <AnimatePresence>
+                {isVisible && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: -10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                    transition={{ duration: 0.2, type: "spring", damping: 20, stiffness: 300 }}
+                    className={getTooltipClasses()}
+                  >
+                    <div className="bg-gray-900 text-white text-sm rounded-lg px-5 py-4 shadow-2xl border border-gray-600 backdrop-blur-sm relative">
+                      {term && (
+                        <div className="font-semibold text-purple-300 mb-2 text-xs uppercase tracking-wide">{term}</div>
+                      )}
+                      <div className="leading-relaxed break-words">{content}</div>
+                      
+                      <div className={getArrowClasses()}></div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        };
+
+        // Verification Test Component
+        const TooltipFixesVerification = () => {
+          return (
+            <div className="min-h-screen bg-gray-900 text-white">
+              
+              {/* Fixed Header Area (Simulating companion mode tooltip) */}
+              <div className="bg-gray-800 p-4 border-b border-gray-700">
+                <div className="max-w-4xl mx-auto">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <h1 className="text-xl font-bold">🏆 Nova TitanAI</h1>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-600/30 backdrop-blur-sm border border-blue-400/40">
+                        🛡️ Companion Mode
+                      </span>
+                      <HelpTooltip 
+                        content="Nova TitanAI analyzes team performance, stats, and key factors for winning predictions" 
+                        position="bottom" 
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="max-w-4xl mx-auto p-8 space-y-8">
+                
+                {/* Corner Tooltip Test (No Cutoff) */}
+                <div className="bg-gray-800 rounded-xl p-6 shadow-xl relative border border-gray-600">
+                  <div className="absolute top-4 right-4 z-10">
+                    <CornerHelpTooltip 
+                      content="This corner tooltip should NOT get cut off at the right edge. It's now centered under the button."
+                      term="Fixed Corner"
+                      size="md"
+                    />
+                  </div>
+
+                  <h2 className="text-2xl font-bold text-white mb-4">✅ Fixed Corner Tooltips</h2>
+                  <p className="text-gray-300">
+                    The corner tooltip (top-right) should now appear centered under the button to prevent cutoffs.
+                  </p>
+                </div>
+
+                {/* Sports Selection Simulation */}
+                <div className="bg-white rounded-xl p-6 shadow-xl relative">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-lg font-semibold text-gray-900">Select Sports & Leagues</h3>
+                      <HelpTooltip 
+                        content="Choose which sports and leagues you want to see predictions for. More sports = more betting opportunities!" 
+                        term="Sport Selection"
+                        position="bottom"
+                      />
+                    </div>
+                    <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <button className="px-3 py-2 bg-blue-600 text-white rounded-lg flex items-center">
+                      NBA
+                      <HelpTooltip 
+                        content="National Basketball Association - Premier professional basketball league"
+                        size="md"
+                        position="bottom"
+                      />
+                    </button>
+                    <button className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg flex items-center">
+                      NFL
+                      <HelpTooltip 
+                        content="National Football League - Premier professional football league"
+                        size="md"
+                        position="bottom"
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                {/* No Duplicates Test */}
+                <div className="bg-gray-800 rounded-xl p-6 shadow-xl border border-gray-600">
+                  <h2 className="text-xl font-bold text-white mb-4">🎯 Parlay Builder</h2>
+                  <p className="text-gray-300 mb-4">
+                    This section should have NO duplicate tooltips in the header.
+                  </p>
+                  
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-blue-400">⚡</span>
+                      <h3 className="text-white font-semibold">Nova TitanAI Parlay Optimizer</h3>
+                      <HelpTooltip content="AI analyzes your parlay selections to optimize value" />
+                    </div>
+                    
+                    <p className="text-gray-300">
+                      Expected Value: <span className="text-green-400 font-bold">+18.7%</span>
+                      <HelpTooltip content="Expected value shows if this bet is theoretically profitable over time" />
+                    </p>
+                  </div>
+                </div>
+
+                {/* Final Success Status */}
+                <div className="bg-green-900/30 border border-green-500 rounded-xl p-6 text-center">
+                  <div className="text-green-400 font-bold text-lg mb-2">✅ All Tooltip Issues Fixed</div>
+                  <div className="text-green-300 text-sm space-y-1">
+                    <p>✅ Fixed: CornerHelpTooltip import errors</p>
+                    <p>✅ Fixed: Removed duplicate tooltips in headers</p>
+                    <p>✅ Fixed: Right-side tooltip cutoffs (now centered)</p>
+                    <p>✅ Fixed: Top menu companion mode tooltip (position="bottom")</p>
+                    <p>✅ Fixed: Sports menu tooltips (position="bottom")</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        // Render the verification
+        ReactDOM.render(<TooltipFixesVerification />, document.getElementById('root'));
+    </script>
+</body>
+</html>

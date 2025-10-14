@@ -106,8 +106,41 @@ export const SportSelector: React.FC<SportSelectorProps> = ({ onClose }) => {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 max-w-2xl"
+      className="bg-white rounded-xl shadow-2xl border border-gray-200 p-6 max-w-2xl relative overflow-hidden"
     >
+      {/* Sports-themed background pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <svg width="100%" height="100%" viewBox="0 0 400 300">
+          {/* Sports icons background pattern */}
+          <defs>
+            <pattern id="sportsIcons" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+              {/* Basketball court */}
+              <rect x="10" y="10" width="30" height="50" fill="none" stroke="currentColor" strokeWidth="0.5"/>
+              <circle cx="25" cy="35" r="8" fill="none" stroke="currentColor" strokeWidth="0.5"/>
+              <path d="M17 35 Q25 27 33 35" fill="none" stroke="currentColor" strokeWidth="0.3"/>
+              
+              {/* Football field */}
+              <rect x="50" y="20" width="25" height="40" fill="none" stroke="currentColor" strokeWidth="0.4"/>
+              <line x1="50" y1="30" x2="75" y2="30" stroke="currentColor" strokeWidth="0.2"/>
+              <line x1="50" y1="40" x2="75" y2="40" stroke="currentColor" strokeWidth="0.2"/>
+              <line x1="50" y1="50" x2="75" y2="50" stroke="currentColor" strokeWidth="0.2"/>
+              
+              {/* Baseball diamond */}
+              <path d="M25 70 L35 75 L25 80 L15 75 Z" fill="none" stroke="currentColor" strokeWidth="0.4"/>
+              <circle cx="25" cy="75" r="2" fill="currentColor"/>
+              
+              {/* Hockey rink corner */}
+              <path d="M60 70 Q70 70 70 75 Q70 80 60 80" fill="none" stroke="currentColor" strokeWidth="0.4"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#sportsIcons)" className="text-gray-400"/>
+        </svg>
+      </div>
+
+      {/* Gradient overlay for sports feel */}
+      <div className="absolute inset-0 bg-gradient-to-br from-green-50/30 via-blue-50/20 to-orange-50/30 pointer-events-none"></div>
+      
+      <div className="relative z-10">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
@@ -115,6 +148,7 @@ export const SportSelector: React.FC<SportSelectorProps> = ({ onClose }) => {
           <HelpTooltip 
             content="Choose which sports and leagues you want to see predictions for. More sports = more betting opportunities!" 
             term="Sport Selection"
+            position="bottom"
           />
         </div>
         <button
@@ -210,6 +244,7 @@ export const SportSelector: React.FC<SportSelectorProps> = ({ onClose }) => {
                         <HelpTooltip 
                           content={LEAGUE_DESCRIPTIONS[league as keyof typeof LEAGUE_DESCRIPTIONS]}
                           size="md"
+                          position="bottom"
                         />
                       </button>
                     );
@@ -234,6 +269,7 @@ export const SportSelector: React.FC<SportSelectorProps> = ({ onClose }) => {
           </div>
         </div>
       )}
+      </div> {/* Close relative z-10 wrapper */}
     </motion.div>
   );
 };

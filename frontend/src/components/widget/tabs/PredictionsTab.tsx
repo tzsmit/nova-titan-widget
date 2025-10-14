@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import apiClient from '../../../utils/apiClient';
 import { useWidgetStore } from '../../../stores/widgetStore';
 import { HelpTooltip } from '../../ui/HelpTooltip';
+import { CornerHelpTooltip } from '../../ui/CornerHelpTooltip';
+import { LoadingSpinner } from '../../ui/LoadingSpinner';
 import { TrendingUp, TrendingDown, Target, Zap } from 'lucide-react';
 
 interface Prediction {
@@ -28,7 +32,7 @@ const mockPredictions: Prediction[] = [
     confidence: 78,
     expectedValue: 12.5,
     reason: 'Strong home advantage, key player matchups favor Lakers',
-    aiModel: 'Nova AI v2.1'
+    aiModel: 'Nova TitanAI v2.1'
   },
   {
     id: '2',
@@ -40,7 +44,7 @@ const mockPredictions: Prediction[] = [
     confidence: 85,
     expectedValue: 18.3,
     reason: 'Historical performance against spread, injury reports',
-    aiModel: 'Nova AI v2.1'
+    aiModel: 'Nova TitanAI v2.1'
   },
   {
     id: '3',
@@ -52,14 +56,35 @@ const mockPredictions: Prediction[] = [
     confidence: 72,
     expectedValue: 8.7,
     reason: 'Both teams averaging high scoring games recently',
-    aiModel: 'Nova AI v2.1'
+    aiModel: 'Nova TitanAI v2.1'
   }
 ];
 
 export const PredictionsTab: React.FC = () => {
-  const { config } = useWidgetStore();
+  const { config, predictions } = useWidgetStore();
   const [selectedSport, setSelectedSport] = useState('basketball');
   const [confidenceFilter, setConfidenceFilter] = useState(0);
+
+  // Fetch predictions from API
+  const { data: apiPredictions, isLoading } = useQuery({
+    queryKey: ['predictions'],
+    queryFn: () => apiClient.getPredictions(),
+    refetchInterval: 60000 // Refresh every minute
+  });
+
+  // Transform API predictions to match component interface
+  const transformedPredictions = (apiPredictions?.data || []).map(pred => ({
+    id: pred.id,
+    game: `${pred.game_id}`, // We'll need to join with games data for team names
+    team1: 'Team 1', // Placeholder - would need game data
+    team2: 'Team 2', // Placeholder - would need game data  
+    predictionType: pred.prediction_type,
+    prediction: pred.prediction_value,
+    confidence: pred.confidence,
+    expectedValue: pred.expected_value,
+    reason: 'AI analysis based on historical data and current statistics',
+    aiModel: pred.model_version || 'Nova AI v2.1'
+  }));
 
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 80) return 'text-green-500';
@@ -73,27 +98,43 @@ export const PredictionsTab: React.FC = () => {
     return <TrendingDown className="w-4 h-4" />;
   };
 
-  const filteredPredictions = mockPredictions.filter(
+  // Use real predictions if available, otherwise fall back to mock data
+  const allPredictions = transformedPredictions.length > 0 ? transformedPredictions : mockPredictions;
+  const filteredPredictions = allPredictions.filter(
     pred => pred.confidence >= confidenceFilter
   );
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <LoadingSpinner size="lg" />
+        <span className="ml-3 text-gray-400">Loading AI predictions...</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Page Help Button */}
+      <div className="absolute top-4 right-4 z-10">
+        <CornerHelpTooltip 
+          content="AI-powered game analysis and forecasts from Nova TitanAI. Get detailed predictions with confidence scores and reasoning for each game."
+          term="AI Predictions"
+          size="md"
+        />
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Zap className="w-5 h-5" style={{ color: config.colors.accent }} />
-            Nova AI Predictions
+            Nova TitanAI Predictions
           </h2>
           <p className="text-gray-400 text-sm">
             Powered by advanced machine learning algorithms
           </p>
         </div>
-        <HelpTooltip 
-          content="AI predictions analyze historical data, player stats, and market trends to identify value bets"
-          position="left"
-        />
       </div>
 
       {/* Filters */}
@@ -198,7 +239,7 @@ export const PredictionsTab: React.FC = () => {
         <div className="flex items-start gap-3">
           <Zap className="w-5 h-5 text-yellow-500 mt-0.5" />
           <div>
-            <p className="text-white font-semibold text-sm mb-1">Nova AI Disclaimer</p>
+            <p className="text-white font-semibold text-sm mb-1">Nova TitanAI Disclaimer</p>
             <p className="text-gray-400 text-xs">
               Predictions are based on statistical analysis and machine learning models. 
               Past performance does not guarantee future results. Always bet responsibly.

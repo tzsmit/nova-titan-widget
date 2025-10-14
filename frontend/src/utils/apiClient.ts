@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import tableApiClient from './tableApiClient';
 
 // API Response Types
 export interface ApiResponse<T = any> {
@@ -141,40 +142,156 @@ class ApiClient {
     limit?: number;
     status?: string;
   }): Promise<ApiResponse<Game[]>> {
-    const params = new URLSearchParams();
-    if (options?.sport) params.append('sport', options.sport);
-    if (options?.date) params.append('date', options.date);
-    if (options?.leagues) params.append('leagues', options.leagues.join(','));
-    if (options?.limit) params.append('limit', options.limit.toString());
-    if (options?.status) params.append('status', options.status);
-    
-    return this.request<Game[]>({
-      method: 'GET',
-      url: `/api/games?${params.toString()}`
-    });
+    try {
+      const result = await tableApiClient.getGames({
+        sport: options?.sport,
+        leagues: options?.leagues,
+        status: options?.status,
+        limit: options?.limit
+      });
+
+      if (result.success) {
+        // Transform table data to match expected Game interface
+        const transformedGames: Game[] = result.data.map(game => ({
+          id: game.id,
+          home_team: game.home_team,
+          away_team: game.away_team,
+          start_time: game.start_time,
+          sport: game.sport,
+          league: game.league,
+          status: game.status as 'upcoming' | 'live' | 'finished',
+          odds: game.odds // Already parsed in tableApiClient
+        }));
+
+        return {
+          success: true,
+          data: transformedGames
+        };
+      } else {
+        return {
+          success: false,
+          data: [],
+          error: 'Failed to fetch games from table API'
+        };
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        data: [],
+        error: error.message || 'Unknown error occurred while fetching games'
+      };
+    }
   }
 
   async getGame(gameId: string): Promise<ApiResponse<Game>> {
-    return this.request<Game>({
-      method: 'GET',
-      url: `/api/games/${gameId}`
-    });
+    try {
+      const result = await tableApiClient.getGame(gameId);
+
+      if (result.success && result.data) {
+        const transformedGame: Game = {
+          id: result.data.id,
+          home_team: result.data.home_team,
+          away_team: result.data.away_team,
+          start_time: result.data.start_time,
+          sport: result.data.sport,
+          league: result.data.league,
+          status: result.data.status as 'upcoming' | 'live' | 'finished',
+          odds: result.data.odds
+        };
+
+        return {
+          success: true,
+          data: transformedGame
+        };
+      } else {
+        return {
+          success: false,
+          data: null as any,
+          error: 'Game not found'
+        };
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        data: null as any,
+        error: error.message || 'Unknown error occurred while fetching game'
+      };
+    }
   }
 
   // Predictions API
   async getPredictions(gameId?: string): Promise<ApiResponse<Prediction[]>> {
-    const url = gameId ? `/api/predictions?game_id=${gameId}` : '/api/predictions';
-    return this.request<Prediction[]>({
-      method: 'GET',
-      url
-    });
+    try {
+      const result = await tableApiClient.getPredictions({
+        game_id: gameId
+      });
+
+      if (result.success) {
+        const transformedPredictions: Prediction[] = result.data.map(pred => ({
+          id: pred.id,
+          game_id: pred.game_id,
+          prediction_type: pred.prediction_type,
+          prediction_value: pred.prediction_value,
+          confidence: pred.confidence,
+          expected_value: pred.expected_value,
+          model_version: pred.model_version,
+          created_at: new Date().toISOString()
+        }));
+
+        return {
+          success: true,
+          data: transformedPredictions
+        };
+      } else {
+        return {
+          success: false,
+          data: [],
+          error: 'Failed to fetch predictions from table API'
+        };
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        data: [],
+        error: error.message || 'Unknown error occurred while fetching predictions'
+      };
+    }
   }
 
   async getPrediction(predictionId: string): Promise<ApiResponse<Prediction>> {
-    return this.request<Prediction>({
-      method: 'GET',
-      url: `/api/predictions/${predictionId}`
-    });
+    try {
+      const result = await tableApiClient.getPrediction(predictionId);
+
+      if (result.success && result.data) {
+        const transformedPrediction: Prediction = {
+          id: result.data.id,
+          game_id: result.data.game_id,
+          prediction_type: result.data.prediction_type,
+          prediction_value: result.data.prediction_value,
+          confidence: result.data.confidence,
+          expected_value: result.data.expected_value,
+          model_version: result.data.model_version,
+          created_at: new Date().toISOString()
+        };
+
+        return {
+          success: true,
+          data: transformedPrediction
+        };
+      } else {
+        return {
+          success: false,
+          data: null as any,
+          error: 'Prediction not found'
+        };
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        data: null as any,
+        error: error.message || 'Unknown error occurred while fetching prediction'
+      };
+    }
   }
 
   // User API
@@ -253,10 +370,19 @@ class ApiClient {
 
   // Health check
   async healthCheck(): Promise<ApiResponse<{ status: string; timestamp: string }>> {
-    return this.request<{ status: string; timestamp: string }>({
-      method: 'GET',
-      url: '/api/health'
-    });
+    try {
+      const result = await tableApiClient.healthCheck();
+      return {
+        success: result.success,
+        data: result.data
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        data: { status: 'error', timestamp: new Date().toISOString() },
+        error: error.message || 'Health check failed'
+      };
+    }
   }
 
   // Analytics API

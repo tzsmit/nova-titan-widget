@@ -79,7 +79,7 @@ export interface Prediction {
   reasoning: string;
 }
 
-export type WidgetTab = 'games' | 'predictions' | 'parlays' | 'settings';
+export type WidgetTab = 'games' | 'predictions' | 'ai-insights' | 'parlays' | 'settings';
 
 interface WidgetStore {
   // Configuration

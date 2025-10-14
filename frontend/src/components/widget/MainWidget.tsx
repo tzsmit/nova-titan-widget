@@ -14,6 +14,7 @@ import { WidgetHeader } from './WidgetHeader';
 import { WidgetNavigation } from './WidgetNavigation';
 import { GamesTab } from './tabs/GamesTab';
 import { PredictionsTab } from './tabs/PredictionsTab';
+import { AIInsightsTab } from './tabs/AIInsightsTab';
 import { ParlaysTab } from './tabs/ParlaysTab';
 import { SettingsTab } from './tabs/SettingsTab';
 import { LegalDisclaimer } from '../legal/LegalDisclaimer';
@@ -102,6 +103,8 @@ export const MainWidget: React.FC = () => {
         return <GamesTab />;
       case 'predictions':
         return <PredictionsTab />;
+      case 'ai-insights':
+        return <AIInsightsTab />;
       case 'parlays':
         return <ParlaysTab />;
       case 'settings':

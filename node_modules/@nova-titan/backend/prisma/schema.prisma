@@ -1,0 +1,240 @@
+// Nova Titan Backend Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Game {
+  id          String   @id @default(uuid())
+  externalId  String?  @unique
+  sport       String
+  league      String
+  homeTeamId  String
+  awayTeamId  String
+  startTime   DateTime
+  status      String   @default("scheduled")
+  season      Int
+  seasonType  String   @default("regular")
+  week        Int?
+  venue       String?
+  venueCity   String?
+  temperature Float?
+  weather     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  homeTeam    Team @relation("HomeGames", fields: [homeTeamId], references: [id])
+  awayTeam    Team @relation("AwayGames", fields: [awayTeamId], references: [id])
+  
+  predictions Prediction[]
+  odds        Odds[]
+  playerStats PlayerGameStats[]
+
+  @@index([startTime])
+  @@index([sport, league])
+  @@index([status])
+}
+
+model Team {
+  id           String  @id @default(uuid())
+  externalId   String? @unique
+  name         String
+  displayName  String
+  abbreviation String  @unique
+  city         String
+  conference   String?
+  division     String?
+  logo         String?
+  sport        String
+  league       String
+  wins         Int     @default(0)
+  losses       Int     @default(0)
+  ties         Int     @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  homeGames   Game[] @relation("HomeGames")
+  awayGames   Game[] @relation("AwayGames")
+  players     Player[]
+  seasonStats TeamSeasonStats[]
+
+  @@index([sport, league])
+  @@index([abbreviation])
+}
+
+model Player {
+  id         String   @id @default(uuid())
+  externalId String?  @unique
+  name       String
+  position   String
+  jersey     Int?
+  teamId     String
+  height     String?
+  weight     String?
+  age        Int?
+  photo      String?
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  team        Team @relation(fields: [teamId], references: [id])
+  gameStats   PlayerGameStats[]
+  predictions PlayerPrediction[]
+
+  @@index([teamId])
+  @@index([name])
+}
+
+model PlayerGameStats {
+  id                       String  @id @default(uuid())
+  playerId                 String
+  gameId                   String
+  minutes                  Float?
+  points                   Int?
+  rebounds                 Int?
+  assists                  Int?
+  steals                   Int?
+  blocks                   Int?
+  turnovers                Int?
+  fieldGoalsMade           Int?
+  fieldGoalsAttempted      Int?
+  threePointersMade        Int?
+  threePointersAttempted   Int?
+  freeThrowsMade           Int?
+  freeThrowsAttempted      Int?
+  // NFL specific
+  passingYards             Int?
+  rushingYards             Int?
+  receivingYards           Int?
+  touchdowns               Int?
+  interceptions            Int?
+  fumbles                  Int?
+  tackles                  Int?
+  sacks                    Float?
+  createdAt                DateTime @default(now())
+
+  player Player @relation(fields: [playerId], references: [id])
+  game   Game   @relation(fields: [gameId], references: [id])
+
+  @@unique([playerId, gameId])
+  @@index([playerId])
+  @@index([gameId])
+}
+
+model TeamSeasonStats {
+  id               String  @id @default(uuid())
+  teamId           String
+  season           Int
+  seasonType       String  @default("regular")
+  games            Int     @default(0)
+  wins             Int     @default(0)
+  losses           Int     @default(0)
+  pointsFor        Float   @default(0)
+  pointsAgainst    Float   @default(0)
+  offensiveRating  Float?
+  defensiveRating  Float?
+  netRating        Float?
+  pace             Float?
+  homeWins         Int     @default(0)
+  homeLosses       Int     @default(0)
+  awayWins         Int     @default(0)
+  awayLosses       Int     @default(0)
+  streak           String? // "W3" or "L2"
+  restDays         Int     @default(1)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id])
+
+  @@unique([teamId, season, seasonType])
+  @@index([teamId])
+}
+
+model Prediction {
+  id                String   @id @default(uuid())
+  gameId            String
+  type              String   // 'win_probability', 'spread', 'total_points'
+  prediction        Float
+  confidence        Float
+  confidenceMin     Float?
+  confidenceMax     Float?
+  modelName         String
+  modelVersion      String
+  features          String   // JSON string
+  featureImportance String?  // JSON string
+  createdAt         DateTime @default(now())
+
+  game Game @relation(fields: [gameId], references: [id])
+
+  @@index([gameId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model PlayerPrediction {
+  id            String   @id @default(uuid())
+  playerId      String
+  gameId        String
+  statType      String   // 'points', 'rebounds', 'assists'
+  prediction    Float
+  confidence    Float
+  overUnderLine Float?
+  overProbability Float?
+  modelName     String
+  modelVersion  String
+  createdAt     DateTime @default(now())
+
+  player Player @relation(fields: [playerId], references: [id])
+
+  @@index([playerId])
+  @@index([gameId])
+  @@index([statType])
+}
+
+model Odds {
+  id           String   @id @default(uuid())
+  gameId       String
+  bookmaker    String
+  market       String   // 'moneyline', 'spread', 'total'
+  outcome      String   // 'home', 'away', 'over', 'under'
+  odds         Float    // Decimal format
+  point        Float?   // For spreads and totals
+  lastUpdated  DateTime
+  createdAt    DateTime @default(now())
+
+  game Game @relation(fields: [gameId], references: [id])
+
+  @@index([gameId])
+  @@index([bookmaker])
+  @@index([market])
+  @@index([lastUpdated])
+}
+
+model Cache {
+  id        String   @id
+  data      String   // JSON string
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+}
+
+model ApiUsage {
+  id        String   @id @default(uuid())
+  endpoint  String
+  method    String
+  ip        String
+  userAgent String?
+  duration  Int      // milliseconds
+  status    Int
+  createdAt DateTime @default(now())
+
+  @@index([endpoint])
+  @@index([ip])
+  @@index([createdAt])
+}

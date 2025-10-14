@@ -24,15 +24,91 @@ export const WidgetHeader: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       className="widget-header relative overflow-hidden"
     >
-      {/* Background Pattern */}
+      {/* Enhanced Sports Betting Background */}
       <div className="absolute inset-0 opacity-10">
-        <svg width="100%" height="100%" viewBox="0 0 100 100">
-          <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-            <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" strokeWidth="0.5"/>
-          </pattern>
-          <rect width="100%" height="100%" fill="url(#grid)" />
+        <svg width="100%" height="100%" viewBox="0 0 1200 200" className="absolute inset-0">
+          <defs>
+            {/* Casino chip pattern */}
+            <pattern id="casinoChips" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+              <circle cx="20" cy="20" r="12" fill="none" stroke="white" strokeWidth="0.8" opacity="0.4"/>
+              <circle cx="20" cy="20" r="8" fill="none" stroke="white" strokeWidth="0.4" opacity="0.3"/>
+              <text x="20" y="25" textAnchor="middle" fontSize="6" fill="white" opacity="0.3">$</text>
+              
+              <circle cx="60" cy="20" r="12" fill="none" stroke="white" strokeWidth="0.8" opacity="0.3"/>
+              <circle cx="60" cy="20" r="8" fill="none" stroke="white" strokeWidth="0.4" opacity="0.2"/>
+              
+              <circle cx="20" cy="60" r="12" fill="none" stroke="white" strokeWidth="0.8" opacity="0.2"/>
+              <rect x="16" y="56" width="8" height="8" fill="none" stroke="white" strokeWidth="0.4" opacity="0.3"/>
+              
+              <circle cx="60" cy="60" r="12" fill="none" stroke="white" strokeWidth="0.8" opacity="0.35"/>
+              <path d="M52 60 L68 60 M60 52 L60 68" stroke="white" strokeWidth="0.4" opacity="0.3"/>
+            </pattern>
+            
+            {/* Sports icons with betting elements */}
+            <pattern id="bettingSports" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+              {/* Basketball with odds */}
+              <circle cx="25" cy="25" r="10" fill="none" stroke="white" strokeWidth="0.6" opacity="0.4"/>
+              <path d="M17 25 Q25 17 33 25" fill="none" stroke="white" strokeWidth="0.4" opacity="0.4"/>
+              <text x="25" y="45" textAnchor="middle" fontSize="4" fill="white" opacity="0.3">-110</text>
+              
+              {/* Football field with yard lines */}
+              <rect x="65" y="15" width="30" height="20" fill="none" stroke="white" strokeWidth="0.6" opacity="0.3"/>
+              <line x1="65" y1="20" x2="95" y2="20" stroke="white" strokeWidth="0.2" opacity="0.3"/>
+              <line x1="65" y1="25" x2="95" y2="25" stroke="white" strokeWidth="0.2" opacity="0.3"/>
+              <line x1="65" y1="30" x2="95" y2="30" stroke="white" strokeWidth="0.2" opacity="0.3"/>
+              <text x="80" y="45" textAnchor="middle" fontSize="4" fill="white" opacity="0.3">O/U</text>
+              
+              {/* Dice and cards */}
+              <rect x="15" y="65" width="8" height="8" fill="none" stroke="white" strokeWidth="0.4" opacity="0.3"/>
+              <circle cx="19" cy="69" r="1" fill="white" opacity="0.3"/>
+              <circle cx="19" cy="71" r="1" fill="white" opacity="0.3"/>
+              
+              <rect x="70" y="65" width="12" height="18" fill="none" stroke="white" strokeWidth="0.4" opacity="0.3"/>
+              <text x="76" y="72" textAnchor="middle" fontSize="3" fill="white" opacity="0.3">A</text>
+              <path d="M73 75 L79 75" stroke="white" strokeWidth="0.2" opacity="0.3"/>
+            </pattern>
+            
+            {/* Money/profit symbols */}
+            <pattern id="moneyPattern" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
+              <text x="30" y="30" fontSize="12" fill="white" opacity="0.15">$</text>
+              <text x="90" y="60" fontSize="8" fill="white" opacity="0.1">+EV</text>
+              <text x="20" y="90" fontSize="6" fill="white" opacity="0.1">ROI</text>
+              <path d="M60 20 Q70 10 80 20 Q70 30 60 20" fill="none" stroke="white" strokeWidth="0.3" opacity="0.1"/>
+            </pattern>
+          </defs>
+          
+          {/* Layer the patterns for rich betting atmosphere */}
+          <rect width="100%" height="100%" fill="url(#casinoChips)"/>
+          <rect width="100%" height="100%" fill="url(#bettingSports)" opacity="0.6"/>
+          <rect width="100%" height="100%" fill="url(#moneyPattern)" opacity="0.4"/>
+          
+          {/* Stadium lights with betting glow */}
+          <g opacity="0.15">
+            <circle cx="150" cy="40" r="3" fill="white" filter="blur(1px)"/>
+            <circle cx="350" cy="60" r="2.5" fill="white" filter="blur(1px)"/>
+            <circle cx="550" cy="35" r="4" fill="white" filter="blur(1px)"/>
+            <circle cx="750" cy="55" r="2" fill="white" filter="blur(1px)"/>
+            <circle cx="950" cy="45" r="3.5" fill="white" filter="blur(1px)"/>
+            
+            {/* Betting board lines */}
+            <line x1="0" y1="70" x2="1200" y2="70" stroke="white" strokeWidth="0.5" opacity="0.6"/>
+            <line x1="0" y1="130" x2="1200" y2="130" stroke="white" strokeWidth="0.5" opacity="0.4"/>
+            
+            {/* Odds board grid */}
+            <defs>
+              <pattern id="oddsBoard" width="60" height="60" patternUnits="userSpaceOnUse">
+                <path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" strokeWidth="0.2"/>
+                <circle cx="30" cy="30" r="2" fill="white" opacity="0.3"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#oddsBoard)" opacity="0.5"/>
+          </g>
         </svg>
       </div>
+      
+      {/* Multi-layer gradient for depth and betting atmosphere */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-transparent to-black/25"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/5 to-black/15"></div>
 
       <div className="relative z-10 px-8 py-6">
         <div className="flex items-center justify-between">
@@ -96,12 +172,15 @@ export const WidgetHeader: React.FC = () => {
                 transition={{ delay: 0.6 }}
               >
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-white/20 backdrop-blur-sm">
-                  🤖 AI Predictions
+                  🤖 Nova TitanAI
                 </span>
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-white/20 backdrop-blur-sm">
                   📊 Live Analysis
                 </span>
-                <HelpTooltip content="Advanced machine learning algorithms analyze team performance, player stats, injuries, and situational factors to provide winning predictions" />
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-600/30 backdrop-blur-sm border border-blue-400/40">
+                  🛡️ Companion Mode
+                </span>
+                <HelpTooltip content="Nova TitanAI analyzes team performance, stats, and key factors for winning predictions" position="bottom" />
               </motion.p>
             </div>
           </div>
