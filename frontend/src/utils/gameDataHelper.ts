@@ -146,8 +146,18 @@ export const TV_NETWORKS = ['ESPN', 'FOX', 'CBS', 'NBC', 'ABC', 'TNT', 'Prime Vi
  */
 export function processGameData(rawGames: any[], selectedBookmaker: string = 'all'): ProcessedGame[] {
   console.log('🔍 Processing games data:', rawGames.length, 'raw games');
+  
+  if (!rawGames || rawGames.length === 0) {
+    console.log('❌ No raw games provided to process');
+    return [];
+  }
 
-  return rawGames.map((game, index) => {
+  const processedGames = rawGames.map((game, index) => {
+    if (!game) {
+      console.warn(`⚠️ Null/undefined game at index ${index}, skipping`);
+      return null;
+    }
+    
     // Extract team names with multiple fallback patterns
     const homeTeam = game.home_team || 
                     game.homeTeam || 
@@ -166,7 +176,7 @@ export function processGameData(rawGames: any[], selectedBookmaker: string = 'al
     // Process game time with proper error handling
     const { displayTime, displayDate } = processGameTime(game.commence_time || game.gameTime);
 
-    // Process odds data
+    // Process odds data - FIXED to handle transformed data structure
     const odds = processOddsData(game, homeTeam, awayTeam, selectedBookmaker);
 
     // Get venue information
@@ -191,9 +201,12 @@ export function processGameData(rawGames: any[], selectedBookmaker: string = 'al
       network
     };
 
-    console.log(`✅ Processed game: ${awayTeam} @ ${homeTeam} - ${displayTime}`);
+    console.log(`✅ Processed game: ${awayTeam} @ ${homeTeam} - ${displayTime} (sport: ${processedGame.sport_key})`);
     return processedGame;
-  });
+  }).filter(game => game !== null); // Remove any null entries
+
+  console.log(`🔧 Final processed count: ${processedGames.length} games`);
+  return processedGames;
 }
 
 /**
@@ -204,7 +217,7 @@ function getTeamLogo(teamName: string): string {
     return TEAM_LOGOS[teamName as keyof typeof TEAM_LOGOS];
   }
   
-  // Create initials fallback - ensure proper encoding
+  // Create initials fallback using a more reliable placeholder service
   const initials = teamName
     .split(' ')
     .filter(word => word.length > 0)  // Filter out empty strings
@@ -216,7 +229,15 @@ function getTeamLogo(teamName: string): string {
   // Ensure initials are valid for URL - minimum 1 character
   const validInitials = initials.length > 0 ? initials.replace(/[^A-Z0-9]/g, 'T') : 'TEAM';
   
-  return `https://via.placeholder.com/64x64/1e293b/ffffff?text=${encodeURIComponent(validInitials)}`;
+  // Use a more reliable placeholder service or create SVG data URL
+  return `data:image/svg+xml;base64,${btoa(`
+    <svg width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+      <rect width="64" height="64" fill="#1e293b"/>
+      <text x="32" y="40" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle" font-weight="bold">
+        ${validInitials}
+      </text>
+    </svg>
+  `)}`;
 }
 
 /**
@@ -250,7 +271,8 @@ function processGameTime(gameTime: string | undefined): { displayTime: string; d
     });
 
     // Debug logging to check date conversion
-    console.log(`🕰️ Time conversion: ${gameTime} -> ${displayTime} (${date.toISOString().split('T')[0]} CST)`);
+    const cstDate = date.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+    console.log(`🕰️ Time conversion: ${gameTime} -> ${displayTime} (date: ${cstDate})`);
 
     return { displayTime, displayDate };
   } catch (error) {
@@ -264,6 +286,7 @@ function processGameTime(gameTime: string | undefined): { displayTime: string; d
  */
 function processOddsData(game: any, homeTeam: string, awayTeam: string, selectedBookmaker: string) {
   if (!game.bookmakers) {
+    console.log(`⚠️ No bookmakers data for game: ${awayTeam} @ ${homeTeam}`);
     return null;
   }
 
@@ -271,7 +294,7 @@ function processOddsData(game: any, homeTeam: string, awayTeam: string, selected
 
   try {
     if (Array.isArray(game.bookmakers) && game.bookmakers.length > 0) {
-      // Raw API format
+      // Raw API format - shouldn't happen with transformed data but keep for compatibility
       const bookmaker = selectedBookmaker === 'all' 
         ? game.bookmakers[0] 
         : game.bookmakers.find((b: any) => b.key === selectedBookmaker) || game.bookmakers[0];
@@ -299,17 +322,40 @@ function processOddsData(game: any, homeTeam: string, awayTeam: string, selected
         };
       }
     } else if (typeof game.bookmakers === 'object') {
-      // Transformed format
+      // Transformed format from realTimeOddsService - this is what we expect
       const bookmakerKey = selectedBookmaker === 'all' 
         ? Object.keys(game.bookmakers)[0] 
         : selectedBookmaker;
       
-      if (game.bookmakers[bookmakerKey]) {
-        oddsData = game.bookmakers[bookmakerKey];
+      const bookmakerData = game.bookmakers[bookmakerKey];
+      if (bookmakerData) {
+        console.log(`📊 Using ${bookmakerKey} odds for ${awayTeam} @ ${homeTeam}`);
+        oddsData = {
+          moneyline: bookmakerData.moneyline || { home: null, away: null },
+          spread: bookmakerData.spread || { home: null, away: null, line: null },
+          total: bookmakerData.total || { over: null, under: null, line: null }
+        };
+      } else {
+        // Fallback to any available bookmaker
+        const availableBookmakers = Object.keys(game.bookmakers);
+        if (availableBookmakers.length > 0) {
+          const fallbackBookmaker = availableBookmakers[0];
+          console.log(`🔄 Using fallback bookmaker ${fallbackBookmaker} for ${awayTeam} @ ${homeTeam}`);
+          const fallbackData = game.bookmakers[fallbackBookmaker];
+          oddsData = {
+            moneyline: fallbackData.moneyline || { home: null, away: null },
+            spread: fallbackData.spread || { home: null, away: null, line: null },
+            total: fallbackData.total || { over: null, under: null, line: null }
+          };
+        }
       }
     }
   } catch (error) {
     console.warn('Error processing odds data:', error);
+  }
+
+  if (!oddsData) {
+    console.log(`❌ No valid odds data found for ${awayTeam} @ ${homeTeam}`);
   }
 
   return oddsData;

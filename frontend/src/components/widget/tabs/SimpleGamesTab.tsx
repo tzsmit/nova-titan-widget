@@ -60,7 +60,7 @@ export const SimpleGamesTab: React.FC = () => {
 
   // Fetch games with proper error handling and fallback to mock data
   const { data: games = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['simple-games-v2', selectedSport, selectedDate], // Removed aggressive cache buster
+    queryKey: ['simple-games-v2', selectedSport, selectedDate, selectedBookmaker], // Added bookmaker to trigger re-query
     queryFn: async (): Promise<ProcessedGame[]> => {
       console.log(`🎯 Fetching games for sport: ${selectedSport}, date: ${selectedDate}`);
       
@@ -92,12 +92,15 @@ export const SimpleGamesTab: React.FC = () => {
         
         // Process games using the helper
         let processedGames = processGameData(rawGames, selectedBookmaker);
+        console.log(`🔧 Processing results: ${rawGames.length} raw -> ${processedGames.length} processed`);
         
         // Filter by sport if not 'all'
         if (selectedSport !== 'all') {
+          const beforeSportFilter = processedGames.length;
           processedGames = processedGames.filter(game => 
             game.sport_key === selectedSport
           );
+          console.log(`🏈 Sport filter (${selectedSport}): ${beforeSportFilter} -> ${processedGames.length} games`);
         }
 
         // Filter by date (October 2025) - ALWAYS apply date filter using CST
@@ -106,11 +109,20 @@ export const SimpleGamesTab: React.FC = () => {
         
         const beforeFilter = processedGames.length;
         processedGames = processedGames.filter(game => {
-          if (!game.commence_time) return false;
+          if (!game.commence_time) {
+            console.log(`❌ Game missing commence_time: ${game.away_team} @ ${game.home_team}`);
+            return false;
+          }
+          
           // Convert game time to CST date
           const gameDate = new Date(game.commence_time).toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
           const matches = gameDate === selectedDate;
-          console.log(`📊 Game date (CST): ${gameDate}, Selected: ${selectedDate}, Matches: ${matches}`);
+          
+          // Log first few games and any matches for debugging
+          if (processedGames.indexOf(game) < 3 || matches) {
+            console.log(`📊 ${game.away_team} @ ${game.home_team}: ${game.commence_time} -> ${gameDate} (selected: ${selectedDate}) = ${matches}`);
+          }
+          
           return matches;
         });
         console.log(`📅 Date filter applied: ${beforeFilter} games → ${processedGames.length} games for ${selectedDate}`);
@@ -350,7 +362,14 @@ export const SimpleGamesTab: React.FC = () => {
                             .toUpperCase()
                             .slice(0, 3)
                             .replace(/[^A-Z0-9]/g, 'T');
-                          img.src = `https://via.placeholder.com/48x48/1e293b/ffffff?text=${encodeURIComponent(initials)}`;
+                          img.src = `data:image/svg+xml;base64,${btoa(`
+                            <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg">
+                              <rect width="48" height="48" fill="#1e293b"/>
+                              <text x="24" y="30" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle" font-weight="bold">
+                                ${initials}
+                              </text>
+                            </svg>
+                          `)}`;
                         }}
                       />
                       <div>
@@ -381,7 +400,14 @@ export const SimpleGamesTab: React.FC = () => {
                             .toUpperCase()
                             .slice(0, 3)
                             .replace(/[^A-Z0-9]/g, 'T');
-                          img.src = `https://via.placeholder.com/48x48/1e293b/ffffff?text=${encodeURIComponent(initials)}`;
+                          img.src = `data:image/svg+xml;base64,${btoa(`
+                            <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg">
+                              <rect width="48" height="48" fill="#1e293b"/>
+                              <text x="24" y="30" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle" font-weight="bold">
+                                ${initials}
+                              </text>
+                            </svg>
+                          `)}`;
                         }}
                       />
                     </div>
@@ -402,13 +428,13 @@ export const SimpleGamesTab: React.FC = () => {
                         </div>
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
-                            <span className="text-slate-300">{game.awayTeam}</span>
+                            <span className="text-slate-300">{game.away_team}</span>
                             <span className="text-green-400 font-semibold">
                               {formatOdds(game.odds.moneyline?.away)}
                             </span>
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span className="text-slate-300">{game.homeTeam}</span>
+                            <span className="text-slate-300">{game.home_team}</span>
                             <span className="text-green-400 font-semibold">
                               {formatOdds(game.odds.moneyline?.home)}
                             </span>
@@ -429,7 +455,7 @@ export const SimpleGamesTab: React.FC = () => {
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
                             <span className="text-slate-300">
-                              {game.awayTeam} {game.odds.spread?.line ? `+${Math.abs(game.odds.spread.line)}` : ''}
+                              {game.away_team} {game.odds.spread?.line ? `+${Math.abs(game.odds.spread.line)}` : ''}
                             </span>
                             <span className="text-green-400 font-semibold">
                               {formatOdds(game.odds.spread?.away)}
