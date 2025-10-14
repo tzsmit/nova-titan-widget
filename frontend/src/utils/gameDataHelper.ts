@@ -164,13 +164,7 @@ export function processGameData(rawGames: any[], selectedBookmaker: string = 'al
     const awayTeamLogo = getTeamLogo(awayTeam);
 
     // Process game time with proper error handling
-    console.log(`🕐 Processing time for ${homeTeam} vs ${awayTeam}:`);
-    console.log(`📅 Raw game time: ${game.commence_time || game.gameTime}`);
-    
     const { displayTime, displayDate } = processGameTime(game.commence_time || game.gameTime);
-    
-    console.log(`📅 Processed display time: ${displayTime}`);
-    console.log(`📅 Processed display date: ${displayDate}`);
 
     // Process odds data
     const odds = processOddsData(game, homeTeam, awayTeam, selectedBookmaker);

@@ -27,21 +27,13 @@ import { SportsBettingLegend } from '../../ui/SportsBettingLegend';
 const SPORTS = [
   { id: 'all', name: 'All Sports', emoji: '🏆' },
   
-  // Major US Sports
+  // Core US Sports Only
   { id: 'americanfootball_nfl', name: 'NFL', emoji: '🏈' },
   { id: 'basketball_nba', name: 'NBA', emoji: '🏀' },
   { id: 'americanfootball_ncaaf', name: 'College Football', emoji: '🏈' },
-  { id: 'icehockey_nhl', name: 'NHL', emoji: '🏒' },
-  { id: 'baseball_mlb', name: 'MLB', emoji: '⚾' },
-  
-  // International & Other Sports
-  { id: 'soccer_epl', name: 'Premier League', emoji: '⚽' },
-  { id: 'soccer_uefa_champs_league', name: 'Champions League', emoji: '🏆' },
   { id: 'basketball_ncaab', name: 'College Basketball', emoji: '🏀' },
-  { id: 'soccer_usa_mls', name: 'MLS', emoji: '⚽' },
-  { id: 'basketball_wnba', name: 'WNBA', emoji: '🏀' },
-  { id: 'soccer_fifa_world_cup', name: 'World Cup', emoji: '🏆' }
-  // Removed UFC and Boxing - not supported by The Odds API
+  { id: 'baseball_mlb', name: 'MLB', emoji: '⚾' },
+  { id: 'boxing', name: 'Boxing', emoji: '🥊' }
 ];
 
 const BOOKMAKERS = [
@@ -60,14 +52,15 @@ export const SimpleGamesTab: React.FC = () => {
   const [searchFilters, setSearchFilters] = useState({ type: 'all' as const, sport: 'all' as const });
   const [showLegend, setShowLegend] = useState(false);
 
-  // Test API on component mount
+  // Test API on component mount (disabled to prevent rate limiting)
   useEffect(() => {
-    testOddsAPI();
+    // testOddsAPI(); // Commented out to reduce API calls
+    console.log('🎯 SimpleGamesTab loaded - API testing disabled to prevent rate limiting');
   }, []);
 
   // Fetch games with proper error handling and fallback to mock data
   const { data: games = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['simple-games-v2', selectedSport, selectedDate, Date.now()], // Added cache buster
+    queryKey: ['simple-games-v2', selectedSport, selectedDate], // Removed aggressive cache buster
     queryFn: async (): Promise<ProcessedGame[]> => {
       console.log(`🎯 Fetching games for sport: ${selectedSport}, date: ${selectedDate}`);
       
@@ -144,9 +137,9 @@ export const SimpleGamesTab: React.FC = () => {
         return [];
       }
     },
-    refetchInterval: 30 * 1000, // 30 seconds - force frequent updates
-    staleTime: 0, // Always consider stale - no caching
-    cacheTime: 0 // Don't cache results
+    refetchInterval: 5 * 60 * 1000, // 5 minutes to prevent rate limiting
+    staleTime: 2 * 60 * 1000, // 2 minute stale time
+    cacheTime: 10 * 60 * 1000 // 10 minute cache
   });
 
 
