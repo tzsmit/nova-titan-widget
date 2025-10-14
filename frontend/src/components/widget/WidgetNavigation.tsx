@@ -22,6 +22,12 @@ const TABS = [
     description: 'AI-powered game analysis and forecasts'
   },
   {
+    id: 'player-props' as WidgetTab,
+    name: 'Props',
+    icon: '🎯',
+    description: 'Live player propositions and odds'
+  },
+  {
     id: 'ai-insights' as WidgetTab,
     name: 'AI Pro',
     icon: '🧠',

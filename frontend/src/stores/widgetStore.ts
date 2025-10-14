@@ -5,6 +5,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { realSportsData, Game as RealGame } from '../services/realSportsData';
+import { oddsAPI } from '../services/oddsAPI';
 
 // Types
 export interface WidgetConfig {
@@ -60,13 +62,26 @@ export interface Game {
   homeTeam: string;
   awayTeam: string;
   startTime: string;
+  gameDate: string;
+  gameTime: string;
   sport: string;
   league: string;
-  status: 'upcoming' | 'live' | 'finished';
+  status: 'upcoming' | 'live' | 'finished' | 'scheduled' | 'completed';
   homeOdds?: number;
   awayOdds?: number;
   spread?: number;
   total?: number;
+  homeScore?: number;
+  awayScore?: number;
+  week?: number;
+  season?: string;
+  venue?: string;
+  network?: string;
+  line?: {
+    spread: number;
+    total: number;
+    moneyline: { home: number; away: number };
+  };
 }
 
 export interface Prediction {
@@ -79,7 +94,7 @@ export interface Prediction {
   reasoning: string;
 }
 
-export type WidgetTab = 'games' | 'predictions' | 'ai-insights' | 'parlays' | 'settings';
+export type WidgetTab = 'games' | 'predictions' | 'player-props' | 'ai-insights' | 'parlays' | 'settings';
 
 interface WidgetStore {
   // Configuration
@@ -237,13 +252,58 @@ export const useWidgetStore = create<WidgetStore>()(
           isLoadingGames: false
         }),
 
-      refreshData: () => {
-        // This would trigger data refetch
-        set({ isLoading: true });
-        // In a real app, this would call API endpoints
-        setTimeout(() => {
-          set({ isLoading: false });
-        }, 1000);
+      refreshData: async () => {
+        set({ isLoadingGames: true, error: null });
+        try {
+          // Get real upcoming games from multiple leagues
+          const upcomingGames = await realSportsData.getUpcomingGames();
+          const todaysGames = await realSportsData.getTodaysGames();
+          const liveGames = await realSportsData.getLiveGames();
+          
+          // Combine and sort games
+          const allGames = [...liveGames, ...todaysGames, ...upcomingGames]
+            .filter((game, index, self) => self.findIndex(g => g.id === game.id) === index)
+            .slice(0, 20);
+          
+          // Transform to widget format
+          const transformedGames: Game[] = allGames.map(game => ({
+            id: game.id,
+            homeTeam: game.homeTeam,
+            awayTeam: game.awayTeam,
+            startTime: game.gameTime,
+            gameDate: game.gameDate,
+            gameTime: game.gameTime,
+            sport: game.league === 'NFL' ? 'football' : game.league === 'NBA' ? 'basketball' : 'football',
+            league: game.league,
+            status: game.status === 'scheduled' ? 'upcoming' : game.status === 'completed' ? 'finished' : game.status,
+            homeScore: game.homeScore,
+            awayScore: game.awayScore,
+            week: game.week,
+            season: game.season,
+            venue: game.venue,
+            network: game.network,
+            homeOdds: game.line?.moneyline?.home,
+            awayOdds: game.line?.moneyline?.away,
+            spread: game.line?.spread,
+            total: game.line?.total,
+            line: game.line
+          }));
+          
+          set({ 
+            games: transformedGames,
+            isLoadingGames: false,
+            error: null,
+            isLoaded: true
+          });
+          
+          console.log(`✅ Loaded ${transformedGames.length} real games from ESPN API`);
+        } catch (error) {
+          console.error('Failed to fetch real sports data:', error);
+          set({ 
+            error: 'Failed to load live sports data',
+            isLoadingGames: false
+          });
+        }
       },
 
       setAgeVerified: (verified) =>

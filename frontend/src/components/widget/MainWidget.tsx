@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWidgetStore } from '../../stores/widgetStore';
 import apiClient from '../../utils/apiClient';
+import { liveSportsService } from '../../services/liveSportsService';
 import ErrorBoundary from '../ui/ErrorBoundary';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { WidgetHeader } from './WidgetHeader';
@@ -17,8 +18,10 @@ import { PredictionsTab } from './tabs/PredictionsTab';
 import { AIInsightsTab } from './tabs/AIInsightsTab';
 import { ParlaysTab } from './tabs/ParlaysTab';
 import { SettingsTab } from './tabs/SettingsTab';
+import { PlayerPropsTab } from './tabs/PlayerPropsTab';
 import { LegalDisclaimer } from '../legal/LegalDisclaimer';
 import { TerminologyGuide } from '../ui/TerminologyGuide';
+import { CacheStatsIndicator } from '../ui/CacheStatsIndicator';
 
 
 export const MainWidget: React.FC = () => {
@@ -33,16 +36,38 @@ export const MainWidget: React.FC = () => {
   const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
   const [showTerminologyGuide, setShowTerminologyGuide] = useState(false);
 
-  // Fetch games data
+  // Fetch games data with smart caching
   const { data: gamesData, isLoading, error, refetch } = useQuery({
-    queryKey: ['games', config.leagues, config.maxGames],
-    queryFn: () => apiClient.getGames({
-      leagues: config.leagues,
-      limit: config.maxGames,
-      status: 'scheduled'
-    }),
+    queryKey: ['live-games', config.leagues, config.maxGames],
+    queryFn: async () => {
+      // Get live data using smart caching system
+      const [todaysGames, upcomingGames, liveGames] = await Promise.all([
+        liveSportsService.getTodaysGames(),
+        liveSportsService.getUpcomingGames(3), // Next 3 days
+        liveSportsService.getLiveGames()
+      ]);
+
+      // Transform to expected format
+      const allGames = [...liveGames, ...todaysGames, ...upcomingGames.slice(0, config.maxGames || 10)];
+      
+      return {
+        success: true,
+        data: allGames.map(game => ({
+          id: game.id,
+          home_team: game.homeTeam,
+          away_team: game.awayTeam,
+          start_time: `${game.gameDate}T${game.gameTime}`,
+          sport: game.league,
+          league: game.league,
+          status: game.status,
+          odds: game.odds
+        }))
+      };
+    },
     enabled: true,
-    refetchInterval: config.autoRefresh ? (config.refreshInterval || 300) * 1000 : false,
+    refetchInterval: false, // Manual refresh only - smart caching handles updates
+    staleTime: 2 * 60 * 1000, // 2 minutes stale time
+    gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
   });
 
   // Handle success/error with useEffect instead of onSuccess/onError (deprecated in v5)
@@ -59,18 +84,16 @@ export const MainWidget: React.FC = () => {
     }
   }, [error, setGamesError]);
 
-  // Set up auto-refresh
+  // Auto-refresh disabled to prevent excessive credit usage
+  // Manual refresh available via refresh button
   useEffect(() => {
-    if (config.autoRefresh && (config.refreshInterval || 0) > 0) {
-      const interval = setInterval(() => {
-        refetch();
-      }, (config.refreshInterval || 300) * 1000);
-      
-      setRefreshInterval(interval);
-      
-      return () => clearInterval(interval);
-    }
-  }, [config.autoRefresh, config.refreshInterval, refetch]);
+    // Auto-refresh disabled
+    return () => {
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+      }
+    };
+  }, [refreshInterval]);
 
   // Clean up interval on unmount
   useEffect(() => {
@@ -103,6 +126,8 @@ export const MainWidget: React.FC = () => {
         return <GamesTab />;
       case 'predictions':
         return <PredictionsTab />;
+      case 'player-props':
+        return <PlayerPropsTab />;
       case 'ai-insights':
         return <AIInsightsTab />;
       case 'parlays':
@@ -118,7 +143,10 @@ export const MainWidget: React.FC = () => {
   if (error) {
     return (
       <div className="widget-container">
-        <WidgetHeader />
+        <WidgetHeader onRefresh={async () => {
+          await liveSportsService.refreshAllData();
+          refetch();
+        }} />
         <div className="p-6 text-center">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <h3 className="text-red-800 font-semibold mb-2">
@@ -143,7 +171,10 @@ export const MainWidget: React.FC = () => {
     <ErrorBoundary>
       <div className="widget-container">
         {/* Widget Header */}
-        <WidgetHeader />
+        <WidgetHeader onRefresh={async () => {
+          await liveSportsService.refreshAllData();
+          refetch();
+        }} />
 
         {/* Navigation Tabs */}
         <WidgetNavigation />
@@ -189,29 +220,8 @@ export const MainWidget: React.FC = () => {
           onClose={() => setShowTerminologyGuide(false)}
         />
 
-        {/* Refresh Indicator */}
-        {config.autoRefresh && (
-          <div className="absolute top-2 right-2">
-            <div className="flex items-center text-xs text-gray-500">
-              <svg className="w-3 h-3 mr-1 animate-spin" viewBox="0 0 24 24">
-                <circle 
-                  className="opacity-25" 
-                  cx="12" 
-                  cy="12" 
-                  r="10" 
-                  stroke="currentColor" 
-                  strokeWidth="4"
-                />
-                <path 
-                  className="opacity-75" 
-                  fill="currentColor" 
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              Auto-refresh: {config.refreshInterval}s
-            </div>
-          </div>
-        )}
+        {/* Cache Stats Indicator */}
+        <CacheStatsIndicator />
       </div>
     </ErrorBoundary>
   );

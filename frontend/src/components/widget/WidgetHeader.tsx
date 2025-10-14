@@ -8,7 +8,11 @@ import { useWidgetStore } from '../../stores/widgetStore';
 import { SportSelector } from './SportSelector';
 import { HelpTooltip } from '../ui/HelpTooltip';
 
-export const WidgetHeader: React.FC = () => {
+interface WidgetHeaderProps {
+  onRefresh?: () => void;
+}
+
+export const WidgetHeader: React.FC<WidgetHeaderProps> = ({ onRefresh }) => {
   const { config, setSelectedTab } = useWidgetStore();
   const [showSportSelector, setShowSportSelector] = useState(false);
 
@@ -209,6 +213,21 @@ export const WidgetHeader: React.FC = () => {
               </svg>
               <span className="text-sm font-semibold">Sports</span>
             </motion.button>
+
+            {/* Refresh Button */}
+            {onRefresh && (
+              <motion.button
+                onClick={onRefresh}
+                className="bg-green-500/20 hover:bg-green-500/30 text-green-300 p-3 rounded-xl transition-all duration-300 backdrop-blur-sm border border-green-400/30 hover:border-green-400/50"
+                title="Refresh Data"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95, rotate: 180 }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </motion.button>
+            )}
 
             {/* Settings Button */}
             <motion.button

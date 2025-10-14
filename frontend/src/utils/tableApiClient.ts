@@ -17,7 +17,7 @@ export interface GameRecord {
   id: string;
   home_team: string;
   away_team: string;
-  start_time: string;
+  game_date: string;
   sport: string;
   league: string;
   status: 'upcoming' | 'live' | 'finished';
@@ -180,7 +180,7 @@ class TableApiClient {
         search: searchQuery.trim(),
         limit: options.limit || 20,
         page: options.page || 1,
-        sort: 'start_time'
+        sort: 'game_date'
       });
 
       // Transform the data to match expected format

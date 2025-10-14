@@ -69,7 +69,7 @@ export const PredictionsTab: React.FC = () => {
   const { data: apiPredictions, isLoading } = useQuery({
     queryKey: ['predictions'],
     queryFn: () => apiClient.getPredictions(),
-    refetchInterval: 60000 // Refresh every minute
+    refetchInterval: false // Disabled to prevent excessive credit usage
   });
 
   // Transform API predictions to match component interface
