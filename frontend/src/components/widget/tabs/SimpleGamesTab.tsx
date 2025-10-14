@@ -67,7 +67,7 @@ export const SimpleGamesTab: React.FC = () => {
 
   // Fetch games with proper error handling and fallback to mock data
   const { data: games = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['simple-games', selectedSport, selectedDate],
+    queryKey: ['simple-games-v2', selectedSport, selectedDate, Date.now()], // Added cache buster
     queryFn: async (): Promise<ProcessedGame[]> => {
       console.log(`🎯 Fetching games for sport: ${selectedSport}, date: ${selectedDate}`);
       
@@ -144,8 +144,9 @@ export const SimpleGamesTab: React.FC = () => {
         return [];
       }
     },
-    refetchInterval: 2 * 60 * 1000, // 2 minutes
-    staleTime: 60 * 1000, // 1 minute
+    refetchInterval: 30 * 1000, // 30 seconds - force frequent updates
+    staleTime: 0, // Always consider stale - no caching
+    cacheTime: 0 // Don't cache results
   });
 
 
