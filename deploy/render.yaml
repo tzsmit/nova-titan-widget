@@ -1,0 +1,138 @@
+# Render.com deployment configuration for Nova Titan Sports Widget
+
+services:
+  # Backend API Service
+  - type: web
+    name: nova-titan-api
+    env: node
+    region: oregon
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    repo: https://github.com/your-org/nova-titan-widget.git
+    rootDir: backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nova-titan-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: nova-titan-redis
+          property: connectionString
+      - key: ML_SERVICE_URL
+        fromService:
+          name: nova-titan-ml
+          type: web
+          property: host
+      - key: ODDS_API_KEY
+        sync: false  # Set in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SENTRY_DSN
+        sync: false
+      - key: CORS_ORIGIN
+        fromService:
+          name: nova-titan-frontend
+          type: static
+          property: host
+    healthCheckPath: /api/health
+
+  # ML Service
+  - type: web
+    name: nova-titan-ml
+    env: python
+    region: oregon  
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn main:app --host 0.0.0.0 --port $PORT
+    repo: https://github.com/your-org/nova-titan-widget.git
+    rootDir: ml
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: PORT
+        value: 3002
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: nova-titan-redis
+          property: connectionString
+      - key: MODEL_PATH
+        value: /opt/render/project/src/models
+      - key: LOG_LEVEL
+        value: INFO
+    healthCheckPath: /health
+    
+  # Frontend (Static Site)
+  - type: static
+    name: nova-titan-frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    repo: https://github.com/your-org/nova-titan-widget.git
+    rootDir: frontend
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: nova-titan-api
+          type: web
+          property: host
+      - key: VITE_ML_URL
+        fromService:
+          name: nova-titan-ml
+          type: web  
+          property: host
+      - key: VITE_ENVIRONMENT
+        value: production
+      - key: VITE_SENTRY_DSN
+        sync: false
+      - key: VITE_GA_TRACKING_ID
+        sync: false
+    headers:
+      - path: /widget.js
+        name: Access-Control-Allow-Origin
+        value: "*"
+      - path: /widget.js
+        name: Cache-Control
+        value: "public, max-age=31536000"
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://nova-titan-api.onrender.com/api/:splat
+    pullRequestPreviewsEnabled: true
+
+databases:
+  # PostgreSQL Database
+  - name: nova-titan-db
+    databaseName: nova_titan
+    user: nova_titan
+    region: oregon
+    plan: starter
+    postgresMajorVersion: 15
+
+  # Redis Cache
+  - name: nova-titan-redis
+    region: oregon
+    plan: starter
+    maxmemoryPolicy: allkeys-lru
+
+# Background Workers (if needed)
+# - type: worker
+#   name: nova-titan-worker
+#   env: node
+#   buildCommand: npm install && npm run build
+#   startCommand: npm run worker
+#   repo: https://github.com/your-org/nova-titan-widget.git
+#   rootDir: backend
+#   envVars:
+#     - key: NODE_ENV
+#       value: production
+#     - key: DATABASE_URL
+#       fromDatabase:
+#         name: nova-titan-db
+#         property: connectionString

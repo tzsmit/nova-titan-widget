@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="https://page.gensparksite.com/v1/base64_upload/b12f5870654d8f0d2849b96fdb25cab2" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nova Titan Sports - AI Predictions & Betting Widget</title>
+    
+    <!-- Meta Tags for SEO -->
+    <meta name="description" content="AI-powered sports predictions and betting recommendations. Get real-time odds, ML predictions, and optimized parlays for NBA, NFL, and more." />
+    <meta name="keywords" content="sports betting, AI predictions, parlay optimizer, odds comparison, Nova Titan" />
+    <meta name="author" content="Nova Titan" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Nova Titan Sports Widget" />
+    <meta property="og:description" content="AI-powered sports predictions and betting recommendations" />
+    <meta property="og:type" content="website" />
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Core Styles -->
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: #e2e8f0;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+      
+      .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      }
+      
+      .loading-spinner {
+        width: 64px;
+        height: 64px;
+        border: 3px solid #374151;
+        border-top: 3px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 24px;
+      }
+      
+      .loading-text {
+        color: #9ca3af;
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 8px;
+      }
+      
+      .loading-subtext {
+        color: #6b7280;
+        font-size: 14px;
+        text-align: center;
+        max-width: 400px;
+        line-height: 1.5;
+      }
+      
+      .error-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+        text-align: center;
+      }
+      
+      .error-icon {
+        font-size: 64px;
+        margin-bottom: 24px;
+      }
+      
+      .error-title {
+        color: #ef4444;
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 16px;
+      }
+      
+      .error-message {
+        color: #9ca3af;
+        font-size: 16px;
+        margin-bottom: 32px;
+        max-width: 500px;
+        line-height: 1.5;
+      }
+      
+      .retry-button {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+      }
+      
+      .retry-button:hover {
+        transform: translateY(-2px);
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      .fade-in {
+        animation: fadeIn 0.5s ease-in;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <!-- Loading Screen -->
+      <div class="loading-container fade-in">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Nova Titan Sports</div>
+        <div class="loading-subtext">
+          Loading AI-powered sports predictions and real-time betting insights...
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Fallback (shown if React fails to load) -->
+    <script>
+      // Show error if React doesn't load within 10 seconds
+      setTimeout(() => {
+        const root = document.getElementById('root');
+        if (root && root.innerHTML.includes('loading-container')) {
+          root.innerHTML = `
+            <div class="error-container fade-in">
+              <div class="error-icon">🚨</div>
+              <div class="error-title">Loading Error</div>
+              <div class="error-message">
+                Nova Titan Sports Widget failed to load properly. This could be due to network issues or browser compatibility.
+                <br><br>
+                Please try refreshing the page or check your internet connection.
+              </div>
+              <button class="retry-button" onclick="window.location.reload()">
+                🔄 Refresh Page
+              </button>
+            </div>
+          `;
+        }
+      }, 10000);
+    </script>
+
+    <!-- Production React Bundle -->
+    <script type="module" crossorigin src="./assets/index.js"></script>
+  </body>
+</html>

@@ -1,11 +1,12 @@
-name: Deploy Nova Titan Widget
+name: Deploy Nova Titan Full-Stack Platform
 
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build-and-deploy-frontend:
     runs-on: ubuntu-latest
     
     steps:
@@ -19,18 +20,45 @@ jobs:
         cache: 'npm'
         cache-dependency-path: frontend/package-lock.json
         
-    - name: Install dependencies
+    - name: Check project structure
+      run: |
+        echo "🔍 Nova Titan Project Structure:"
+        ls -la
+        echo ""
+        echo "📁 Frontend directory:"
+        ls -la frontend/
+        echo ""
+        echo "📦 Package.json files:"
+        find . -name "package.json" -type f
+        
+    - name: Install frontend dependencies
       run: |
         cd frontend
-        npm install
+        npm ci
         
-    - name: Build
+    - name: Build frontend
       run: |
         cd frontend
         npm run build
+        
+    - name: Copy additional files to dist
+      run: |
+        cd frontend
+        # Copy any additional files needed
+        if [ -f "../README.md" ]; then
+          cp ../README.md dist/
+        fi
+        if [ -f "../deployment-test.html" ]; then
+          cp ../deployment-test.html dist/
+        fi
         
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: frontend/dist
+        publish_branch: gh-pages
+        force_orphan: true
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
+        commit_message: '🚀 Deploy Nova Titan Sports Widget'

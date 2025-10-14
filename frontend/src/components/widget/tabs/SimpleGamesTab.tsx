@@ -319,8 +319,15 @@ export const SimpleGamesTab: React.FC = () => {
                         className="w-12 h-12 rounded-lg border border-slate-600 bg-slate-700"
                         onError={(e) => {
                           const img = e.target as HTMLImageElement;
-                          const initials = game.away_team.split(' ').map(w => w[0]).join('');
-                          img.src = `https://via.placeholder.com/48x48/1e293b/ffffff?text=${initials}`;
+                          const initials = game.away_team
+                            .split(' ')
+                            .filter(w => w.length > 0)
+                            .map(w => w[0])
+                            .join('')
+                            .toUpperCase()
+                            .slice(0, 3)
+                            .replace(/[^A-Z0-9]/g, 'T');
+                          img.src = `https://via.placeholder.com/48x48/1e293b/ffffff?text=${encodeURIComponent(initials)}`;
                         }}
                       />
                       <div>
@@ -343,8 +350,15 @@ export const SimpleGamesTab: React.FC = () => {
                         className="w-12 h-12 rounded-lg border border-slate-600 bg-slate-700"
                         onError={(e) => {
                           const img = e.target as HTMLImageElement;
-                          const initials = game.home_team.split(' ').map(w => w[0]).join('');
-                          img.src = `https://via.placeholder.com/48x48/1e293b/ffffff?text=${initials}`;
+                          const initials = game.home_team
+                            .split(' ')
+                            .filter(w => w.length > 0)
+                            .map(w => w[0])
+                            .join('')
+                            .toUpperCase()
+                            .slice(0, 3)
+                            .replace(/[^A-Z0-9]/g, 'T');
+                          img.src = `https://via.placeholder.com/48x48/1e293b/ffffff?text=${encodeURIComponent(initials)}`;
                         }}
                       />
                     </div>

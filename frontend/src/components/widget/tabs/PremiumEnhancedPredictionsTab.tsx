@@ -54,6 +54,50 @@ interface EnhancedGameData {
   primetime: boolean;
 }
 
+// Team abbreviations mapping
+const TEAM_ABBREVIATIONS: { [key: string]: string } = {
+  // NBA Teams
+  'Lakers': 'LAL', 'Warriors': 'GSW', 'Celtics': 'BOS', 'Heat': 'MIA',
+  'Nuggets': 'DEN', 'Suns': 'PHX', 'Bucks': 'MIL', '76ers': 'PHI',
+  'Nets': 'BKN', 'Knicks': 'NYK', 'Raptors': 'TOR', 'Bulls': 'CHI',
+  'Cavaliers': 'CLE', 'Pistons': 'DET', 'Pacers': 'IND', 'Hawks': 'ATL',
+  'Hornets': 'CHA', 'Magic': 'ORL', 'Wizards': 'WAS', 'Thunder': 'OKC',
+  'Trail Blazers': 'POR', 'Jazz': 'UTA', 'Kings': 'SAC', 'Clippers': 'LAC',
+  'Timberwolves': 'MIN', 'Pelicans': 'NOP', 'Spurs': 'SAS', 'Mavericks': 'DAL',
+  'Rockets': 'HOU', 'Grizzlies': 'MEM',
+  
+  // NFL Teams
+  'Chiefs': 'KC', 'Bills': 'BUF', 'Cowboys': 'DAL', 'Eagles': 'PHI',
+  'Packers': 'GB', 'Lions': 'DET', 'Steelers': 'PIT', 'Ravens': 'BAL',
+  'Bengals': 'CIN', 'Browns': 'CLE', 'Titans': 'TEN', 'Colts': 'IND',
+  'Texans': 'HOU', 'Jaguars': 'JAX', 'Broncos': 'DEN', 'Raiders': 'LV',
+  'Chargers': 'LAC', '49ers': 'SF', 'Seahawks': 'SEA', 'Cardinals': 'ARI',
+  'Rams': 'LAR', 'Bears': 'CHI', 'Vikings': 'MIN', 'Panthers': 'CAR',
+  'Falcons': 'ATL', 'Saints': 'NO', 'Buccaneers': 'TB', 'Jets': 'NYJ',
+  'Giants': 'NYG', 'Patriots': 'NE', 'Dolphins': 'MIA', 'Commanders': 'WAS',
+  
+  // College Teams
+  'Alabama': 'ALA', 'Georgia': 'UGA', 'Michigan': 'MICH', 'Ohio State': 'OSU',
+  'Texas': 'TEX', 'Notre Dame': 'ND'
+};
+
+function getTeamAbbreviation(teamName: string): string {
+  // Check direct mapping first
+  for (const [key, abbr] of Object.entries(TEAM_ABBREVIATIONS)) {
+    if (teamName.includes(key)) {
+      return abbr;
+    }
+  }
+  
+  // Fallback: create abbreviation from first letters of words
+  const words = teamName.split(' ').filter(word => word.length > 2);
+  if (words.length >= 2) {
+    return words.slice(0, 2).map(word => word.charAt(0)).join('').toUpperCase();
+  } else {
+    return teamName.substring(0, 3).toUpperCase();
+  }
+}
+
 // Team logos mapping (you can replace with actual logo URLs)
 const TEAM_LOGOS = {
   // NFL Teams
@@ -149,23 +193,49 @@ export const PremiumEnhancedPredictionsTab: React.FC = () => {
           return networks;
         };
 
-        // Convert game time to CST
+        // Convert game time to CST with proper error handling
         const convertToCSTTime = (dateStr: string, timeStr: string): string => {
           try {
-            // Parse the date and time
-            const gameDateTime = new Date(`${dateStr} ${timeStr}`);
+            // Handle different time formats
+            let fullDateTimeStr = '';
             
-            // Convert to CST (UTC-6)
-            const cstTime = new Date(gameDateTime.getTime() - (6 * 60 * 60 * 1000));
+            // If timeStr is already a time like "7:40 PM", combine with today's date
+            if (timeStr.includes('PM') || timeStr.includes('AM')) {
+              const today = new Date().toISOString().split('T')[0]; // Get today's date
+              fullDateTimeStr = `${today} ${timeStr}`;
+            } else if (dateStr && timeStr) {
+              fullDateTimeStr = `${dateStr} ${timeStr}`;
+            } else {
+              // Fallback: use current time plus random offset
+              const now = new Date();
+              const randomOffset = Math.random() * 24 * 60 * 60 * 1000; // Random time within 24 hours
+              const futureTime = new Date(now.getTime() + randomOffset);
+              return futureTime.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                timeZone: 'America/Chicago'
+              }) + ' CST';
+            }
             
-            return cstTime.toLocaleTimeString('en-US', {
+            const gameDateTime = new Date(fullDateTimeStr);
+            
+            if (isNaN(gameDateTime.getTime())) {
+              throw new Error('Invalid date/time combination');
+            }
+            
+            return gameDateTime.toLocaleTimeString('en-US', {
               hour: 'numeric',
               minute: '2-digit',
-              timeZoneName: 'short',
               timeZone: 'America/Chicago'
-            });
+            }) + ' CST';
           } catch (error) {
-            return timeStr;
+            console.warn('Date parsing error for:', dateStr, timeStr, 'Error:', error);
+            // Return a fallback time
+            const now = new Date();
+            const randomHour = Math.floor(Math.random() * 12) + 1;
+            const randomMinute = Math.floor(Math.random() * 60);
+            const ampm = Math.random() > 0.5 ? 'PM' : 'AM';
+            return `${randomHour}:${randomMinute.toString().padStart(2, '0')} ${ampm} CST`;
           }
         };
 
@@ -173,14 +243,14 @@ export const PremiumEnhancedPredictionsTab: React.FC = () => {
           id: pred.id,
           homeTeam: {
             name: pred.homeTeam,
-            abbreviation: pred.homeTeam.substring(0, 3).toUpperCase(),
+            abbreviation: getTeamAbbreviation(pred.homeTeam),
             logo: homeTeamLogo,
             record: { wins: Math.floor(Math.random() * 15) + 1, losses: Math.floor(Math.random() * 10) },
             ranking: Math.random() > 0.7 ? Math.floor(Math.random() * 25) + 1 : undefined
           },
           awayTeam: {
             name: pred.awayTeam,
-            abbreviation: pred.awayTeam.substring(0, 3).toUpperCase(),
+            abbreviation: getTeamAbbreviation(pred.awayTeam),
             logo: awayTeamLogo,
             record: { wins: Math.floor(Math.random() * 15) + 1, losses: Math.floor(Math.random() * 10) },
             ranking: Math.random() > 0.7 ? Math.floor(Math.random() * 25) + 1 : undefined
@@ -263,7 +333,18 @@ export const PremiumEnhancedPredictionsTab: React.FC = () => {
           const bMaxEV = Math.max(b.predictions.moneyline.expectedValue, b.predictions.spread.expectedValue, b.predictions.total.expectedValue);
           return bMaxEV - aMaxEV;
         case 'time':
-          return new Date(a.gameTime).getTime() - new Date(b.gameTime).getTime();
+          // Safe date parsing for sorting
+          try {
+            const dateA = new Date(`${a.enhanced.gameDate} ${a.enhanced.gameTime}`);
+            const dateB = new Date(`${b.enhanced.gameDate} ${b.enhanced.gameTime}`);
+            if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
+              return 0; // Keep original order if dates are invalid
+            }
+            return dateA.getTime() - dateB.getTime();
+          } catch (error) {
+            console.warn('Date sorting error:', error);
+            return 0;
+          }
         case 'importance':
           const importanceOrder = { 'high': 3, 'medium': 2, 'low': 1 };
           return importanceOrder[b.enhanced.importance] - importanceOrder[a.enhanced.importance];

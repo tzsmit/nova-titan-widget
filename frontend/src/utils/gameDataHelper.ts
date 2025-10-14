@@ -204,15 +204,19 @@ function getTeamLogo(teamName: string): string {
     return TEAM_LOGOS[teamName as keyof typeof TEAM_LOGOS];
   }
   
-  // Create initials fallback
+  // Create initials fallback - ensure proper encoding
   const initials = teamName
     .split(' ')
+    .filter(word => word.length > 0)  // Filter out empty strings
     .map(word => word.charAt(0))
     .join('')
     .toUpperCase()
     .slice(0, 3);
   
-  return `https://via.placeholder.com/64x64/1e293b/ffffff?text=${initials}`;
+  // Ensure initials are valid for URL
+  const validInitials = initials.replace(/[^A-Z0-9]/g, 'T'); // Replace invalid chars with 'T'
+  
+  return `https://via.placeholder.com/64x64/1e293b/ffffff?text=${encodeURIComponent(validInitials)}`;
 }
 
 /**
