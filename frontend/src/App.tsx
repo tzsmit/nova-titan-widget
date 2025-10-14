@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SimpleMainWidget } from './components/widget/SimpleMainWidget';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import { useEffect } from 'react';
+import { appInitializer } from './services/appInitializer';
 // import './App.css';
 
 // Create a client
@@ -18,8 +19,14 @@ const queryClient = new QueryClient({
 
 function App() {
   useEffect(() => {
-    // App initialized
-    console.log('Nova Titan Elite App initialized');
+    // Initialize app with roster sync
+    console.log('🚀 Nova Titan Elite App starting...');
+    
+    appInitializer.initialize().then(() => {
+      console.log('✅ Nova Titan Elite App fully initialized with roster data');
+    }).catch((error) => {
+      console.error('❌ App initialization failed:', error);
+    });
   }, []);
 
   return (

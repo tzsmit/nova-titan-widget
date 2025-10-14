@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { realTimeOddsService } from '../../../services/realTimeOddsService';
 import { DateSelector } from '../../ui/DateSelector';
 import { SearchBar } from '../../ui/SearchBar';
-import { processGameData, generateMockGames, formatOdds, ProcessedGame } from '../../../utils/gameDataHelper';
+import { processGameData, formatOdds, ProcessedGame } from '../../../utils/gameDataHelper';
 import { testOddsAPI } from '../../../utils/apiTester';
 import { 
   Calendar,
@@ -26,11 +26,21 @@ import { SportsBettingLegend } from '../../ui/SportsBettingLegend';
 
 const SPORTS = [
   { id: 'all', name: 'All Sports', emoji: '🏆' },
+  
+  // Major US Sports
   { id: 'americanfootball_nfl', name: 'NFL', emoji: '🏈' },
-  { id: 'americanfootball_ncaaf', name: 'CFB', emoji: '🏈' },
   { id: 'basketball_nba', name: 'NBA', emoji: '🏀' },
+  { id: 'americanfootball_ncaaf', name: 'College Football', emoji: '🏈' },
+  { id: 'icehockey_nhl', name: 'NHL', emoji: '🏒' },
   { id: 'baseball_mlb', name: 'MLB', emoji: '⚾' },
-  { id: 'icehockey_nhl', name: 'NHL', emoji: '🏒' }
+  
+  // International & Other Sports
+  { id: 'soccer_epl', name: 'Premier League', emoji: '⚽' },
+  { id: 'soccer_uefa_champs_league', name: 'Champions League', emoji: '🏆' },
+  { id: 'basketball_ncaab', name: 'College Basketball', emoji: '🏀' },
+  { id: 'soccer_usa_mls', name: 'MLS', emoji: '⚽' },
+  { id: 'mixed_martial_arts_ufc', name: 'UFC', emoji: '🥊' },
+  { id: 'boxing_wba_wbc_ibf_wbo', name: 'Boxing', emoji: '🥊' }
 ];
 
 const BOOKMAKERS = [
@@ -62,18 +72,26 @@ export const SimpleGamesTab: React.FC = () => {
       
       try {
         // Try to fetch real data first
-        console.log('🔄 Attempting to fetch live odds from API...');
+        console.log('🔄 Attempting to fetch live odds from The Odds API...');
         const allGames = await realTimeOddsService.getLiveOddsAllSports();
-        console.log(`📊 API Response: ${allGames.length} games received`);
+        console.log(`📊 Live API Response: ${allGames.length} real games received for today`);
+        
+        if (allGames.length > 0) {
+          console.log('📋 Games breakdown by sport:');
+          const sportCounts = allGames.reduce((acc: any, game: any) => {
+            acc[game.sport] = (acc[game.sport] || 0) + 1;
+            return acc;
+          }, {});
+          console.log(sportCounts);
+        }
         
         // Always use real data from API, even if empty
         let rawGames = allGames;
         
-        // Only use mock data if specifically requested or if it's a development environment
         if (allGames.length === 0) {
-          console.warn('⚠️ No live games currently scheduled from API');
-          console.log('🎮 Using mock data to demonstrate platform functionality');
-          rawGames = generateMockGames();
+          console.warn('⚠️ No live games currently scheduled from API - showing empty state');
+          console.log('📅 Check back later for upcoming games or try a different sport/date');
+          return []; // Return empty array instead of fake data
         } else {
           console.log('✅ Using live data from The Odds API');
         }
@@ -88,14 +106,22 @@ export const SimpleGamesTab: React.FC = () => {
           );
         }
 
-        // Filter by date
-        const today = new Date().toISOString().split('T')[0];
+        // Filter by date (October 2025)
+        const today = new Date().toISOString().split('T')[0]; // Current format: 2025-10-14
+        console.log(`📅 Today's date: ${today}, Selected date: ${selectedDate}`);
+        
         if (selectedDate !== today) {
+          const beforeFilter = processedGames.length;
           processedGames = processedGames.filter(game => {
             if (!game.commence_time) return false;
             const gameDate = new Date(game.commence_time).toISOString().split('T')[0];
-            return gameDate === selectedDate;
+            const matches = gameDate === selectedDate;
+            console.log(`📊 Game date: ${gameDate}, Selected: ${selectedDate}, Matches: ${matches}`);
+            return matches;
           });
+          console.log(`📅 Date filter: ${beforeFilter} games → ${processedGames.length} games for ${selectedDate}`);
+        } else {
+          console.log(`📅 Showing all games for today (${today})`);
         }
 
         // Filter by search query
@@ -112,10 +138,9 @@ export const SimpleGamesTab: React.FC = () => {
         
       } catch (error) {
         console.error('❌ API Error - Failed to fetch live data:', error);
-        console.log('🔄 Using mock data as fallback');
-        // Fallback to mock data if API fails
-        const mockGames = generateMockGames();
-        return processGameData(mockGames, selectedBookmaker);
+        console.log('🚫 NO MOCK DATA - Please check your internet connection and try again');
+        // Return empty array - NO FAKE DATA
+        return [];
       }
     },
     refetchInterval: 2 * 60 * 1000, // 2 minutes
@@ -263,15 +288,21 @@ export const SimpleGamesTab: React.FC = () => {
             exit={{ opacity: 0 }}
             className="text-center py-20"
           >
-            <div className="text-slate-400 mb-4">No games found for the selected filters</div>
+            <div className="text-slate-400 mb-4">
+              📅 No live games currently scheduled for {selectedSport === 'all' ? 'any sport' : selectedSport.toUpperCase()} on {selectedDate}
+            </div>
+            <div className="text-slate-500 text-sm mb-4">
+              Try selecting a different sport or date. Real games are fetched from The Odds API.
+            </div>
             <button
               onClick={() => {
                 setSelectedSport('all');
                 setSelectedBookmaker('all');
+                setSelectedDate(new Date().toISOString().split('T')[0]);
               }}
               className="text-blue-400 hover:text-blue-300 underline"
             >
-              Reset Filters
+              Reset to Today's Games
             </button>
           </motion.div>
         ) : (

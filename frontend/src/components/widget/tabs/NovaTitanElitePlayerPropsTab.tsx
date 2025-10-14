@@ -48,178 +48,23 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
     queryFn: async () => {
       console.log(`🎯 Fetching live player props for ${selectedSport}...`);
       
-      // Mock Nova Titan Elite player props data
-      const mockPlayerProps: RealPlayerProp[] = [
-        {
-          id: 'prop-1',
-          playerName: 'Josh Allen',
-          team: 'Buffalo Bills',
-          propType: 'passing_yards',
-          line: 275.5,
-          overOdds: -110,
-          underOdds: -110,
-          isActive: true,
-          gameDate: new Date().toISOString(),
-          opponent: 'vs Kansas City Chiefs',
-          bookmaker: 'FanDuel',
-          confidence: 89,
-          trend: 'up',
-          season_avg: 285.3,
-          last_5_avg: 292.8
-        },
-        {
-          id: 'prop-2',
-          playerName: 'Christian McCaffrey',
-          team: 'San Francisco 49ers',
-          propType: 'rushing_yards',
-          line: 95.5,
-          overOdds: -115,
-          underOdds: -105,
-          isActive: true,
-          gameDate: new Date().toISOString(),
-          opponent: 'vs Seattle Seahawks',
-          bookmaker: 'DraftKings',
-          confidence: 92,
-          trend: 'up',
-          season_avg: 108.7,
-          last_5_avg: 112.4
-        },
-        {
-          id: 'prop-3',
-          playerName: 'Cooper Kupp',
-          team: 'Los Angeles Rams',
-          propType: 'receiving_yards',
-          line: 85.5,
-          overOdds: -108,
-          underOdds: -112,
-          isActive: true,
-          gameDate: new Date().toISOString(),
-          opponent: 'vs Arizona Cardinals',
-          bookmaker: 'BetMGM',
-          confidence: 85,
-          trend: 'up',
-          season_avg: 89.2,
-          last_5_avg: 94.6
-        },
-        {
-          id: 'prop-4',
-          playerName: 'Luka Dončić',
-          team: 'Dallas Mavericks',
-          propType: 'points',
-          line: 28.5,
-          overOdds: -110,
-          underOdds: -110,
-          isActive: true,
-          gameDate: new Date().toISOString(),
-          opponent: 'vs Boston Celtics',
-          bookmaker: 'Caesars',
-          confidence: 87,
-          trend: 'up',
-          season_avg: 30.8,
-          last_5_avg: 32.1
-        },
-        {
-          id: 'prop-5',
-          playerName: 'Nikola Jokić',
-          team: 'Denver Nuggets',
-          propType: 'rebounds',
-          line: 12.5,
-          overOdds: -105,
-          underOdds: -115,
-          isActive: true,
-          gameDate: new Date().toISOString(),
-          opponent: 'vs Phoenix Suns',
-          bookmaker: 'FanDuel',
-          confidence: 91,
-          trend: 'up',
-          season_avg: 13.7,
-          last_5_avg: 14.2
-        },
-        // CFB Players - 2025 Season
-        {
-          id: 'prop-6',
-          playerName: 'Arch Manning',
-          team: 'Texas Longhorns',
-          propType: 'passing_yards',
-          line: 295.5,
-          overOdds: -108,
-          underOdds: -112,
-          isActive: true,
-          gameDate: new Date().toISOString(),
-          opponent: 'vs Oklahoma Sooners',
-          bookmaker: 'DraftKings',
-          confidence: 89,
-          trend: 'up',
-          season_avg: 312.7,
-          last_5_avg: 325.4
-        },
-        {
-          id: 'prop-7',
-          playerName: 'Carson Beck',
-          team: 'Georgia Bulldogs',
-          propType: 'passing_touchdowns',
-          line: 2.5,
-          overOdds: -115,
-          underOdds: -105,
-          isActive: true,
-          gameDate: new Date().toISOString(),
-          opponent: 'vs Alabama Crimson Tide',
-          bookmaker: 'BetMGM',
-          confidence: 91,
-          trend: 'up',
-          season_avg: 3.1,
-          last_5_avg: 3.4
-        },
-        {
-          id: 'prop-8',
-          playerName: 'Travis Hunter',
-          team: 'Colorado Buffaloes',
-          propType: 'receiving_yards',
-          line: 85.5,
-          overOdds: -110,
-          underOdds: -110,
-          isActive: true,
-          gameDate: new Date().toISOString(),
-          opponent: 'vs Nebraska Cornhuskers',
-          bookmaker: 'Caesars',
-          confidence: 93,
-          trend: 'up',
-          season_avg: 92.6,
-          last_5_avg: 98.2
-        },
-        // NBA 2025-26 Season
-        {
-          id: 'prop-9',
-          playerName: 'Cooper Flagg',
-          team: 'Portland Trail Blazers',
-          propType: 'points',
-          line: 18.5,
-          overOdds: -105,
-          underOdds: -115,
-          isActive: true,
-          gameDate: new Date().toISOString(),
-          opponent: 'vs San Antonio Spurs',
-          bookmaker: 'FanDuel',
-          confidence: 85,
-          trend: 'up',
-          season_avg: 19.8,
-          last_5_avg: 21.4
-        }
-      ];
-
+      // Get REAL player props from The Odds API
+      console.log('🎯 Fetching live player props from The Odds API...');
+      
       const sportMap: { [key: string]: string } = {
         'NFL': 'americanfootball_nfl',
         'NBA': 'basketball_nba',
         'CFB': 'americanfootball_ncaaf'
       };
       
-      // Filter by sport
-      const filteredBySport = selectedSport === 'NBA' 
-        ? mockPlayerProps.filter(prop => ['points', 'rebounds', 'assists'].includes(prop.propType))
-        : mockPlayerProps.filter(prop => ['passing_yards', 'rushing_yards', 'receiving_yards', 'passing_touchdowns'].includes(prop.propType));
-
-      console.log(`✅ Found ${filteredBySport.length} live player props`);
-      return filteredBySport;
+      try {
+        const realPlayerProps = await realTimeOddsService.getLivePlayerProps(sportMap[selectedSport]);
+        console.log(`✅ Found ${realPlayerProps.length} live player props from API`);
+        return realPlayerProps;
+      } catch (error) {
+        console.error('❌ Failed to fetch real player props:', error);
+        return []; // Return empty array - NO FAKE DATA
+      }
     },
     refetchInterval: false,
     staleTime: 5 * 60 * 1000, // 5 minutes for live props

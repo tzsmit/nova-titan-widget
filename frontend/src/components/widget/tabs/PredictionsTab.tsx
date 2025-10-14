@@ -21,44 +21,7 @@ interface Prediction {
   aiModel: string;
 }
 
-const mockPredictions: Prediction[] = [
-  {
-    id: '1',
-    game: 'Lakers vs Warriors',
-    team1: 'Lakers',
-    team2: 'Warriors',
-    predictionType: 'moneyline',
-    prediction: 'Lakers +110',
-    confidence: 78,
-    expectedValue: 12.5,
-    reason: 'Strong home advantage, key player matchups favor Lakers',
-    aiModel: 'Nova TitanAI v2.1'
-  },
-  {
-    id: '2',
-    game: 'Celtics vs Heat',
-    team1: 'Celtics',
-    team2: 'Heat',
-    predictionType: 'spread',
-    prediction: 'Celtics -4.5',
-    confidence: 85,
-    expectedValue: 18.3,
-    reason: 'Historical performance against spread, injury reports',
-    aiModel: 'Nova TitanAI v2.1'
-  },
-  {
-    id: '3',
-    game: 'Nuggets vs Suns',
-    team1: 'Nuggets',
-    team2: 'Suns',
-    predictionType: 'total',
-    prediction: 'Over 218.5',
-    confidence: 72,
-    expectedValue: 8.7,
-    reason: 'Both teams averaging high scoring games recently',
-    aiModel: 'Nova TitanAI v2.1'
-  }
-];
+// REMOVED ALL MOCK DATA - ONLY REAL PREDICTIONS
 
 export const PredictionsTab: React.FC = () => {
   const { config, predictions } = useWidgetStore();
@@ -98,8 +61,8 @@ export const PredictionsTab: React.FC = () => {
     return <TrendingDown className="w-4 h-4" />;
   };
 
-  // Use real predictions if available, otherwise fall back to mock data
-  const allPredictions = transformedPredictions.length > 0 ? transformedPredictions : mockPredictions;
+  // ONLY USE REAL PREDICTIONS - NO FAKE DATA
+  const allPredictions = transformedPredictions;
   const filteredPredictions = allPredictions.filter(
     pred => pred.confidence >= confidenceFilter
   );

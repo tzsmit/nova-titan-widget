@@ -17,6 +17,7 @@ import predictionsRouter from './routes/predictions';
 import parlayRouter from './routes/parlay';
 import oddsRouter from './routes/odds';
 import playersRouter from './routes/players';
+import teamsRouter from './routes/teams';
 import healthRouter from './routes/health';
 
 // Import middleware
@@ -93,6 +94,7 @@ app.use('/api/predictions', predictionsRouter);
 app.use('/api/parlay', parlayRouter);
 app.use('/api/odds', oddsRouter);
 app.use('/api/players', playersRouter);
+app.use('/api/teams', teamsRouter);
 
 // Widget serving (for development)
 if (process.env.NODE_ENV === 'development') {
