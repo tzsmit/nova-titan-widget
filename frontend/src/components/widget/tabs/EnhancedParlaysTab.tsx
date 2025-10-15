@@ -58,7 +58,7 @@ export const EnhancedParlaysTab: React.FC = () => {
   });
   const [showOptimization, setShowOptimization] = useState(false);
   const [betType, setBetType] = useState<'h2h' | 'spreads' | 'totals' | 'player_props'>('h2h');
-  const [selectedSport, setSelectedSport] = useState<string>('americanfootball_nfl');
+  const [selectedSport, setSelectedSport] = useState<string>('all');
   const [selectedBookmaker, setSelectedBookmaker] = useState<string>('draftkings');
 
   // Fetch live odds data
@@ -68,9 +68,11 @@ export const EnhancedParlaysTab: React.FC = () => {
       console.log('🎯 Fetching live odds for parlays...', { selectedSport, betType, selectedBookmaker });
       
       if (betType === 'player_props') {
-        return await realTimeOddsService.getLivePlayerProps(selectedSport, selectedBookmaker);
+        return await realTimeOddsService.getLivePlayerProps(selectedSport);
       } else {
-        return await realTimeOddsService.getLiveOdds(selectedSport, betType, selectedBookmaker);
+        // Get all sports odds and filter by sport if not 'all'
+        const allOdds = await realTimeOddsService.getLiveOddsAllSports();
+        return selectedSport === 'all' ? allOdds : allOdds.filter(game => game.sport_key === selectedSport);
       }
     },
     enabled: true,
@@ -95,10 +97,29 @@ export const EnhancedParlaysTab: React.FC = () => {
 
     const legs: ParlayLeg[] = [];
 
-    oddsData.forEach((game: any) => {
+    console.log('🔍 Processing odds data for parlays:', oddsData.length, 'games');
+    
+    oddsData.forEach((game: any, index: number) => {
       const gameId = game.id;
       const homeTeam = game.home_team;
       const awayTeam = game.away_team;
+      
+      // Debug logging for first few games
+      if (index < 3) {
+        console.log(`📊 Game ${index + 1}:`, {
+          id: gameId,
+          home: homeTeam,
+          away: awayTeam,
+          bookmakers: Object.keys(game.bookmakers || {})
+        });
+      }
+      
+      // Handle missing team names
+      if (!homeTeam || !awayTeam) {
+        console.warn('Missing team names for game:', game);
+        return;
+      }
+      
       const gameDate = new Date(game.commence_time).toLocaleDateString();
       const gameTime = new Date(game.commence_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const gameDisplay = `${awayTeam} @ ${homeTeam}`;
@@ -110,58 +131,105 @@ export const EnhancedParlaysTab: React.FC = () => {
         p.away_team === awayTeam
       );
 
-      if (game.bookmakers && game.bookmakers.length > 0) {
-        const bookmaker = game.bookmakers.find((b: any) => b.key === selectedBookmaker) || game.bookmakers[0];
+      // Handle the transformed bookmakers object structure from realTimeOddsService
+      if (game.bookmakers && typeof game.bookmakers === 'object') {
+        const bookmakerKeys = Object.keys(game.bookmakers);
         
-        if (bookmaker?.markets && bookmaker.markets.length > 0) {
-          bookmaker.markets.forEach((market: any) => {
-            if (market.outcomes && market.outcomes.length > 0) {
-              market.outcomes.forEach((outcome: any) => {
-                let betDescription = '';
-                let confidence = 0;
-
-                // Determine bet description and confidence based on market type
-                switch (market.key) {
-                  case 'h2h':
-                    betDescription = 'Moneyline';
-                    confidence = prediction?.moneyline_confidence?.[outcome.name] || 
-                               (outcome.name === prediction?.predicted_winner ? prediction?.confidence || 65 : 45);
-                    break;
-                  case 'spreads':
-                    betDescription = `Spread ${outcome.point > 0 ? '+' : ''}${outcome.point}`;
-                    confidence = prediction?.spread_confidence?.[outcome.name] || 
-                               (Math.abs(outcome.point) < 3 ? 60 : 70);
-                    break;
-                  case 'totals':
-                    betDescription = `${outcome.name} ${outcome.point}`;
-                    confidence = prediction?.total_confidence?.[outcome.name] || 
-                               (outcome.name === 'Over' ? 65 : 55);
-                    break;
-                  default:
-                    betDescription = `${market.key} - ${outcome.name}`;
-                    confidence = 50;
-                }
-
-                // Convert decimal odds to American odds
-                const americanOdds = outcome.price >= 2 ? 
-                  Math.round((outcome.price - 1) * 100) : 
-                  Math.round(-100 / (outcome.price - 1));
-
-                legs.push({
-                  id: `${gameId}-${market.key}-${outcome.name}-${Date.now()}`,
-                  game: `${gameDisplay} (${gameDate} ${gameTime})`,
-                  team: outcome.name,
-                  bet: betDescription,
-                  odds: americanOdds,
-                  confidence: Math.round(confidence),
-                  sport: selectedSport,
-                  gameDate: gameDate,
-                  venue: homeTeam,
-                  bookmaker: bookmaker.title || selectedBookmaker
-                });
+        // Get the selected bookmaker's data or first available bookmaker
+        const bookmakerKey = bookmakerKeys.includes(selectedBookmaker) ? selectedBookmaker : bookmakerKeys[0];
+        const bookmakerData = game.bookmakers[bookmakerKey];
+        
+        if (bookmakerData) {
+          // Moneyline bets
+          if (bookmakerData.moneyline) {
+            if (bookmakerData.moneyline.home) {
+              legs.push({
+                id: `${gameId}_ml_home_${bookmakerKey}`,
+                game: gameDisplay,
+                team: homeTeam,
+                bet: 'Moneyline',
+                odds: bookmakerData.moneyline.home,
+                confidence: prediction?.confidence || 65,
+                sport: game.sport_key || 'NFL',
+                gameDate,
+                venue: game.venue,
+                bookmaker: bookmakerKey
               });
             }
-          });
+            
+            if (bookmakerData.moneyline.away) {
+              legs.push({
+                id: `${gameId}_ml_away_${bookmakerKey}`,
+                game: gameDisplay,
+                team: awayTeam,
+                bet: 'Moneyline',
+                odds: bookmakerData.moneyline.away,
+                confidence: prediction?.confidence || 65,
+                sport: game.sport_key || 'NFL',
+                gameDate,
+                venue: game.venue,
+                bookmaker: bookmakerKey
+              });
+            }
+          }
+
+          // Spread bets
+          if (bookmakerData.spread && bookmakerData.spread.line > 0) {
+            legs.push({
+              id: `${gameId}_spread_home_${bookmakerKey}`,
+              game: gameDisplay,
+              team: homeTeam,
+              bet: `Spread -${bookmakerData.spread.line}`,
+              odds: bookmakerData.spread.home,
+              confidence: prediction?.spread_confidence || 70,
+              sport: game.sport_key || 'NFL',
+              gameDate,
+              venue: game.venue,
+              bookmaker: bookmakerKey
+            });
+
+            legs.push({
+              id: `${gameId}_spread_away_${bookmakerKey}`,
+              game: gameDisplay,
+              team: awayTeam,
+              bet: `Spread +${bookmakerData.spread.line}`,
+              odds: bookmakerData.spread.away,
+              confidence: prediction?.spread_confidence || 70,
+              sport: game.sport_key || 'NFL',
+              gameDate,
+              venue: game.venue,
+              bookmaker: bookmakerKey
+            });
+          }
+
+          // Total bets
+          if (bookmakerData.total && bookmakerData.total.line > 0) {
+            legs.push({
+              id: `${gameId}_total_over_${bookmakerKey}`,
+              game: gameDisplay,
+              team: `Over ${bookmakerData.total.line}`,
+              bet: 'Total',
+              odds: bookmakerData.total.over,
+              confidence: prediction?.total_confidence || 65,
+              sport: game.sport_key || 'NFL',
+              gameDate,
+              venue: game.venue,
+              bookmaker: bookmakerKey
+            });
+
+            legs.push({
+              id: `${gameId}_total_under_${bookmakerKey}`,
+              game: gameDisplay,
+              team: `Under ${bookmakerData.total.line}`,
+              bet: 'Total',
+              odds: bookmakerData.total.under,
+              confidence: prediction?.total_confidence || 65,
+              sport: game.sport_key || 'NFL',
+              gameDate,
+              venue: game.venue,
+              bookmaker: bookmakerKey
+            });
+          }
         }
       }
     });
@@ -275,13 +343,13 @@ export const EnhancedParlaysTab: React.FC = () => {
 
   const getSportDisplay = (sport: string) => {
     switch (sport) {
+      case 'all': return '🏆 All Sports';
       case 'americanfootball_nfl': return '🏈 NFL';
       case 'basketball_nba': return '🏀 NBA';
       case 'americanfootball_ncaaf': return '🏟️ NCAAF';
+      case 'basketball_ncaab': return '🏀 NCAAB';
       case 'baseball_mlb': return '⚾ MLB';
-      case 'icehockey_nhl': return '🏒 NHL';
-      case 'soccer_epl': return '⚽ Premier League';
-      case 'soccer_usa_mls': return '⚽ MLS';
+      case 'boxing_boxing': return '🥊 Boxing';
       default: return sport;
     }
   };
@@ -321,13 +389,13 @@ export const EnhancedParlaysTab: React.FC = () => {
               onChange={(e) => setSelectedSport(e.target.value)}
               className="w-full bg-gray-700 text-white px-3 py-2 rounded-md border border-gray-600 focus:border-blue-500"
             >
+              <option value="all">🏆 All Sports</option>
               <option value="americanfootball_nfl">🏈 NFL</option>
               <option value="basketball_nba">🏀 NBA</option>
               <option value="americanfootball_ncaaf">🏟️ College Football</option>
+              <option value="basketball_ncaab">🏀 College Basketball</option>
               <option value="baseball_mlb">⚾ MLB</option>
-              <option value="icehockey_nhl">🏒 NHL</option>
-              <option value="soccer_epl">⚽ Premier League</option>
-              <option value="soccer_usa_mls">⚽ MLS</option>
+              <option value="boxing_boxing">🥊 Boxing</option>
             </select>
           </div>
 

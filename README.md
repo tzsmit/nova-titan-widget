@@ -5,11 +5,12 @@ A comprehensive, full-featured sports betting companion platform built with Reac
 ## 🚀 DEPLOYMENT STATUS: PRODUCTION READY
 
 ### ✅ Critical Issues Fixed (Latest Update):
-1. **Date Parsing Errors** - Fixed invalid date/time parsing causing console warnings
-2. **Broken Image URLs** - Fixed malformed team logo placeholder URLs (ERR_NAME_NOT_RESOLVED errors)
-3. **Team Abbreviations** - Implemented proper team abbreviation mapping to prevent invalid URLs
-4. **GitHub Actions Configuration** - Updated deployment workflow for correct project structure
-5. **Production Build Setup** - Added optimized Vite configuration for deployment
+1. **API Authentication Fixed** - Removed hardcoded 'apiKey=test' from health checks causing 401 errors
+2. **ESPN CORS Errors Resolved** - Added production environment checks to prevent ESPN API calls in static deployment
+3. **Player Props Implementation** - Updated to use correct `/events/{eventId}/odds` endpoint with real player prop markets
+4. **Date Filtering Logic Fixed** - Corrected timezone handling and date comparison logic for accurate game filtering
+5. **Parlay Builder "Undefined @ Undefined" Fixed** - Updated data structure handling to properly display team names and odds
+6. **Production Environment Optimization** - Proper conditional API usage based on deployment environment
 
 ### 🔧 Ready for Deployment:
 - ✅ All console errors resolved
@@ -165,7 +166,11 @@ The platform uses a comprehensive RESTful API for data persistence:
 - **✅ ALL WORKING**: Currently fetching 85 real games successfully
 - **Sports**: NFL (15 games), College Football (58 games), MLB (2 games), Boxing (10 games)
 - **Rate Limiting**: 500ms delays, proper caching, no more 422 errors
-- **Player Props**: Smart filtering by sport (football props for NFL/NCAAF, basketball props for NBA/NCAAB)
+- **Player Props**: ✅ NEWLY IMPLEMENTED - Uses `/events/{eventId}/odds` endpoint with proper market support
+  - NFL: Pass yards, Pass TDs, Rush yards, Rush TDs, Receptions, Receiving yards
+  - NBA: Points, Rebounds, Assists, 3-pointers, Blocks, Steals  
+  - College Football: Pass yards, Rush yards, Receptions
+  - MLB: Hits, Total bases, Runs scored, RBIs
 
 **ESPN Sports API:**
 - Live games and scores integration

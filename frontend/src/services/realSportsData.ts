@@ -47,7 +47,7 @@ export interface LiveScore {
 
 class RealSportsDataService {
   private readonly ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports';
-  private readonly ODDS_API_KEY = '6731f3f87993c07a3ac993c94e51f2cc';
+  private readonly ODDS_API_KEY = 'effdb0775abef82ff5dd944ae2180cae';
   private readonly cache = new Map<string, { data: any; timestamp: number }>();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 

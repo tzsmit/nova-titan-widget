@@ -29,9 +29,8 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       
-      // Use CST timezone for consistency with game data
-      const cstDate = new Date(date.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
-      const dateStr = cstDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+      // Generate YYYY-MM-DD string directly from CST date to match filtering logic
+      const dateStr = date.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' }); // YYYY-MM-DD format
       
       const displayDate = date.toLocaleDateString('en-US', {
         weekday: 'short',
@@ -39,6 +38,8 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
         day: 'numeric',
         timeZone: 'America/Chicago'
       });
+      
+      console.log(`📅 DateSelector generating: ${dateStr} (${displayDate})`);
       
       dates.push({
         value: dateStr,

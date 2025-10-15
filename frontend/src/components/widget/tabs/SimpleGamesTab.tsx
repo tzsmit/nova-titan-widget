@@ -47,7 +47,9 @@ const BOOKMAKERS = [
 export const SimpleGamesTab: React.FC = () => {
   const [selectedSport, setSelectedSport] = useState('all');
   const [selectedBookmaker, setSelectedBookmaker] = useState('all');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' })
+  ); // Use CST for consistency
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFilters, setSearchFilters] = useState({ type: 'all' as const, sport: 'all' as const });
   const [showLegend, setShowLegend] = useState(false);
@@ -103,29 +105,53 @@ export const SimpleGamesTab: React.FC = () => {
           console.log(`🏈 Sport filter (${selectedSport}): ${beforeSportFilter} -> ${processedGames.length} games`);
         }
 
-        // Filter by date (October 2025) - ALWAYS apply date filter using CST
-        const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' }); // YYYY-MM-DD in CST
+        // DEBUG: First let's see all the games and their dates without filtering
+        console.log('🔍 DEBUGGING ALL GAMES AND DATES:');
+        processedGames.forEach((game, idx) => {
+          if (game.commence_time) {
+            const gameDateTime = new Date(game.commence_time);
+            const cstDate = gameDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+            const utcDate = gameDateTime.toISOString().split('T')[0];
+            console.log(`📊 Game ${idx + 1}: ${game.away_team} @ ${game.home_team}`);
+            console.log(`   Time: ${game.commence_time} -> CST: ${cstDate}, UTC: ${utcDate}`);
+          }
+        });
+        
+        // Filter by date - Use a more flexible date matching approach
+        const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' }); 
         console.log(`📅 Today's date (CST): ${today}, Selected date: ${selectedDate}`);
         
         const beforeFilter = processedGames.length;
         processedGames = processedGames.filter(game => {
           if (!game.commence_time) {
-            console.log(`❌ Game missing commence_time: ${game.away_team} @ ${game.home_team}`);
             return false;
           }
           
-          // Convert game time to CST date
-          const gameDate = new Date(game.commence_time).toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
-          const matches = gameDate === selectedDate;
-          
-          // Log first few games and any matches for debugging
-          if (processedGames.indexOf(game) < 3 || matches) {
-            console.log(`📊 ${game.away_team} @ ${game.home_team}: ${game.commence_time} -> ${gameDate} (selected: ${selectedDate}) = ${matches}`);
+          try {
+            const gameDateTime = new Date(game.commence_time);
+            if (isNaN(gameDateTime.getTime())) {
+              return false;
+            }
+            
+            // Convert to YYYY-MM-DD format in both CST and UTC for comparison
+            const cstDate = gameDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+            const utcDate = gameDateTime.toISOString().split('T')[0];
+            
+            // Match against both CST and UTC dates to be more flexible
+            const matches = cstDate === selectedDate || utcDate === selectedDate;
+            
+            if (matches) {
+              console.log(`✅ MATCH FOUND: ${game.away_team} @ ${game.home_team} (${cstDate} matches ${selectedDate})`);
+            }
+            
+            return matches;
+            
+          } catch (error) {
+            console.error('Date filtering error:', error);
+            return false;
           }
-          
-          return matches;
         });
-        console.log(`📅 Date filter applied: ${beforeFilter} games → ${processedGames.length} games for ${selectedDate}`);
+        console.log(`📅 Date filter result: ${beforeFilter} games → ${processedGames.length} games for ${selectedDate}`);
 
         // Filter by search query
         if (searchQuery.trim()) {

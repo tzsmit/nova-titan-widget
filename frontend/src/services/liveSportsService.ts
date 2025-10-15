@@ -5,6 +5,7 @@
 
 import { smartCache } from './smartCacheManager';
 import { realSportsData } from './realSportsData';
+import { deploymentConfig } from '../config/deployment';
 
 export interface LiveGame {
   id: string;
@@ -54,7 +55,7 @@ export interface LiveOdds {
 
 class LiveSportsService {
   private readonly ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports';
-  private readonly ODDS_API_KEY = '6731f3f87993c07a3ac993c94e51f2cc';
+  private readonly ODDS_API_KEY = 'effdb0775abef82ff5dd944ae2180cae';
   private readonly ODDS_BASE = 'https://api.the-odds-api.com/v4';
 
   /**
@@ -243,6 +244,12 @@ class LiveSportsService {
   // Private methods for fetching from different APIs
 
   private async fetchNFLGames(): Promise<LiveGame[]> {
+    // Skip ESPN API calls in production due to CORS issues
+    if (deploymentConfig.isProduction) {
+      console.log('🏈 Using fallback NFL games (production mode - no ESPN API)');
+      return this.getFallbackNFLGames();
+    }
+    
     try {
       const response = await fetch(`${this.ESPN_BASE}/football/nfl/scoreboard`);
       if (!response.ok) throw new Error(`NFL API error: ${response.status}`);
@@ -256,6 +263,12 @@ class LiveSportsService {
   }
 
   private async fetchNBAGames(): Promise<LiveGame[]> {
+    // Skip ESPN API calls in production due to CORS issues
+    if (deploymentConfig.isProduction) {
+      console.log('🏀 Using fallback NBA games (production mode - no ESPN API)');
+      return this.getFallbackNBAGames();
+    }
+    
     try {
       const response = await fetch(`${this.ESPN_BASE}/basketball/nba/scoreboard`);
       if (!response.ok) throw new Error(`NBA API error: ${response.status}`);
@@ -269,6 +282,12 @@ class LiveSportsService {
   }
 
   private async fetchCollegeFootballGames(): Promise<LiveGame[]> {
+    // Skip ESPN API calls in production due to CORS issues
+    if (deploymentConfig.isProduction) {
+      console.log('🏈 Using fallback CFB games (production mode - no ESPN API)');
+      return this.getFallbackCFBGames();
+    }
+    
     try {
       const response = await fetch(`${this.ESPN_BASE}/football/college-football/scoreboard`);
       if (!response.ok) throw new Error(`CFB API error: ${response.status}`);

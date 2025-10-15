@@ -21,35 +21,30 @@ export async function runDeploymentHealthCheck(): Promise<HealthCheck[]> {
 
   // 2. Check API availability (should gracefully handle missing APIs)
   try {
-    const oddsAPITest = await fetch('https://api.the-odds-api.com/v4/sports?apiKey=test');
+    // Just check if the API domain is reachable without using API key to avoid 401 errors in logs
+    const oddsAPITest = await fetch('https://api.the-odds-api.com', { 
+      method: 'HEAD',
+      mode: 'no-cors' // Avoid CORS issues for basic connectivity test
+    });
     checks.push({
       name: 'The Odds API Connectivity',
       status: 'pass',
-      message: 'The Odds API is reachable (test endpoint)'
+      message: 'The Odds API domain is reachable'
     });
   } catch (error) {
     checks.push({
       name: 'The Odds API Connectivity',
       status: 'warn',
-      message: 'Cannot reach The Odds API (may be network or CORS issue)'
+      message: 'Cannot reach The Odds API (may be network issue)'
     });
   }
 
-  // 3. Check ESPN API availability
-  try {
-    const espnTest = await fetch('https://site.api.espn.com/apis/site/v2/sports');
-    checks.push({
-      name: 'ESPN API Connectivity',
-      status: espnTest.ok ? 'pass' : 'warn',
-      message: espnTest.ok ? 'ESPN API is reachable' : `ESPN API returned ${espnTest.status}`
-    });
-  } catch (error) {
-    checks.push({
-      name: 'ESPN API Connectivity',
-      status: 'warn',
-      message: 'Cannot reach ESPN API (may be network or CORS issue)'
-    });
-  }
+  // 3. Check ESPN API availability (skip actual call to avoid CORS errors in production)
+  checks.push({
+    name: 'ESPN API Connectivity',
+    status: 'warn',
+    message: 'ESPN API calls disabled in production due to CORS restrictions (using fallback data)'
+  });
 
   // 4. Check local storage availability
   try {
