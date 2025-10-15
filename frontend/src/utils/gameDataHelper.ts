@@ -384,6 +384,7 @@ export function getTeamLogo(teamName: string): string {
       </text>
     </svg>
   `)}`;
+}
 
 // Helper function to get team colors
 function getTeamColor(teamName: string): string {
