@@ -67,10 +67,11 @@ class RealTimeOddsService {
     let key: string;
     switch (endpoint) {
       case 'props':
-        key = this.SECONDARY_ODDS_API_KEY; // Use secondary for player props
+        // Temporarily use primary key for props if secondary is invalid
+        key = this.SECONDARY_ODDS_API_KEY || this.PRIMARY_ODDS_API_KEY;
         break;
       case 'backup':
-        key = this.SECONDARY_ODDS_API_KEY; // Use secondary as backup
+        key = this.PRIMARY_ODDS_API_KEY; // Use primary as backup
         break;
       case 'odds':
       default:
