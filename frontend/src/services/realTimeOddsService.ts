@@ -175,6 +175,13 @@ class RealTimeOddsService {
       logo: '🌊',
       color: '#0066cc',
       isActive: true
+    },
+    {
+      id: 'unibet',
+      name: 'Underdog Fantasy',
+      logo: '🐕',
+      color: '#22c55e',
+      isActive: true
     }
   ];
 
@@ -260,9 +267,9 @@ class RealTimeOddsService {
       };
       
       const now = new Date();
-      const sevenDaysLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const fourteenDaysLater = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
       
-      // Get games for the next 7 days to capture upcoming games in October 2025
+      // Get games for the next 14 days to capture more upcoming games and all available players
       const url = `${this.BASE_URL}/sports/${sport}/odds/?` +
         `apiKey=${this.getApiKey()}&` +
         `regions=us&` +
@@ -271,7 +278,7 @@ class RealTimeOddsService {
         `oddsFormat=american&` +
         `dateFormat=iso&` +
         `commenceTimeFrom=${formatDateForOddsAPI(now)}&` +
-        `commenceTimeTo=${formatDateForOddsAPI(sevenDaysLater)}`;
+        `commenceTimeTo=${formatDateForOddsAPI(fourteenDaysLater)}`;
 
       await this.respectRateLimit(); // Preserve API credits
       console.log(`🌐 Calling Odds API for ${sport}: ${url.replace(this.getApiKey(), 'API_KEY_HIDDEN')}`);
@@ -378,9 +385,9 @@ class RealTimeOddsService {
         return [];
       }
 
-      // Optimize by creating batch requests
-      const gamesToProcess = games.slice(0, 2); // Reduce to 2 games for better speed
-      console.log(`🚀 Processing ${gamesToProcess.length} games with ${propMarkets.length} markets each`);
+      // Process ALL games in the 14-day window to show all available players
+      const gamesToProcess = games.slice(0, 20); // Increased to 20 games for 14-day coverage
+      console.log(`🚀 Processing ${gamesToProcess.length} games with ${propMarkets.length} markets each (14-day window)`);
       
       // Create all request promises upfront
       const requestPromises = gamesToProcess.flatMap(game => 

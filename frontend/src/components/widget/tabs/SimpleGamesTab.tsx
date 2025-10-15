@@ -42,7 +42,8 @@ const BOOKMAKERS = [
   { id: 'draftkings', name: 'DraftKings', color: 'bg-orange-600' },
   { id: 'fanduel', name: 'FanDuel', color: 'bg-blue-600' },
   { id: 'betmgm', name: 'BetMGM', color: 'bg-yellow-600' },
-  { id: 'caesars', name: 'Caesars', color: 'bg-purple-600' }
+  { id: 'caesars', name: 'Caesars', color: 'bg-purple-600' },
+  { id: 'unibet', name: 'Underdog Fantasy', color: 'bg-green-600' }
 ];
 
 export const SimpleGamesTab: React.FC = () => {
@@ -408,9 +409,37 @@ export const SimpleGamesTab: React.FC = () => {
                 <div className="bg-slate-900/50 px-3 sm:px-6 py-3 sm:py-4 border-b border-slate-700">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="text-xs px-2 py-1 bg-blue-600 text-white rounded font-medium">
-                        LIVE
-                      </div>
+                      {(() => {
+                        const gameTime = new Date(game.commence_time);
+                        const now = new Date();
+                        const timeDiff = gameTime.getTime() - now.getTime();
+                        const hoursUntilGame = timeDiff / (1000 * 60 * 60);
+                        
+                        // Game is live if it started within the last 4 hours and hasn't been over for more than 1 hour
+                        // Most sports games last 2-4 hours
+                        const isLive = hoursUntilGame <= 0 && hoursUntilGame >= -5;
+                        const isUpcoming = hoursUntilGame > 0;
+                        
+                        if (isLive) {
+                          return (
+                            <div className="text-xs px-2 py-1 bg-red-600 text-white rounded font-medium animate-pulse">
+                              LIVE
+                            </div>
+                          );
+                        } else if (isUpcoming) {
+                          return (
+                            <div className="text-xs px-2 py-1 bg-green-600 text-white rounded font-medium">
+                              UPCOMING
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <div className="text-xs px-2 py-1 bg-gray-600 text-white rounded font-medium">
+                              FINAL
+                            </div>
+                          );
+                        }
+                      })()}
                       {/* Sport Category Badge */}
                       <div className="text-xs px-2 py-1 bg-purple-600/80 text-purple-100 rounded font-medium">
                         {SPORTS.find(s => s.id === game.sport_key)?.name || 

@@ -139,6 +139,55 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
     return odds > 0 ? `+${odds}` : `${odds}`;
   };
 
+  // Get player headshot URL
+  const getPlayerHeadshot = (playerName: string, team: string): string => {
+    // ESPN player headshots URL pattern
+    const cleanName = playerName.toLowerCase().replace(/[^a-z\s]/g, '').replace(/\s+/g, '-');
+    const teamCode = getTeamCode(team);
+    
+    // Return ESPN headshot URL with fallback
+    return `https://a.espncdn.com/i/headshots/${selectedSport === 'NBA' ? 'nba' : 'nfl'}/players/full/${cleanName}.png`;
+  };
+
+  // Get team code for logos
+  const getTeamCode = (teamName: string): string => {
+    const teamCodes: { [key: string]: string } = {
+      // NFL teams
+      'Arizona Cardinals': 'ari', 'Atlanta Falcons': 'atl', 'Baltimore Ravens': 'bal',
+      'Buffalo Bills': 'buf', 'Carolina Panthers': 'car', 'Chicago Bears': 'chi',
+      'Cincinnati Bengals': 'cin', 'Cleveland Browns': 'cle', 'Dallas Cowboys': 'dal',
+      'Denver Broncos': 'den', 'Detroit Lions': 'det', 'Green Bay Packers': 'gb',
+      'Houston Texans': 'hou', 'Indianapolis Colts': 'ind', 'Jacksonville Jaguars': 'jax',
+      'Kansas City Chiefs': 'kc', 'Las Vegas Raiders': 'lv', 'Los Angeles Chargers': 'lac',
+      'Los Angeles Rams': 'lar', 'Miami Dolphins': 'mia', 'Minnesota Vikings': 'min',
+      'New England Patriots': 'ne', 'New Orleans Saints': 'no', 'New York Giants': 'nyg',
+      'New York Jets': 'nyj', 'Philadelphia Eagles': 'phi', 'Pittsburgh Steelers': 'pit',
+      'San Francisco 49ers': 'sf', 'Seattle Seahawks': 'sea', 'Tampa Bay Buccaneers': 'tb',
+      'Tennessee Titans': 'ten', 'Washington Commanders': 'wsh',
+      
+      // NBA teams
+      'Atlanta Hawks': 'atl', 'Boston Celtics': 'bos', 'Brooklyn Nets': 'bkn',
+      'Charlotte Hornets': 'cha', 'Chicago Bulls': 'chi', 'Cleveland Cavaliers': 'cle',
+      'Dallas Mavericks': 'dal', 'Denver Nuggets': 'den', 'Detroit Pistons': 'det',
+      'Golden State Warriors': 'gs', 'Houston Rockets': 'hou', 'Indiana Pacers': 'ind',
+      'Los Angeles Clippers': 'lac', 'Los Angeles Lakers': 'lal', 'Memphis Grizzlies': 'mem',
+      'Miami Heat': 'mia', 'Milwaukee Bucks': 'mil', 'Minnesota Timberwolves': 'min',
+      'New Orleans Pelicans': 'no', 'New York Knicks': 'ny', 'Oklahoma City Thunder': 'okc',
+      'Orlando Magic': 'orl', 'Philadelphia 76ers': 'phi', 'Phoenix Suns': 'phx',
+      'Portland Trail Blazers': 'por', 'Sacramento Kings': 'sac', 'San Antonio Spurs': 'sa',
+      'Toronto Raptors': 'tor', 'Utah Jazz': 'utah', 'Washington Wizards': 'wsh'
+    };
+    
+    return teamCodes[teamName] || teamName.toLowerCase().replace(/\s+/g, '');
+  };
+
+  // Get team logo URL
+  const getTeamLogo = (team: string): string => {
+    const teamCode = getTeamCode(team);
+    const league = selectedSport === 'NBA' ? 'nba' : selectedSport === 'CFB' ? 'college-football' : 'nfl';
+    return `https://a.espncdn.com/i/teamlogos/${league}/500/${teamCode}.png`;
+  };
+
   // Helper functions to extract odds from RealPlayerProp structure
   const getOverOdds = (prop: any): number => {
     if (prop.overOdds) return prop.overOdds; // Legacy format
@@ -520,14 +569,55 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
                 {/* Player Header */}
                 <div className="bg-gradient-to-r from-slate-900 to-purple-900/50 p-4 border-b border-slate-700">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-bold text-slate-100 mb-1">
-                        {prop.playerName}
-                      </h3>
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="text-slate-300">{prop.team}</span>
-                        <span className="text-slate-500">•</span>
-                        <span className="text-slate-400">{prop.opponent}</span>
+                    <div className="flex items-center gap-3">
+                      {/* Player Headshot */}
+                      <div className="relative">
+                        <img 
+                          src={getPlayerHeadshot(prop.playerName, prop.team)}
+                          alt={prop.playerName}
+                          className="w-12 h-12 rounded-full border-2 border-purple-500/50 object-cover"
+                          onError={(e) => {
+                            // Fallback to player initials if headshot fails
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.nextElementSibling?.setAttribute('style', 'display: flex');
+                          }}
+                        />
+                        <div 
+                          className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 border-2 border-purple-500/50 hidden items-center justify-center text-white font-bold text-sm"
+                        >
+                          {prop.playerName.split(' ').map(n => n.charAt(0)).join('').slice(0, 2)}
+                        </div>
+                        {/* Team Logo Badge */}
+                        <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-slate-800 border-2 border-slate-700 overflow-hidden">
+                          <img 
+                            src={getTeamLogo(prop.team)}
+                            alt={prop.team}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = `data:image/svg+xml;base64,${btoa(`
+                                <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                                  <rect width="24" height="24" fill="#374151"/>
+                                  <text x="12" y="16" font-family="Arial" font-size="10" fill="white" text-anchor="middle">
+                                    ${getTeamCode(prop.team).slice(0, 2).toUpperCase()}
+                                  </text>
+                                </svg>
+                              `)}`;
+                            }}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-lg font-bold text-slate-100 mb-1">
+                          {prop.playerName}
+                        </h3>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="text-slate-300">{prop.team}</span>
+                          <span className="text-slate-500">•</span>
+                          <span className="text-slate-400">{prop.opponent || 'vs TBD'}</span>
+                        </div>
                       </div>
                     </div>
                     

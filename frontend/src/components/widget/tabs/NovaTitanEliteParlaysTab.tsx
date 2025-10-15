@@ -28,7 +28,8 @@ import {
   Activity,
   Sparkles,
   Crown,
-  Star
+  Star,
+  ArrowRight
 } from 'lucide-react';
 
 interface ParlayLeg {

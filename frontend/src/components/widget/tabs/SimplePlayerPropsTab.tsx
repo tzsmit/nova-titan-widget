@@ -150,6 +150,7 @@ export const SimplePlayerPropsTab: React.FC = () => {
             >
               <option value="nfl">🏈 NFL</option>
               <option value="nba">🏀 NBA</option>
+              <option value="cfb">🏈 College Football</option>
             </select>
           </div>
           
