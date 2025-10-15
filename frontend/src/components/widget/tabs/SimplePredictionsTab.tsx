@@ -374,8 +374,60 @@ export const SimplePredictionsTab: React.FC = () => {
                         AI ANALYSIS
                         <HelpTooltip content="Detailed AI reasoning based on team statistics, recent performance, injuries, and historical matchup data." position="top" size="lg" />
                       </div>
-                      <div className="text-slate-300 text-sm">
-                        {typeof prediction.analysis === 'string' ? prediction.analysis.slice(0, 150) : 'AI analysis available'}...
+                      <div className="text-slate-300 text-sm space-y-2">
+                        {/* Key Factors */}
+                        {prediction.analysis.keyFactors && prediction.analysis.keyFactors.length > 0 && (
+                          <div>
+                            <span className="text-blue-300 font-semibold">Key Factors: </span>
+                            {prediction.analysis.keyFactors.join(', ')}
+                          </div>
+                        )}
+                        
+                        {/* Trends */}
+                        {prediction.analysis.trends && prediction.analysis.trends.length > 0 && (
+                          <div>
+                            <span className="text-green-300 font-semibold">Trends: </span>
+                            {prediction.analysis.trends.join(', ')}
+                          </div>
+                        )}
+                        
+                        {/* Risk & Value */}
+                        <div className="flex items-center gap-4 text-xs">
+                          {prediction.analysis.value && (
+                            <span className={`px-2 py-1 rounded ${
+                              prediction.analysis.value === 'high' ? 'bg-green-600 text-white' :
+                              prediction.analysis.value === 'medium' ? 'bg-yellow-600 text-white' :
+                              'bg-gray-600 text-white'
+                            }`}>
+                              {prediction.analysis.value.toUpperCase()} VALUE
+                            </span>
+                          )}
+                          {prediction.analysis.riskLevel && (
+                            <span className={`px-2 py-1 rounded ${
+                              prediction.analysis.riskLevel === 'low' ? 'bg-green-700 text-white' :
+                              prediction.analysis.riskLevel === 'medium' ? 'bg-yellow-700 text-white' :
+                              'bg-red-700 text-white'
+                            }`}>
+                              {prediction.analysis.riskLevel.toUpperCase()} RISK
+                            </span>
+                          )}
+                        </div>
+                        
+                        {/* Weather */}
+                        {prediction.analysis.weather && (
+                          <div>
+                            <span className="text-cyan-300 font-semibold">Weather: </span>
+                            {prediction.analysis.weather}
+                          </div>
+                        )}
+                        
+                        {/* Injuries */}
+                        {prediction.analysis.injuries && prediction.analysis.injuries.length > 0 && (
+                          <div>
+                            <span className="text-red-300 font-semibold">Injuries: </span>
+                            {prediction.analysis.injuries.join(', ')}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

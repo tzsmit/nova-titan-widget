@@ -143,14 +143,9 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
     return odds > 0 ? `+${odds}` : `${odds}`;
   };
 
-  // Get player headshot URL
-  const getPlayerHeadshot = (playerName: string, team: string): string => {
-    // ESPN player headshots URL pattern
-    const cleanName = playerName.toLowerCase().replace(/[^a-z\s]/g, '').replace(/\s+/g, '-');
-    const teamCode = getTeamCode(team);
-    
-    // Return ESPN headshot URL with fallback
-    return `https://a.espncdn.com/i/headshots/${selectedSport === 'NBA' ? 'nba' : 'nfl'}/players/full/${cleanName}.png`;
+  // Use the imported getPlayerHeadshot function
+  const getPlayerHeadshotUrl = (playerName: string, team: string = ''): string => {
+    return getPlayerHeadshot(playerName, selectedSport);
   };
 
   // Get team code for logos
@@ -185,11 +180,9 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
     return teamCodes[teamName] || teamName.toLowerCase().replace(/\s+/g, '');
   };
 
-  // Get team logo URL
-  const getTeamLogo = (team: string): string => {
-    const teamCode = getTeamCode(team);
-    const league = selectedSport === 'NBA' ? 'nba' : selectedSport === 'CFB' ? 'college-football' : 'nfl';
-    return `https://a.espncdn.com/i/teamlogos/${league}/500/${teamCode}.png`;
+  // Use the imported getTeamLogo function
+  const getTeamLogoUrl = (team: string): string => {
+    return getTeamLogo(team);
   };
 
   // Helper functions to extract odds from RealPlayerProp structure
@@ -589,7 +582,7 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
                       {/* Player Headshot */}
                       <div className="relative">
                         <img 
-                          src={getPlayerHeadshot(prop.playerName, prop.team)}
+                          src={getPlayerHeadshotUrl(prop.playerName, prop.team)}
                           alt={prop.playerName}
                           className="w-12 h-12 rounded-full border-2 border-purple-500/50 object-cover"
                           onError={(e) => {
@@ -925,6 +918,18 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
                       src={getPlayerHeadshotUrl(lastAddedProp.playerName)}
                       alt={lastAddedProp.playerName}
                       className="h-8 w-8 rounded-full object-cover border border-slate-600"
+                      onError={(e) => {
+                        // Fallback to initials if headshot fails
+                        const target = e.target as HTMLImageElement;
+                        target.src = `data:image/svg+xml;base64,${btoa(`
+                          <svg width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="32" height="32" rx="16" fill="#6366F1"/>
+                            <text x="16" y="20" font-family="Arial" font-size="12" fill="white" text-anchor="middle" font-weight="bold">
+                              ${lastAddedProp.playerName.split(' ').map(n => n.charAt(0)).join('').slice(0, 2)}
+                            </text>
+                          </svg>
+                        `)}`;
+                      }}
                     />
                     <div>
                       <div className="text-sm font-semibold text-slate-100">{lastAddedProp.playerName}</div>

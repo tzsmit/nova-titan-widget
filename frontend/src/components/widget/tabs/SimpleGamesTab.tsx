@@ -22,6 +22,7 @@ import {
 import { HelpTooltip } from '../../ui/HelpTooltip';
 import { SportsBettingLegend } from '../../ui/SportsBettingLegend';
 import { TeamStatsModal } from '../../ui/TeamStatsModal';
+import { useWidgetStore } from '../../../stores/widgetStore';
 
 
 
@@ -618,6 +619,14 @@ export const SimpleGamesTab: React.FC = () => {
         onClose={() => setSelectedTeam(null)}
         teamName={selectedTeam?.name || ''}
         teamLogo={selectedTeam?.logo || ''}
+        onViewFullStats={() => {
+          console.log('Navigating to AI Insights for detailed stats...');
+          useWidgetStore.getState().setSelectedTab('ai-insights');
+        }}
+        onPlayerProps={() => {
+          console.log('Navigating to Player Props tab...');
+          useWidgetStore.getState().setSelectedTab('player-props');
+        }}
       />
     </div>
   );
