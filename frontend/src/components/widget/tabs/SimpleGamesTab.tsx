@@ -426,23 +426,6 @@ export const SimpleGamesTab: React.FC = () => {
                         alt={game.home_team}
                         className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border border-slate-600 bg-slate-700"
                       />
-                            .split(' ')
-                            .filter(w => w.length > 0)
-                            .map(w => w[0])
-                            .join('')
-                            .toUpperCase()
-                            .slice(0, 3)
-                            .replace(/[^A-Z0-9]/g, 'T');
-                          img.src = `data:image/svg+xml;base64,${btoa(`
-                            <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg">
-                              <rect width="48" height="48" fill="#1e293b"/>
-                              <text x="24" y="30" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle" font-weight="bold">
-                                ${initials}
-                              </text>
-                            </svg>
-                          `)}`;
-                        }}
-                      />
                     </div>
                   </div>
 
