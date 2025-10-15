@@ -7,7 +7,7 @@ export const testOddsAPI = async () => {
   
   try {
     // Only test basic connectivity without using API calls
-    const API_KEY = 'effdb0775abef82ff5dd944ae2180cae';
+    const API_KEY = import.meta.env.VITE_PRIMARY_ODDS_API_KEY || 'your_primary_key_here';
     const BASE_URL = 'https://api.the-odds-api.com/v4';
     
     // Just test sports endpoint once to check connectivity

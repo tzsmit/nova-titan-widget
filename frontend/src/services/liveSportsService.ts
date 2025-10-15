@@ -55,7 +55,7 @@ export interface LiveOdds {
 
 class LiveSportsService {
   private readonly ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports';
-  private readonly ODDS_API_KEY = 'effdb0775abef82ff5dd944ae2180cae';
+  private readonly ODDS_API_KEY = import.meta.env.VITE_PRIMARY_ODDS_API_KEY || 'your_primary_key_here';
   private readonly ODDS_BASE = 'https://api.the-odds-api.com/v4';
 
   /**

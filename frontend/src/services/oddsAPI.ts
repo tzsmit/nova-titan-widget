@@ -58,7 +58,7 @@ const cache = new Map<string, { data: any; timestamp: number }>();
 
 class OddsAPIService {
   private readonly baseUrl = 'https://api.the-odds-api.com/v4';
-  private readonly apiKey = import.meta.env.VITE_ODDS_API_KEY || '6731f3f87993c07a3ac993c94e51f2cc';
+  private readonly apiKey = import.meta.env.VITE_PRIMARY_ODDS_API_KEY || 'your_primary_key_here';
   private requestCount = 0;
   private lastRequestTime = 0;
   private readonly minRequestInterval = 30000; // 30 seconds minimum between requests

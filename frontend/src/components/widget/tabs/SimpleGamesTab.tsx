@@ -133,15 +133,14 @@ export const SimpleGamesTab: React.FC = () => {
               return false;
             }
             
-            // Convert to YYYY-MM-DD format in both CST and UTC for comparison
+            // Convert to YYYY-MM-DD format in CST (local time zone)
             const cstDate = gameDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
-            const utcDate = gameDateTime.toISOString().split('T')[0];
             
-            // Match against both CST and UTC dates to be more flexible
-            const matches = cstDate === selectedDate || utcDate === selectedDate;
+            // Only match against CST date for accurate local date filtering
+            const matches = cstDate === selectedDate;
             
             if (matches) {
-              console.log(`✅ MATCH FOUND: ${game.awayTeam || game.away_team} @ ${game.homeTeam || game.home_team} (${cstDate} matches ${selectedDate})`);
+              console.log(`✅ MATCH FOUND: ${game.awayTeam || game.away_team} @ ${game.homeTeam || game.home_team} (CST: ${cstDate} matches ${selectedDate})`);
             }
             
             return matches;
@@ -401,25 +400,6 @@ export const SimpleGamesTab: React.FC = () => {
                         src={game.awayTeamLogo}
                         alt={game.away_team}
                         className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border border-slate-600 bg-slate-700"
-                        onError={(e) => {
-                          const img = e.target as HTMLImageElement;
-                          const initials = game.away_team
-                            .split(' ')
-                            .filter(w => w.length > 0)
-                            .map(w => w[0])
-                            .join('')
-                            .toUpperCase()
-                            .slice(0, 3)
-                            .replace(/[^A-Z0-9]/g, 'T');
-                          img.src = `data:image/svg+xml;base64,${btoa(`
-                            <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg">
-                              <rect width="48" height="48" fill="#1e293b"/>
-                              <text x="24" y="30" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle" font-weight="bold">
-                                ${initials}
-                              </text>
-                            </svg>
-                          `)}`;
-                        }}
                       />
                       <div className="min-w-0 flex-1">
                         <div className="font-semibold text-slate-100 text-sm sm:text-base truncate">{game.away_team}</div>
@@ -445,9 +425,7 @@ export const SimpleGamesTab: React.FC = () => {
                         src={game.homeTeamLogo}
                         alt={game.home_team}
                         className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border border-slate-600 bg-slate-700"
-                        onError={(e) => {
-                          const img = e.target as HTMLImageElement;
-                          const initials = game.home_team
+                      />
                             .split(' ')
                             .filter(w => w.length > 0)
                             .map(w => w[0])

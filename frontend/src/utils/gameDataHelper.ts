@@ -213,11 +213,7 @@ export function processGameData(rawGames: any[], selectedBookmaker: string = 'al
  * Get team logo with fallback
  */
 function getTeamLogo(teamName: string): string {
-  if (TEAM_LOGOS[teamName as keyof typeof TEAM_LOGOS]) {
-    return TEAM_LOGOS[teamName as keyof typeof TEAM_LOGOS];
-  }
-  
-  // Create initials fallback using a more reliable placeholder service
+  // Always use SVG fallback for consistent display - ESPN CDN has CORS issues
   const initials = teamName
     .split(' ')
     .filter(word => word.length > 0)  // Filter out empty strings
@@ -229,15 +225,67 @@ function getTeamLogo(teamName: string): string {
   // Ensure initials are valid for URL - minimum 1 character
   const validInitials = initials.length > 0 ? initials.replace(/[^A-Z0-9]/g, 'T') : 'TEAM';
   
-  // Use a more reliable placeholder service or create SVG data URL
+  // Enhanced SVG with team colors based on name
+  const teamColor = getTeamColor(teamName);
+  
+  console.log(`🏈 Creating logo for ${teamName} -> ${validInitials} (color: ${teamColor})`);
+  
+  // Create improved SVG logo with better styling
   return `data:image/svg+xml;base64,${btoa(`
-    <svg width="64" height="64" xmlns="http://www.w3.org/2000/svg">
-      <rect width="64" height="64" fill="#1e293b"/>
-      <text x="32" y="40" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle" font-weight="bold">
+    <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:${teamColor};stop-opacity:1" />
+          <stop offset="100%" style="stop-color:${darkenColor(teamColor)};stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <rect width="48" height="48" rx="8" fill="url(#grad)" stroke="#374151" stroke-width="2"/>
+      <text x="24" y="30" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle" font-weight="bold">
         ${validInitials}
       </text>
     </svg>
   `)}`;
+}
+
+// Helper function to get team colors
+function getTeamColor(teamName: string): string {
+  const colors: { [key: string]: string } = {
+    'Pittsburgh Steelers': '#FFB612',
+    'Cincinnati Bengals': '#FB4F14',
+    'Kansas City Chiefs': '#E31837',
+    'Buffalo Bills': '#00338D',
+    'Dallas Cowboys': '#003594',
+    'Philadelphia Eagles': '#004C54',
+    'Green Bay Packers': '#203731',
+    'Detroit Lions': '#0076B6',
+    'Baltimore Ravens': '#241773',
+    'Cleveland Browns': '#311D00',
+    'Miami Dolphins': '#008E97',
+    'New York Jets': '#125740',
+    'New England Patriots': '#002244',
+    'Los Angeles Lakers': '#552583',
+    'Golden State Warriors': '#1D428A',
+    'Boston Celtics': '#007A33',
+    'Miami Heat': '#98002E',
+    'Dallas Mavericks': '#00538C',
+    'Denver Nuggets': '#0E2240'
+  };
+  
+  return colors[teamName] || '#1e293b';
+}
+
+// Helper function to darken color for gradient
+function darkenColor(color: string): string {
+  if (color.startsWith('#')) {
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+    
+    const darker = (val: number) => Math.max(0, Math.floor(val * 0.7));
+    
+    return `#${darker(r).toString(16).padStart(2, '0')}${darker(g).toString(16).padStart(2, '0')}${darker(b).toString(16).padStart(2, '0')}`;
+  }
+  return '#0f172a';
 }
 
 /**
