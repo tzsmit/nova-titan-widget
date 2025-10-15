@@ -23,6 +23,30 @@ export interface ProcessedGame {
 }
 
 // Comprehensive team logos with proper fallbacks
+/**
+ * Get player headshot with fallback to generic silhouette
+ */
+export function getPlayerHeadshot(playerName: string, sport: string = 'NFL'): string {
+  // Generic player silhouette as fallback since ESPN headshots require exact player IDs
+  const genericSilhouette = `data:image/svg+xml;base64,${btoa(`
+    <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="playerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#1e3a8a;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <circle cx="24" cy="24" r="22" fill="url(#playerGrad)" stroke="#374151" stroke-width="2"/>
+      <circle cx="24" cy="18" r="8" fill="#f1f5f9"/>
+      <ellipse cx="24" cy="38" rx="12" ry="8" fill="#f1f5f9"/>
+    </svg>
+  `)}`;
+  
+  // For now, return generic silhouette since constructing ESPN URLs without player IDs leads to 404s
+  console.log(`🏈 Using generic headshot for ${playerName} (${sport})`);
+  return genericSilhouette;
+}
+
 export const TEAM_LOGOS = {
   // NFL Teams
   'Kansas City Chiefs': 'https://a.espncdn.com/i/teamlogos/nfl/500/kc.png',
@@ -210,9 +234,9 @@ export function processGameData(rawGames: any[], selectedBookmaker: string = 'al
 }
 
 /**
- * Get team logo with fallback
+ * Get team logo with enhanced fallback handling
  */
-function getTeamLogo(teamName: string): string {
+export function getTeamLogo(teamName: string): string {
   // ESPN Logo mapping - user requested original ESPN logos
   const espnLogos: { [key: string]: string } = {
     // NFL Teams
@@ -317,11 +341,22 @@ function getTeamLogo(teamName: string): string {
   // Try to find ESPN logo first
   const espnLogo = espnLogos[teamName];
   if (espnLogo) {
-    console.log(`🏈 Using ESPN logo for ${teamName}: ${espnLogo}`);
+    console.log(`🏈 Using ESPN logo for ${teamName}`);
     return espnLogo;
   }
 
-  // Fallback to enhanced SVG if ESPN logo not found
+  // For college football teams, try alternative patterns
+  if (teamName.includes('State') || teamName.includes('University') || teamName.includes('Tech')) {
+    const cleanName = teamName.toLowerCase()
+      .replace(/university|state|tech|college/g, '')
+      .trim()
+      .replace(/\s+/g, '');
+    const collegeLogoUrl = `https://a.espncdn.com/i/teamlogos/college-football/500/${cleanName}.png`;
+    console.log(`🏈 Trying college logo pattern for ${teamName}: ${collegeLogoUrl}`);
+    // Note: This may still 404, but the fallback SVG will handle it
+  }
+
+  // Fallback to enhanced SVG
   const initials = teamName
     .split(' ')
     .filter(word => word.length > 0)
@@ -349,7 +384,6 @@ function getTeamLogo(teamName: string): string {
       </text>
     </svg>
   `)}`;
-}
 
 // Helper function to get team colors
 function getTeamColor(teamName: string): string {

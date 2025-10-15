@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { realTimeOddsService, RealPlayerProp } from '../../../services/realTimeOddsService';
+import { getPlayerHeadshot, getTeamLogo } from '../../../utils/gameDataHelper';
 import { 
   User,
   Target,
@@ -33,7 +34,8 @@ import {
   CheckCircle,
   BookOpen,
   Trash2,
-  Plus
+  Plus,
+  X
 } from 'lucide-react';
 import { HelpTooltip } from '../../ui/HelpTooltip';
 import { SportsBettingLegend } from '../../ui/SportsBettingLegend';
@@ -66,6 +68,8 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
   const [showLegend, setShowLegend] = useState(false);
   const [selectedBookmaker, setSelectedBookmaker] = useState('all');
   const [showBuilder, setShowBuilder] = useState(false);
+  const [showMiniModal, setShowMiniModal] = useState(false);
+  const [lastAddedProp, setLastAddedProp] = useState<any>(null);
   const [propsParlay, setPropsParlay] = useState<PropsParlay>({
     bets: [],
     stake: 100,
@@ -266,6 +270,18 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
 
     if (!isDuplicate) {
       updateParlayCalculations([...propsParlay.bets, newBet], propsParlay.stake);
+      
+      // Show mini-modal with feedback
+      setLastAddedProp({ ...newBet, propData: prop });
+      setShowMiniModal(true);
+      
+      // Auto-hide after 3 seconds
+      setTimeout(() => {
+        setShowMiniModal(false);
+      }, 3000);
+    } else {
+      console.log('Duplicate bet prevented');
+      // Could show a different modal for duplicate prevention
     }
   };
 
@@ -591,7 +607,7 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
                         {/* Team Logo Badge */}
                         <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-slate-800 border-2 border-slate-700 overflow-hidden">
                           <img 
-                            src={getTeamLogo(prop.team)}
+                            src={getTeamLogoUrl(prop.team)}
                             alt={prop.team}
                             className="w-full h-full object-cover"
                             onError={(e) => {
@@ -661,10 +677,8 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
                   {/* Over/Under Betting Options */}
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <button 
-                      onClick={() => showBuilder && addPropToBuilder(prop, 'over')}
-                      className={`bg-slate-900/50 hover:bg-green-900/30 border border-slate-600 hover:border-green-500 rounded-lg p-3 transition-all group ${
-                        showBuilder ? 'cursor-pointer' : ''
-                      }`}
+                      onClick={() => addPropToBuilder(prop, 'over')}
+                      className="bg-slate-900/50 hover:bg-green-900/30 border border-slate-600 hover:border-green-500 rounded-lg p-3 transition-all group cursor-pointer"
                     >
                       <div className="text-xs text-slate-400 mb-1">Over {prop.line}</div>
                       <div className="text-lg font-bold text-slate-100 group-hover:text-green-400">
@@ -676,10 +690,8 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
                     </button>
                     
                     <button 
-                      onClick={() => showBuilder && addPropToBuilder(prop, 'under')}
-                      className={`bg-slate-900/50 hover:bg-red-900/30 border border-slate-600 hover:border-red-500 rounded-lg p-3 transition-all group ${
-                        showBuilder ? 'cursor-pointer' : ''
-                      }`}
+                      onClick={() => addPropToBuilder(prop, 'under')}
+                      className="bg-slate-900/50 hover:bg-red-900/30 border border-slate-600 hover:border-red-500 rounded-lg p-3 transition-all group cursor-pointer"
                     >
                       <div className="text-xs text-slate-400 mb-1">Under {prop.line}</div>
                       <div className="text-lg font-bold text-slate-100 group-hover:text-red-400">
@@ -868,6 +880,95 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
         </div>
       </div>
 
+      {/* Mini-Modal for Added Prop */}
+      <AnimatePresence>
+        {showMiniModal && lastAddedProp && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/20 z-40"
+              onClick={() => setShowMiniModal(false)}
+            />
+            
+            {/* Mini Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: "spring", duration: 0.3 }}
+              className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"
+            >
+              <div className="bg-slate-800 border border-slate-600 rounded-xl shadow-2xl p-6 max-w-sm w-full mx-4">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                      <Plus className="h-4 w-4 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-100">Added to Builder!</h3>
+                  </div>
+                  <button
+                    onClick={() => setShowMiniModal(false)}
+                    className="text-slate-400 hover:text-slate-300 transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+                
+                {/* Added Prop Info */}
+                <div className="bg-slate-900/50 rounded-lg p-4 mb-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <img
+                      src={getPlayerHeadshotUrl(lastAddedProp.playerName)}
+                      alt={lastAddedProp.playerName}
+                      className="h-8 w-8 rounded-full object-cover border border-slate-600"
+                    />
+                    <div>
+                      <div className="text-sm font-semibold text-slate-100">{lastAddedProp.playerName}</div>
+                      <div className="text-xs text-slate-400">{lastAddedProp.team}</div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-slate-300 mb-1">
+                    {lastAddedProp.betType.toUpperCase()} {lastAddedProp.line} {lastAddedProp.propType}
+                  </div>
+                  <div className="text-lg font-bold text-green-400">
+                    {lastAddedProp.odds > 0 ? '+' : ''}{lastAddedProp.odds}
+                  </div>
+                </div>
+                
+                {/* Current Parlay Summary */}
+                <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-lg p-4">
+                  <div className="text-xs text-slate-400 mb-2">Player Props Parlay</div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-slate-300">
+                      {propsParlay.bets.length} {propsParlay.bets.length === 1 ? 'Prop' : 'Props'}
+                    </span>
+                    <span className="text-sm font-semibold text-slate-100">
+                      ${propsParlay.stake} Stake
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-300">Potential Payout:</span>
+                    <span className="text-lg font-bold text-green-400">
+                      ${propsParlay.potentialPayout.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-xs text-slate-400">Total Odds:</span>
+                    <span className="text-sm font-semibold text-purple-300">
+                      {propsParlay.totalOdds > 0 ? '+' : ''}{propsParlay.totalOdds.toFixed(0)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+      
       {/* Sports Betting Legend */}
       <SportsBettingLegend 
         isOpen={showLegend} 

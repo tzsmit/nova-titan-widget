@@ -74,7 +74,7 @@ class RealTimeOddsService {
   }
   
   /**
-   * Fetch player props for a specific game and market
+   * Fetch player props for a specific game and market with enhanced error handling
    */
   private async fetchPlayerPropsForGameMarket(sport: string, eventId: string, market: string): Promise<RealPlayerProp[]> {
     try {
@@ -93,11 +93,18 @@ class RealTimeOddsService {
         if (data && data.bookmakers && data.bookmakers.length > 0) {
           return this.transformPlayerPropsData([data], market);
         }
+      } else if (response.status === 429) {
+        // Rate limit hit - throw error to trigger retry logic
+        throw new Error(`Rate limit exceeded (429) for ${market} on game ${eventId}`);
       } else {
         const errorText = await response.text();
         console.warn(`⚠️ ${market} for game ${eventId}: ${response.status} - ${errorText}`);
       }
     } catch (error) {
+      if (error.message && error.message.includes('429')) {
+        // Re-throw rate limit errors to trigger retry logic
+        throw error;
+      }
       console.warn(`Failed to fetch ${market} for game ${eventId}:`, error);
     }
     
@@ -105,19 +112,40 @@ class RealTimeOddsService {
   }
 
   /**
-   * Rate limiting helper to preserve API credits
+   * Enhanced rate limiting helper with exponential backoff
    */
   private async respectRateLimit(): Promise<void> {
     const now = Date.now();
-    const timeSinceLastRequest = now - this.lastRequestTime;
     
+    // Clean old request times outside the window
+    this.requestTimes = this.requestTimes.filter(time => now - time < this.RATE_LIMIT_WINDOW);
+    
+    // Check if we're approaching rate limit
+    if (this.requestTimes.length >= this.MAX_REQUESTS_PER_MINUTE) {
+      const waitTime = this.RATE_LIMIT_WINDOW - (now - this.requestTimes[0]) + 1000; // Extra buffer
+      console.log(`⏰ Rate limit prevention: waiting ${waitTime}ms (${this.requestTimes.length} requests in last minute)`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    
+    // Minimum interval between requests
+    const timeSinceLastRequest = now - this.lastRequestTime;
     if (timeSinceLastRequest < this.MIN_REQUEST_INTERVAL) {
       const waitTime = this.MIN_REQUEST_INTERVAL - timeSinceLastRequest;
-      console.log(`⏰ Rate limiting: waiting ${waitTime}ms to preserve credits`);
+      console.log(`⏰ Request interval: waiting ${waitTime}ms`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
     
     this.lastRequestTime = Date.now();
+    this.requestTimes.push(this.lastRequestTime);
+  }
+
+  /**
+   * Exponential backoff for rate limit errors
+   */
+  private async handleRateLimitError(attempt: number = 1): Promise<void> {
+    const backoffTime = Math.min(1000 * Math.pow(2, attempt), 30000); // Max 30 seconds
+    console.log(`🔄 Rate limit hit, backing off for ${backoffTime}ms (attempt ${attempt})`);
+    await new Promise(resolve => setTimeout(resolve, backoffTime));
   }
   
   // Enhanced caching system to reduce API calls
@@ -128,9 +156,13 @@ class RealTimeOddsService {
     global: 10 * 60 * 1000    // 10 minutes for global data (was 10 minutes)
   };
   
-  // Rate limiting to preserve credits
+  // Enhanced rate limiting to prevent 429 errors
   private lastRequestTime = 0;
-  private readonly MIN_REQUEST_INTERVAL = 1000; // 1 second between requests (was 500ms)
+  private readonly MIN_REQUEST_INTERVAL = 2000; // 2 seconds between requests to prevent rate limiting
+  private requestCount = 0;
+  private readonly MAX_REQUESTS_PER_MINUTE = 25; // Conservative limit to prevent 429 errors
+  private readonly RATE_LIMIT_WINDOW = 60000; // 1 minute window
+  private requestTimes: number[] = [];
   
   // Real sportsbooks with live data
   public readonly sportsbooks: Sportsbook[] = [
@@ -385,48 +417,43 @@ class RealTimeOddsService {
         return [];
       }
 
-      // Process ALL games in the 14-day window to show all available players
-      const gamesToProcess = games.slice(0, 20); // Increased to 20 games for 14-day coverage
-      console.log(`🚀 Processing ${gamesToProcess.length} games with ${propMarkets.length} markets each (14-day window)`);
+      // Limit games to prevent rate limiting (5 games max for now)
+      const gamesToProcess = games.slice(0, 5); // Reduced from 20 to 5 to prevent 429 errors
+      console.log(`🚀 Processing ${gamesToProcess.length} games with ${propMarkets.length} markets each (rate-limited for stability)`);
       
-      // Create all request promises upfront
-      const requestPromises = gamesToProcess.flatMap(game => 
-        propMarkets.map(market => ({
-          game,
-          market,
-          promise: this.fetchPlayerPropsForGameMarket(sport, game.gameId || game.id, market)
-        }))
-      );
-      
-      console.log(`⚡ Executing ${requestPromises.length} parallel requests with rate limiting...`);
-      
-      // Execute requests in parallel with controlled concurrency
       const allProps: RealPlayerProp[] = [];
-      const batchSize = 3; // Process 3 requests at a time to respect rate limits
       
-      for (let i = 0; i < requestPromises.length; i += batchSize) {
-        const batch = requestPromises.slice(i, i + batchSize);
+      // Process games sequentially to avoid rate limits
+      for (const game of gamesToProcess) {
+        console.log(`🎯 Processing game: ${game.homeTeam} vs ${game.awayTeam}`);
         
-        // Execute batch in parallel
-        const batchResults = await Promise.allSettled(
-          batch.map(async (req, index) => {
-            if (index > 0) {
-              // Add small delay for rate limiting
-              await new Promise(resolve => setTimeout(resolve, 200 * index));
+        for (const market of propMarkets) {
+          let attempt = 1;
+          const maxAttempts = 3;
+          
+          while (attempt <= maxAttempts) {
+            try {
+              await this.respectRateLimit(); // Ensure we don't hit rate limits
+              const props = await this.fetchPlayerPropsForGameMarket(sport, game.gameId || game.id, market);
+              
+              if (props && props.length > 0) {
+                allProps.push(...props);
+                console.log(`✅ Got ${props.length} props for ${market} (${game.homeTeam} vs ${game.awayTeam})`);
+              }
+              break; // Success, exit retry loop
+              
+            } catch (error) {
+              if (error.message && error.message.includes('429') && attempt < maxAttempts) {
+                await this.handleRateLimitError(attempt);
+                attempt++;
+                console.log(`🔄 Retrying ${market} for game ${game.gameId} (attempt ${attempt}/${maxAttempts})`);
+              } else {
+                console.warn(`❌ Failed ${market} for game ${game.gameId}:`, error.message);
+                break; // Give up on this request
+              }
             }
-            return req.promise;
-          })
-        );
-        
-        // Process results
-        batchResults.forEach((result, index) => {
-          if (result.status === 'fulfilled' && result.value) {
-            allProps.push(...result.value);
-            console.log(`✅ Batch ${Math.floor(i/batchSize) + 1}: Got ${result.value.length} props for ${batch[index].market}`);
-          } else if (result.status === 'rejected') {
-            console.warn(`❌ Batch ${Math.floor(i/batchSize) + 1}: Failed ${batch[index].market}:`, result.reason);
           }
-        });
+        }
       }
 
       console.log(`🎯 Total player props found for ${sport}: ${allProps.length}`);

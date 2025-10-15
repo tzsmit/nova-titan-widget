@@ -77,6 +77,7 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
   });
   const [showParlayBuilder, setShowParlayBuilder] = useState(false);
   const [selectedSport, setSelectedSport] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Saved parlays management
   const [savedParlays, setSavedParlays] = useState<SavedParlay[]>([]);
@@ -111,7 +112,7 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
               bet: 'Moneyline',
               odds: Math.abs(firstBookmaker.moneyline.home),
               confidence: Math.floor(Math.random() * 20) + 70, // 70-90% confidence
-              sport: game.sport.toLowerCase(),
+              sport: game.sport, // Keep original sport name for proper filtering
               gameDate: game.gameDate,
               venue: 'TBD',
               bookmaker: bookmakerKeys[0]
@@ -127,7 +128,7 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
               bet: `Spread ${firstBookmaker.spread.line > 0 ? '+' : ''}${firstBookmaker.spread.line}`,
               odds: Math.abs(firstBookmaker.spread.home),
               confidence: Math.floor(Math.random() * 20) + 70,
-              sport: game.sport.toLowerCase(),
+              sport: game.sport, // Keep original sport name for proper filtering
               gameDate: game.gameDate,
               venue: 'TBD',
               bookmaker: bookmakerKeys[0]
@@ -139,9 +140,29 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
 
         console.log(`✅ Generated ${realParlayBets.length} real parlay options from live games`);
         
-        return selectedSport === 'all' 
-          ? realParlayBets 
-          : realParlayBets.filter(bet => bet.sport === selectedSport);
+        // Filter by sport with proper mapping
+        if (selectedSport === 'all') {
+          return realParlayBets;
+        }
+        
+        // Map selector values to actual sport names
+        const sportMapping: { [key: string]: string[] } = {
+          'football': ['nfl', 'american football'],
+          'college_football': ['college football', 'ncaaf'],
+          'basketball': ['nba', 'basketball'],
+          'hockey': ['nhl', 'hockey'],
+          'baseball': ['mlb', 'baseball']
+        };
+        
+        const targetSports = sportMapping[selectedSport] || [selectedSport];
+        const filteredBets = realParlayBets.filter(bet => 
+          targetSports.some(sport => 
+            bet.sport.toLowerCase().includes(sport.toLowerCase())
+          )
+        );
+        
+        console.log(`🎯 Filtered ${filteredBets.length} bets for sport '${selectedSport}' from ${realParlayBets.length} total bets`);
+        return filteredBets;
       } catch (error) {
         console.error('❌ Error loading real parlay bets:', error);
         return []; // Return empty array - NO FAKE DATA
@@ -149,6 +170,19 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
     },
     staleTime: 60000, // 1 minute
     refetchInterval: 120000 // 2 minutes
+  });
+
+  // Filter bets based on search query
+  const filteredBets = availableBets.filter(bet => {
+    if (!searchQuery) return true;
+    
+    const query = searchQuery.toLowerCase();
+    return (
+      bet.game.toLowerCase().includes(query) ||
+      bet.team.toLowerCase().includes(query) ||
+      bet.bet.toLowerCase().includes(query) ||
+      bet.sport.toLowerCase().includes(query)
+    );
   });
 
   // Calculate parlay odds and payouts
@@ -207,6 +241,15 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
       legs: newLegs,
       ...metrics
     });
+    
+    // Show mini-modal with updated parlay info
+    setLastAddedLeg(newLeg);
+    setShowMiniModal(true);
+    
+    // Auto-hide mini-modal after 3 seconds
+    setTimeout(() => {
+      setShowMiniModal(false);
+    }, 3000);
   };
 
   // Remove leg from parlay
@@ -392,6 +435,26 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
                 <option value="baseball">MLB Baseball</option>
               </select>
               
+              {/* Search Bar */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search teams, games, or bets..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-slate-900 border border-slate-600 text-slate-100 rounded-lg px-4 py-2 pl-10 w-64 focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400"
+                />
+                <Target className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-300"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              
               <button
                 onClick={() => setShowParlayBuilder(!showParlayBuilder)}
                 className={`px-4 py-2 rounded-lg font-medium transition-all ${
@@ -541,7 +604,18 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
               </div>
               
               <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
-                {availableBets.map((bet) => (
+                {filteredBets.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Target className="h-12 w-12 text-slate-600 mx-auto mb-3" />
+                    <p className="text-slate-400 text-lg font-medium mb-2">
+                      {searchQuery ? 'No matches found' : 'No bets available'}
+                    </p>
+                    <p className="text-slate-500 text-sm">
+                      {searchQuery ? 'Try adjusting your search terms' : 'Check back later for live betting options'}
+                    </p>
+                  </div>
+                ) : (
+                  filteredBets.map((bet) => (
                   <motion.div
                     key={bet.id}
                     variants={itemVariants}
@@ -582,7 +656,8 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
                       <Plus className="h-5 w-5 text-blue-400 ml-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                   </motion.div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </motion.div>
@@ -875,6 +950,85 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
               )}
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mini-Modal for Added Leg */}
+      <AnimatePresence>
+        {showMiniModal && lastAddedLeg && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/20 z-40"
+              onClick={() => setShowMiniModal(false)}
+            />
+            
+            {/* Mini Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: "spring", duration: 0.3 }}
+              className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"
+            >
+              <div className="bg-slate-800 border border-slate-600 rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                      <Plus className="h-4 w-4 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-100">Leg Added!</h3>
+                  </div>
+                  <button
+                    onClick={() => setShowMiniModal(false)}
+                    className="text-slate-400 hover:text-slate-300 transition-colors"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                </div>
+                
+                {/* Added Leg Info */}
+                <div className="bg-slate-900/50 rounded-lg p-4 mb-4">
+                  <div className="text-sm text-slate-300 mb-1">{lastAddedLeg.game}</div>
+                  <div className="text-slate-100 font-semibold mb-1">
+                    {lastAddedLeg.team} - {lastAddedLeg.bet}
+                  </div>
+                  <div className="text-lg font-bold text-green-400">
+                    {lastAddedLeg.odds > 0 ? '+' : ''}{lastAddedLeg.odds}
+                  </div>
+                </div>
+                
+                {/* Current Parlay Summary */}
+                <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-4">
+                  <div className="text-xs text-slate-400 mb-2">Current Parlay</div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-slate-300">
+                      {parlayBuilder.legs.length} {parlayBuilder.legs.length === 1 ? 'Leg' : 'Legs'}
+                    </span>
+                    <span className="text-sm font-semibold text-slate-100">
+                      ${parlayBuilder.stake} Stake
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-300">Potential Payout:</span>
+                    <span className="text-lg font-bold text-green-400">
+                      ${parlayBuilder.potentialPayout.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-xs text-slate-400">Total Odds:</span>
+                    <span className="text-sm font-semibold text-blue-300">
+                      {parlayBuilder.totalOdds > 0 ? '+' : ''}{parlayBuilder.totalOdds.toFixed(0)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 

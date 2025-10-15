@@ -3,8 +3,10 @@
  * Shows when user clicks on team names or logos throughout the app
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import { teamStatsService, TeamStats } from '../../services/teamStatsService';
 import { 
   X, 
   TrendingUp, 
@@ -20,86 +22,75 @@ import {
   Zap
 } from 'lucide-react';
 
-interface TeamStats {
-  teamName: string;
-  logo: string;
-  record: string;
-  conference: string;
-  division?: string;
-  lastGame: string;
-  nextGame: string;
-  recentForm: string[];
-  keyStats: {
-    label: string;
-    value: string;
-    trend?: 'up' | 'down' | 'neutral';
-  }[];
-  topPlayers: {
-    name: string;
-    position: string;
-    stats: string;
-  }[];
-  injuries: {
-    player: string;
-    status: string;
-    injury: string;
-  }[];
-}
+
 
 interface TeamStatsModalProps {
   isOpen: boolean;
   onClose: () => void;
   teamName: string;
   teamLogo: string;
+  onViewFullStats?: () => void;
+  onPlayerProps?: () => void;
 }
 
 export const TeamStatsModal: React.FC<TeamStatsModalProps> = ({
   isOpen,
   onClose,
   teamName,
-  teamLogo
+  teamLogo,
+  onViewFullStats,
+  onPlayerProps
 }) => {
-  // Generate mock stats based on team name
-  const generateTeamStats = (name: string): TeamStats => {
-    const isNFL = name.includes('NFL') || 
-      ['Steelers', 'Chiefs', 'Bills', 'Cowboys', 'Eagles', 'Packers', 'Ravens', 'Patriots'].some(team => name.includes(team));
-    const isNBA = name.includes('NBA') || 
-      ['Lakers', 'Warriors', 'Celtics', 'Heat', 'Bulls', 'Knicks', 'Nets'].some(team => name.includes(team));
+  // Fetch real team stats using React Query
+  const { data: teamStats, isLoading, error } = useQuery({
+    queryKey: ['team-stats', teamName],
+    queryFn: () => teamStatsService.getTeamStats(teamName),
+    enabled: isOpen, // Only fetch when modal is open
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-    return {
-      teamName: name,
-      logo: teamLogo,
-      record: isNFL ? `${Math.floor(Math.random() * 8 + 5)}-${Math.floor(Math.random() * 8 + 2)}-0` : 
-               isNBA ? `${Math.floor(Math.random() * 30 + 20)}-${Math.floor(Math.random() * 30 + 15)}` : 
-               `${Math.floor(Math.random() * 50 + 30)}-${Math.floor(Math.random() * 50 + 20)}`,
-      conference: isNFL ? (Math.random() > 0.5 ? 'AFC' : 'NFC') : 
-                  isNBA ? (Math.random() > 0.5 ? 'Eastern' : 'Western') : 'American League',
-      division: isNFL ? ['North', 'South', 'East', 'West'][Math.floor(Math.random() * 4)] : 
-                isNBA ? ['Atlantic', 'Central', 'Southeast', 'Northwest', 'Pacific', 'Southwest'][Math.floor(Math.random() * 6)] : undefined,
-      lastGame: `W ${Math.floor(Math.random() * 20 + 20)}-${Math.floor(Math.random() * 20 + 10)} vs ${['Opponent A', 'Opponent B', 'Opponent C'][Math.floor(Math.random() * 3)]}`,
-      nextGame: `vs ${['Upcoming A', 'Upcoming B', 'Upcoming C'][Math.floor(Math.random() * 3)]} (${new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000).toLocaleDateString()})`,
-      recentForm: ['W', 'W', 'L', 'W', 'L'].slice(0, Math.floor(Math.random() * 3 + 3)),
-      keyStats: [
-        { label: isNFL ? 'Points Per Game' : isNBA ? 'Points Per Game' : 'Runs Per Game', value: `${(Math.random() * 20 + 20).toFixed(1)}`, trend: 'up' },
-        { label: isNFL ? 'Yards Per Game' : isNBA ? 'Field Goal %' : 'Team ERA', value: isNFL ? `${Math.floor(Math.random() * 100 + 300)}` : isNBA ? `${(Math.random() * 10 + 45).toFixed(1)}%` : `${(Math.random() * 2 + 3).toFixed(2)}`, trend: 'neutral' },
-        { label: isNFL ? 'Turnover Diff' : isNBA ? 'Rebounds Per Game' : 'Home Record', value: isNFL ? `+${Math.floor(Math.random() * 10)}` : isNBA ? `${(Math.random() * 10 + 40).toFixed(1)}` : `${Math.floor(Math.random() * 20 + 15)}-${Math.floor(Math.random() * 20 + 10)}`, trend: 'up' },
-        { label: 'ATS Record', value: `${Math.floor(Math.random() * 10 + 5)}-${Math.floor(Math.random() * 10 + 3)}`, trend: 'down' }
-      ],
-      topPlayers: [
-        { name: 'Star Player A', position: isNFL ? 'QB' : isNBA ? 'PG' : 'P', stats: isNFL ? '3,200 YDS, 24 TD' : isNBA ? '28.5 PPG, 8.2 AST' : '12-8, 3.21 ERA' },
-        { name: 'Star Player B', position: isNFL ? 'RB' : isNBA ? 'SF' : 'OF', stats: isNFL ? '1,200 YDS, 12 TD' : isNBA ? '22.1 PPG, 6.8 REB' : '.298 AVG, 25 HR' },
-        { name: 'Star Player C', position: isNFL ? 'WR' : isNBA ? 'C' : '1B', stats: isNFL ? '1,100 YDS, 8 TD' : isNBA ? '18.5 PPG, 11.2 REB' : '.285 AVG, 95 RBI' }
-      ],
-      injuries: [
-        { player: 'Injured Player A', status: 'Questionable', injury: 'Ankle' },
-        { player: 'Injured Player B', status: 'Out', injury: 'Knee' }
-      ]
-    };
+  // Handle button clicks
+  const handleViewFullStats = () => {
+    if (onViewFullStats) {
+      onViewFullStats();
+    } else {
+      // Default behavior - could open a new tab with team stats
+      console.log(`View full stats for ${teamName}`);
+    }
+    onClose();
   };
 
-  const [teamStats] = useState<TeamStats>(() => generateTeamStats(teamName));
+  const handlePlayerProps = () => {
+    if (onPlayerProps) {
+      onPlayerProps();
+    } else {
+      // Default behavior - could navigate to player props tab
+      console.log(`View player props for ${teamName}`);
+    }
+    onClose();
+  };
 
   if (!isOpen) return null;
+
+  if (isLoading || !teamStats) {
+    return (
+      <AnimatePresence>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border-2 border-slate-600/40 shadow-2xl p-8 flex items-center justify-center"
+          >
+            <div className="flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"></div>
+              <span className="text-slate-300">Loading team stats...</span>
+            </div>
+          </motion.div>
+        </div>
+      </AnimatePresence>
+    );
+  }
 
   return (
     <AnimatePresence>
@@ -243,8 +234,18 @@ export const TeamStatsModal: React.FC<TeamStatsModalProps> = ({
             <div className="flex items-center justify-between text-sm text-slate-400">
               <span>Stats updated live • Nova Titan Elite</span>
               <div className="flex space-x-4">
-                <button className="text-blue-400 hover:text-blue-300 transition-colors">View Full Stats</button>
-                <button className="text-blue-400 hover:text-blue-300 transition-colors">Player Props</button>
+                <button 
+                  onClick={handleViewFullStats}
+                  className="text-blue-400 hover:text-blue-300 transition-colors font-medium hover:underline"
+                >
+                  View Full Stats
+                </button>
+                <button 
+                  onClick={handlePlayerProps}
+                  className="text-blue-400 hover:text-blue-300 transition-colors font-medium hover:underline"
+                >
+                  Player Props
+                </button>
               </div>
             </div>
           </div>
