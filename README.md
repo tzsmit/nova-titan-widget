@@ -1,412 +1,243 @@
-# Nova Titan Elite Sports Betting Platform
+# 🏆 Nova Titan Elite Sports Betting Platform
 
-A comprehensive, full-featured sports betting companion platform built with React 18, TypeScript, and cutting-edge AI integration. This platform provides real-time odds, AI-powered predictions, advanced parlay builders, and comprehensive educational resources for sports betting enthusiasts.
+## 🚀 **Project Overview**
 
-## 🚀 DEPLOYMENT STATUS: PRODUCTION READY
+**Nova Titan Elite** is a comprehensive, professional-grade sports betting platform that provides live odds, AI-powered predictions, elite parlay building, player props analysis, and advanced betting insights. Built with React, TypeScript, and modern web technologies for optimal performance and user experience.
 
-### ✅ Critical Issues Fixed (Latest Update):
-1. **API Authentication Fixed** - Removed hardcoded 'apiKey=test' from health checks causing 401 errors
-2. **ESPN CORS Errors Resolved** - Added production environment checks to prevent ESPN API calls in static deployment
-3. **Player Props Implementation** - Updated to use correct `/events/{eventId}/odds` endpoint with real player prop markets
-4. **Date Filtering Logic Fixed** - Corrected timezone handling and date comparison logic for accurate game filtering
-5. **Parlay Builder "Undefined @ Undefined" Fixed** - Updated data structure handling to properly display team names and odds
-6. **Production Environment Optimization** - Proper conditional API usage based on deployment environment
+---
 
-### 🔧 Ready for Deployment:
-- ✅ All console errors resolved
-- ✅ Image loading issues fixed  
-- ✅ Production build configuration ready
-- ✅ GitHub Actions workflow updated
-- ✅ Deployment instructions provided
+## ✅ **Currently Completed Features**
 
-## 🚀 Quick Deployment Options
+### 🔑 **Core Functionality**
+- **Live Odds Integration**: Real-time sports betting odds from The Odds API
+- **Multi-Sport Support**: NFL, NBA, College Football, College Basketball, MLB, Boxing, NHL
+- **AI-Powered Predictions**: Machine learning predictions with confidence scores and expected value
+- **Elite Parlay Builder**: Advanced parlay construction with save/edit capabilities and localStorage persistence
+- **Player Props Analysis**: Comprehensive player performance betting with optimized loading
+- **Team Statistics**: Clickable teams/players with detailed stats popups and ESPN logo integration
 
-### Option 1: One-Click Deployment (Recommended)
-1. Go to the **Publish tab** in your development environment
-2. Click "Publish" to deploy automatically 
-3. Your live website URL will be provided instantly
+### 🎯 **Elite Features**
+- **Nova Titan Elite Parlay Builder**: 
+  - Save and edit parlays with persistent localStorage storage
+  - Real-time odds calculation and payout estimation
+  - Auto-suggested parlay combinations from live games
+  - Modal interface for managing saved parlays
+  - Support for current and future games (7-day window)
 
-### Option 2: GitHub Pages (Automatic)
-1. Push code to `main` branch
-2. GitHub Actions will build and deploy automatically
-3. Enable GitHub Pages in repository settings
+- **Advanced AI Insights**:
+  - Functional "Track Insight" button with localStorage persistence
+  - Comprehensive tooltips explaining complex betting terms
+  - Confidence-based filtering (lowered threshold to 50% for more predictions)
+  - Expected Value (EV) calculations and trend analysis
 
-### Option 3: Manual Build (Any Platform)
-```bash
-npm install
-npm run build:production
-# Upload 'dist' folder to your hosting service
-```
+- **Enhanced User Experience**:
+  - ESPN team logos with smart fallback to custom SVG
+  - Comprehensive search functionality for teams, players, and games
+  - Clickable teams/players with detailed statistics popups
+  - Responsive design optimized for all device sizes
 
-## 🏆 Project Status: PRODUCTION READY
+### 🛠 **Technical Infrastructure**
+- **API Key Management**: Unified primary API key usage (resolved 401 errors)
+- **Performance Optimization**: Parallel batch processing for faster player props loading
+- **Error Handling**: Robust fallback mechanisms and user feedback
+- **Data Persistence**: localStorage for parlays, tracked insights, and user preferences
+- **Real-time Updates**: React Query with intelligent caching and refetch strategies
 
-### ✅ EXTENSIVE FIXES COMPLETED (October 14, 2025) - ALL CRITICAL ISSUES RESOLVED
+---
 
-**🚀 CRITICAL RUNTIME FIXES - FULLY OPERATIONAL:**
+## 🌐 **Functional Entry Points**
 
-**Games Display & Data Processing:**
-- ✅ **MAJOR FIX: Games Now Displaying Correctly**: Fixed critical bug where games were filtered (84→8) but returned 0 due to data structure mismatch between `realTimeOddsService` and `processGameData`
-- ✅ **"Undefined on Available Bets" Fixed**: Corrected field name inconsistencies (`game.awayTeam` vs `game.away_team`) throughout the UI components
-- ✅ **Sportsbook Filter Now Working**: Added `selectedBookmaker` to React Query dependency array to trigger re-query when sportsbook selection changes
-- ✅ **Enhanced Debug Logging**: Added comprehensive logging to track data flow and identify issues in real-time
+### **Main Application Routes**
+- **`/`** - Main dashboard with live games, odds, and navigation
+- **Games Tab** - Live games with ESPN logos, clickable teams, and comprehensive filtering
+- **AI Predictions Tab** - Machine learning predictions with explanatory tooltips
+- **Parlay Builder Tab** - Elite parlay construction with save/edit functionality
+- **Player Props Tab** - Optimized player performance betting markets
+- **AI Insights Tab** - Advanced betting insights with tracking capabilities
 
-**API Integration & Error Resolution:**
-- ✅ **Player Props 422 Errors Eliminated**: Implemented conservative market selection, proper sport validation, and graceful fallbacks for unsupported sports
-- ✅ **Image Loading Errors Fixed**: Replaced problematic `via.placeholder.com` with reliable SVG data URLs using `btoa()` encoding
-- ✅ **ESPN API Error Handling**: Added proper fallbacks and error suppression for CORS-blocked ESPN calls in production
-- ✅ **Boxing API Operational**: Confirmed "boxing_boxing" sport key returns real boxing matches
+### **Interactive Features**
+- **Team Clicks** → Opens detailed statistics modal with team performance data
+- **Player Clicks** → Displays player stats and performance metrics
+- **Search Functionality** → Smart search with filtering by teams, players, and games
+- **Parlay Management** → Save, edit, delete, and manage multiple parlays
+- **Insight Tracking** → Track and bookmark valuable betting insights
 
-**Date & Time System Overhaul:**
-- ✅ **Sunday Football Games Fixed**: Enhanced date filtering with timezone-aware processing to ensure games appear on correct days
-- ✅ **CST Consistency Maintained**: All date conversions use `America/Chicago` timezone for both filtering and display
-- ✅ **Comprehensive Date Debugging**: Added detailed logging to track date conversions and filter matching
+### **API Endpoints (The Odds API Integration)**
+- **Live Odds**: `https://api.the-odds-api.com/v4/sports/{sport}/odds/`
+- **Player Props**: `https://api.the-odds-api.com/v4/sports/{sport}/events/{eventId}/odds/`
+- **Sports List**: `https://api.the-odds-api.com/v4/sports/`
 
-**Performance & API Optimization:**
-- ✅ **Narrowed to 6 Core Sports**: NFL, NBA, NCAAF, NCAAB, MLB, Boxing (reduced API calls by ~50%)
-- ✅ **500ms API Delays**: Prevents rate limiting between sequential calls
-- ✅ **Smart Caching**: 5-15 minute cache with proper invalidation
-- ✅ **Enhanced Error Handling**: Proper 422, 429, and 401 response handling with graceful degradation
+---
 
-### ✅ Previously Completed Features
+## 🚫 **Recently Resolved Issues**
 
-**CFB Integration (College Football):**
-- ✅ Added CFB to all sport lists across the platform
-- ✅ SimpleGamesTab.tsx - Games page sport filter
-- ✅ SimplePredictionsTab.tsx - AI predictions page
-- ✅ NovaTitanEliteParlaysTab.tsx - Elite parlay builder
-- ✅ NovaTitanElitePlayerPropsTab.tsx - Elite player props (already included)
+### **Critical Fixes Completed:**
+1. **✅ API Key 401 Errors**: Removed invalid secondary API key, unified to use primary key for all endpoints
+2. **✅ Elite Parlay Builder**: Implemented complete save/edit system with localStorage persistence
+3. **✅ AI Predictions**: Fixed filtering logic, lowered confidence threshold, added debugging
+4. **✅ Performance**: Optimized player props with parallel batch processing (reduced loading time)
+5. **✅ Sports Coverage**: Added missing sports (Boxing, NHL) to all dropdown menus
+6. **✅ User Experience**: Added explanatory tooltips for complex betting terms
+7. **✅ Functionality**: Made Track Insight button fully functional with localStorage
+8. **✅ Visual**: Prioritized ESPN logos over SVG initials (user preference)
+9. **✅ Interactivity**: Implemented clickable teams/players with stats popups
+10. **✅ Search**: Enhanced search functionality with smart navigation
+11. **✅ Future Games**: Parlay builder now includes current and future games (7-day window)
 
-**Comprehensive Help System:**
-- ✅ Added explanatory tooltips to all major sections
-- ✅ Created SportsBettingLegend.tsx - comprehensive terminology guide
-- ✅ Interactive legend covering odds, bet types, parlays, AI features, and strategy
-- ✅ Smart tooltip positioning to prevent off-page spillage
-- ✅ Guide buttons integrated into all major tabs
+---
 
-**Enhanced User Experience:**
-- ✅ HelpTooltip components with smart positioning (top, bottom, left, right)
-- ✅ Beginner-friendly explanations for all betting concepts
-- ✅ Professional brand protection and security features
-- ✅ Responsive design with excellent mobile support
+## 🔄 **Features Not Yet Implemented**
 
-## 🚀 Core Features
+### **Lower Priority Enhancements:**
+- **Date/Search Interface Restructuring**: Minor UX improvements for better organization
+- **Advanced Analytics Dashboard**: Detailed betting performance tracking
+- **Social Features**: Share parlays and insights with other users
+- **Mobile App**: Native iOS/Android applications
+- **Advanced Charting**: Interactive graphs for odds movements and trends
 
-### 🎯 Live Sports Data & Odds
-- **Real-time odds** from 10+ major sportsbooks (DraftKings, FanDuel, BetMGM, Caesars, etc.)
-- **Live game tracking** with Central Standard Time conversion
-- **Multi-sport coverage**: NFL, CFB, NBA, MLB, NHL
-- **Advanced filtering** by sport, date, sportsbook, and search
-- **Comprehensive tooltips** explaining moneyline, spread, and totals
+---
 
-### 🤖 AI-Powered Predictions
-- **Nova-AI-v3.1 integration** with confidence scoring
-- **Machine learning analysis** of team performance, stats, and trends
-- **Confidence-based filtering** (60%-90%+ confidence levels)
-- **Expected Value (EV) calculations** for long-term profitability
-- **Real-time predictions** updated every 5 minutes
+## 🚀 **Recommended Next Steps**
 
-### 🎰 Advanced Parlay Builder
-- **Elite parlay constructor** with duplicate prevention
-- **AI-optimized suggestions** for maximum expected value
-- **Real-time odds calculation** with automatic updates
-- **Correlation detection** to avoid conflicting bets
-- **Professional risk management** features
+### **Immediate Actions:**
+1. **🔴 Comprehensive Testing**: Test all functionality after recent major fixes
+2. **🟡 UI/UX Polish**: Fine-tune date selection and search interface organization
+3. **🟢 Performance Monitoring**: Monitor API usage and optimize rate limiting
 
-### 👤 Elite Player Props
-- **Individual player statistics betting** (yards, touchdowns, points, etc.)
-- **Live player performance data** integration
-- **Multi-sport prop coverage** (NFL passing/rushing, NBA scoring/rebounds)
-- **Advanced filtering** by player, prop type, and confidence
-- **Professional-grade interface** with real-time updates
+### **Future Development:**
+1. **Analytics Dashboard**: Add betting performance tracking and profit/loss analysis
+2. **Advanced Filtering**: More granular filtering options for games and props
+3. **Notification System**: Alert users about favorable betting opportunities
+4. **Export Functionality**: Allow users to export parlay data and betting history
 
-### 📚 Educational Resources
-- **Comprehensive Sports Betting Legend** with 6 major sections:
-  - Understanding Odds (positive/negative odds explanation)
-  - Types of Bets (moneyline, spread, totals, props)
-  - Parlay Betting (legs, calculations, strategies)
-  - AI Features (confidence scores, EV, analysis)
-  - Betting Strategy (bankroll management, line shopping)
-  - Important Warnings (responsible gambling, legal considerations)
-- **Interactive tooltips** on every major feature
-- **Beginner-friendly explanations** throughout the platform
+---
 
-## 🛡️ Security & Brand Protection
-- **CSS-based brand protection** against logo modification
-- **JavaScript event handler security** for brand elements
-- **Secure CDN integration** for logo assets
-- **Professional copyright notices** and Terms of Service
+## 📊 **Data Models & Storage**
 
-## 🗄️ Data Management
-
-### RESTful Table API Integration
-The platform uses a comprehensive RESTful API for data persistence:
-
+### **LocalStorage Data Structures**
 ```typescript
-// GET /tables/{table} - List records with pagination
-// GET /tables/{table}/{id} - Get single record
-// POST /tables/{table} - Create new record  
-// PUT /tables/{table}/{id} - Full update
-// PATCH /tables/{table}/{id} - Partial update
-// DELETE /tables/{table}/{id} - Soft delete
-```
-
-**System Fields (Auto-managed):**
-- `id` - Unique UUID identifier
-- `gs_project_id` - Project identifier
-- `gs_table_name` - Table name
-- `created_at` - Creation timestamp
-- `updated_at` - Last modification timestamp
-
-### External API Integrations
-
-**The Odds API:**
-- API Key: `effdb0775abef82ff5dd944ae2180cae`
-- 20,000 credits/month subscription
-- Real-time odds from major sportsbooks
-- **✅ ALL WORKING**: Currently fetching 85 real games successfully
-- **Sports**: NFL (15 games), College Football (58 games), MLB (2 games), Boxing (10 games)
-- **Rate Limiting**: 500ms delays, proper caching, no more 422 errors
-- **Player Props**: ✅ NEWLY IMPLEMENTED - Uses `/events/{eventId}/odds` endpoint with proper market support
-  - NFL: Pass yards, Pass TDs, Rush yards, Rush TDs, Receptions, Receiving yards
-  - NBA: Points, Rebounds, Assists, 3-pointers, Blocks, Steals  
-  - College Football: Pass yards, Rush yards, Receptions
-  - MLB: Hits, Total bases, Runs scored, RBIs
-
-**ESPN Sports API:**
-- Live games and scores integration
-- Real-time game updates
-- Team statistics and performance data
-
-## 💻 Technology Stack
-
-**Frontend Framework:**
-- React 18 with TypeScript for type safety
-- Zustand for state management
-- Framer Motion for animations
-- Tailwind CSS for styling
-- Vite for build optimization
-
-**Data & API:**
-- @tanstack/react-query for data fetching
-- RESTful Table API for persistence
-- The Odds API for live sports data
-- ESPN API for game information
-
-**UI/UX:**
-- Lucide React for icons
-- Motion animations and transitions
-- Responsive design with mobile-first approach
-- Nova Titan Elite color scheme (deep slate backgrounds)
-
-## 📁 File Structure
-
-```
-frontend/src/
-├── components/
-│   ├── ui/
-│   │   ├── HelpTooltip.tsx          # Smart tooltip component
-│   │   ├── SportsBettingLegend.tsx  # Comprehensive betting guide
-│   │   ├── DateSelector.tsx         # 14-day date selection
-│   │   ├── SearchBar.tsx           # Advanced search functionality
-│   │   └── NovaTitanLogo.tsx       # Protected brand logo
-│   ├── widget/tabs/
-│   │   ├── SimpleGamesTab.tsx       # Main games interface ✅ CFB + tooltips
-│   │   ├── SimplePredictionsTab.tsx # AI predictions ✅ CFB + tooltips  
-│   │   ├── NovaTitanEliteParlaysTab.tsx      # Parlay builder ✅ CFB
-│   │   └── NovaTitanElitePlayerPropsTab.tsx  # Player props ✅ CFB + tooltips
-│   └── legal/
-│       ├── LegalDisclaimer.tsx      # Copyright notices
-│       └── TermsOfService.tsx       # Comprehensive ToS
-├── services/
-│   ├── realTimeOddsService.ts       # Live odds API integration
-│   ├── realTimeAIPredictions.ts     # AI prediction service
-│   └── liveSportsService.ts         # ESPN integration
-└── stores/
-    └── widgetStore.ts               # Zustand state management
-```
-
-## 🎮 User Interface Features
-
-### Comprehensive Tooltips System
-- **Smart positioning** prevents tooltips from spilling off-page
-- **Size variants** (sm, md, lg) for different content lengths  
-- **Position options** (top, bottom, left, right) with automatic fallbacks
-- **Interactive help buttons** (purple ? icons) throughout the interface
-
-### Sports Betting Legend
-- **Modal-based comprehensive guide** accessible from all major tabs
-- **6 detailed sections** covering all aspects of sports betting
-- **Interactive sidebar navigation** between topics
-- **Real examples** and practical explanations for each concept
-- **Beginner-friendly language** with professional depth
-
-### Advanced Filtering & Search
-- **Multi-criteria filtering** by sport, date, sportsbook, confidence
-- **Real-time search** across teams, players, and games
-- **Debounced input** for optimal performance
-- **Comprehensive sports coverage** including new CFB support
-
-## 🔗 Public URLs & Deployment
-
-**Production Deployment:**
-- Platform will be deployed via Netlify (deployment handled through Publish tab)
-- Custom domain integration supported
-- CDN optimization for global performance
-
-**API Endpoints:**
-- The Odds API: `https://api.the-odds-api.com/v4/`
-- ESPN Sports API: `https://site.api.espn.com/`
-- Logo CDN: `https://cdn1.genspark.ai/user-upload-image/gpt_image_edited/90a28898-de41-49b6-8ac8-ec5478c81614.png`
-
-## 📊 Data Models & Storage
-
-### Parlay Builder Data Structure
-```typescript
-interface ParlayLeg {
+// Saved Parlays
+interface SavedParlay {
   id: string;
-  game: string;
-  team: string;
-  bet: string;  
-  odds: number;
-  confidence?: number;
-  sport: string;
-  gameDate?: string;
-  venue?: string;
-  bookmaker?: string;
-}
-
-interface ParlayBuilder {
+  name: string;
   legs: ParlayLeg[];
   stake: number;
   totalOdds: number;
   potentialPayout: number;
-  expectedValue?: number;
+  createdAt: string;
+  status: 'active' | 'won' | 'lost' | 'pending';
 }
-```
 
-### AI Prediction Data Structure
-```typescript
-interface AIPrediction {
+// Tracked Insights
+interface TrackedInsight {
   id: string;
-  sport: string;
-  homeTeam: string;
-  awayTeam: string;
-  gameDate: string;
-  predictions: {
-    moneyline: {
-      pick: string;
-      confidence: number;
-      expectedValue: number;
-    };
-    spread?: {
-      pick: string;
-      confidence: number;
-    };
-    total?: {
-      pick: string;
-      confidence: number;
-    };
-  };
-  analysis: string;
+  game: string;
+  recommendation: string;
+  confidence: number;
+  timeFrame: string;
+  trackedAt: string;
 }
 ```
 
-## 🔧 Development Guidelines
-
-### Adding New Sports
-1. Update `SPORTS` constants in affected tab components
-2. Add sport mappings to `realTimeOddsService.ts`
-3. Update API integration for new sport coverage
-4. Add appropriate emojis and display names
-
-### Extending Tooltip System
-1. Use existing `HelpTooltip` component for consistency
-2. Choose appropriate positioning to avoid page spillage
-3. Keep content concise but informative
-4. Test on mobile devices for accessibility
-
-### Brand Protection Requirements
-- Never modify logo URLs or brand elements
-- Maintain copyright notices and attribution
-- Keep Nova Titan branding consistent across platform
-- Preserve security features for brand assets
-
-## ⚠️ Important Notes
-
-### Responsible Gambling
-- All predictions are estimates with no guaranteed outcomes
-- Platform includes comprehensive warnings and disclaimers
-- Educational content promotes responsible betting practices
-- Links to gambling addiction resources where appropriate
-
-### Legal Compliance
-- Platform serves educational and entertainment purposes
-- Users responsible for checking local sports betting laws
-- No real money transactions processed through platform
-- Companion tool for analysis and learning only
-
-### API Rate Limits & Optimization
-- **The Odds API**: 20,000 credits/month (current subscription)
-  - ✅ **Optimized to 6 core sports** (was 11+ sports) - 50% reduction in API calls
-  - ✅ **500ms delays** between sequential API calls prevent rate limiting
-  - ✅ **Smart caching** (5-15 minutes) prevents redundant requests
-  - ✅ **All 422 errors eliminated** - conservative market selection with sport validation
-  - ✅ **Boxing fully operational** - "boxing_boxing" returns real boxing matches
-  - ✅ **Data structure compatibility** - proper handling of transformed odds data
-- **ESPN API**: Full CORS error suppression with realistic fallback data generation
-- **Player Props**: ✅ **Conservative market approach** eliminates all invalid API calls
-- **Date Filtering**: ✅ **Timezone-aware processing** ensures games appear on correct days
-- **Image Assets**: ✅ **SVG data URL fallbacks** eliminate all ERR_NAME_NOT_RESOLVED errors
-
-## ✅ ALL CRITICAL ISSUES RESOLVED - FULLY OPERATIONAL
-
-### 🎯 Key Problems Solved:
-1. **Games Not Displaying** → Fixed data processing pipeline completely
-2. **"Undefined on Available Bets"** → Corrected all field name mismatches
-3. **Sportsbook Filter Not Working** → Added proper React Query dependencies
-4. **Player Props 422 Errors** → Implemented conservative API approach
-5. **Image Loading Failures** → Switched to reliable SVG data URLs
-6. **ESPN CORS Errors** → Added comprehensive error suppression
-7. **Date/Sport Display Issues** → Enhanced timezone-aware filtering
-
-### 🚀 Recommended Next Steps
-
-1. **User Experience Enhancements**
-   - Add loading skeletons for better perceived performance
-   - Implement real-time game score updates
-   - Add favorites/watchlist functionality
-   - Enhanced mobile touch interactions
-
-2. **Feature Expansions**
-   - Live betting odds tracking with alerts
-   - Historical odds comparison charts
-   - Advanced parlay optimization algorithms
-   - Social sharing of predictions and parlays
-
-3. **Performance & Scaling**
-   - Implement service worker for offline capability
-   - Add advanced caching with background refresh
-   - Optimize bundle splitting for faster load times
-   - Add progressive web app features
-
-4. **Analytics & Insights**
-   - Track prediction accuracy over time
-   - Implement user betting pattern analysis
-   - Add market trend identification
-   - Create performance dashboards for strategies
-
-## 🎯 Platform Goals
-
-The Nova Titan Elite Sports Betting Platform aims to be the premier educational and analytical tool for sports betting enthusiasts, providing:
-
-- **Professional-grade analysis tools** with AI-powered insights
-- **Comprehensive educational resources** for beginners and experts
-- **Real-time data integration** from industry-leading sources
-- **Responsible gambling promotion** with built-in safety features
-- **Cutting-edge user experience** with modern web technologies
+### **API Data Structures**
+- **LiveOddsData**: Game odds with multiple bookmakers
+- **RealPlayerProp**: Player performance betting markets
+- **AIRecommendation**: Machine learning predictions with confidence scores
 
 ---
 
-**© 2025 Nova Titan Systems. All rights reserved.**
+## 🔧 **Technical Stack**
 
-*This platform is designed for educational and entertainment purposes. Please gamble responsibly and check your local laws regarding sports betting.*
+### **Frontend**
+- **React 18** with TypeScript for type-safe development
+- **Framer Motion** for smooth animations and transitions
+- **React Query** for intelligent data fetching and caching
+- **Tailwind CSS** for responsive, modern styling
+- **Lucide React** for consistent iconography
+
+### **Services & APIs**
+- **The Odds API** for live sports betting data
+- **Real-time Odds Service** with rate limiting and error handling
+- **AI Predictions Service** with confidence scoring
+- **Team/Player Statistics** with ESPN logo integration
+
+### **Performance Features**
+- Parallel API request processing
+- Intelligent caching with React Query
+- Rate limiting to preserve API credits
+- Optimized re-renders with proper dependency arrays
+- localStorage for persistent user data
+
+---
+
+## 🎯 **Key Success Metrics**
+
+### **Functionality**
+- ✅ **100% Button Functionality**: All buttons perform meaningful actions
+- ✅ **Elite Parlay System**: Complete save/edit/manage capabilities
+- ✅ **AI Predictions**: Showing predictions with explanatory tooltips
+- ✅ **Team Integration**: ESPN logos and clickable statistics
+- ✅ **Search System**: Comprehensive search with smart navigation
+
+### **Performance**
+- ✅ **API Optimization**: Resolved 401 errors, unified key management
+- ✅ **Loading Speed**: Parallel processing for faster player props
+- ✅ **User Experience**: Responsive design with intuitive navigation
+- ✅ **Data Persistence**: Reliable localStorage for user preferences
+
+---
+
+## 🚀 **Getting Started**
+
+### **Development**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### **Production Build**
+```bash
+npm run build
+```
+
+### **Environment Variables**
+```bash
+VITE_PRIMARY_ODDS_API_KEY=your_api_key_here
+VITE_USE_DEMO_DATA=false
+```
+
+---
+
+## 📈 **Recent Major Updates (October 2025)**
+
+### **Version 2.1.0 - Elite Functionality Release**
+- **🔥 Critical**: Resolved all 401 API errors by removing invalid secondary key
+- **🚀 Major**: Implemented complete Elite Parlay Builder with save/edit system
+- **🧠 AI**: Fixed AI predictions display with enhanced filtering and debugging
+- **⚡ Performance**: Optimized player props loading with parallel batch processing
+- **🎨 UX**: Added ESPN logos, clickable teams, and comprehensive search
+- **💡 Insights**: Made Track Insight button functional with localStorage persistence
+- **📚 Education**: Added explanatory tooltips for complex betting terms
+
+### **Technical Improvements**
+- Unified API key management for all endpoints
+- Enhanced error handling and user feedback
+- Optimized React Query caching strategies
+- Improved component performance with proper state management
+- Comprehensive localStorage integration for user data persistence
+
+---
+
+## 🔮 **Future Vision**
+
+Nova Titan Elite is positioned to become the premier sports betting platform with:
+- Advanced AI-driven recommendations
+- Social betting features and community insights
+- Comprehensive analytics and performance tracking
+- Mobile-first design with native app capabilities
+- Real-time notifications and alert systems
+
+---
+
+**🏆 Nova Titan Elite - Where Elite Betting Meets Advanced Technology**

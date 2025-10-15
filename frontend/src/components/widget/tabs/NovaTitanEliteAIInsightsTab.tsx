@@ -59,6 +59,10 @@ export const NovaTitanEliteAIInsightsTab: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [minConfidence, setMinConfidence] = useState(70);
   const [showLegend, setShowLegend] = useState(false);
+  const [trackedInsights, setTrackedInsights] = useState<string[]>(() => {
+    const saved = localStorage.getItem('novaTitanTrackedInsights');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   // Fetch AI recommendations and market intelligence
   const { data: aiInsights, isLoading, error, refetch, dataUpdatedAt } = useQuery({
@@ -176,6 +180,36 @@ export const NovaTitanEliteAIInsightsTab: React.FC = () => {
       default:
         return 'text-slate-200 bg-slate-800/50 border-slate-600/70';
     }
+  };
+
+  const handleTrackInsight = (recommendation: AIRecommendation) => {
+    const newTracked = trackedInsights.includes(recommendation.id)
+      ? trackedInsights.filter(id => id !== recommendation.id)
+      : [...trackedInsights, recommendation.id];
+    
+    setTrackedInsights(newTracked);
+    localStorage.setItem('novaTitanTrackedInsights', JSON.stringify(newTracked));
+    
+    // Show user feedback
+    const action = trackedInsights.includes(recommendation.id) ? 'removed from' : 'added to';
+    console.log(`📊 Insight ${action} tracking: ${recommendation.game} - ${recommendation.recommendation}`);
+  };
+
+  // Betting term explanations for complex terms
+  const getBettingTermExplanation = (term: string): string => {
+    const explanations: {[key: string]: string} = {
+      'Value Bet': 'A bet where the odds offered are higher than the actual probability of the outcome occurring, providing positive expected value.',
+      'Edge Detection': 'Algorithmic identification of betting opportunities where you have a mathematical advantage over the bookmaker.',
+      'Arbitrage': 'Risk-free betting strategy that exploits price differences between bookmakers to guarantee profit regardless of outcome.',
+      'Market Inefficiency': 'Pricing errors in betting markets where odds don\'t accurately reflect true probabilities, creating opportunities for profit.',
+      'Sharp Money': 'Bets placed by professional, well-informed bettors who typically have access to superior information or analysis.',
+      'Steam Move': 'Rapid, coordinated betting action across multiple sportsbooks that causes significant line movement.',
+      'Reverse Line Movement': 'When betting lines move opposite to the direction of public betting percentages, indicating sharp money on the other side.',
+      'Expected Value': 'The average amount a bettor can expect to win or lose per bet over the long term, calculated using probabilities and payouts.',
+      'ATS': 'Against The Spread - a team\'s record when factoring in the point spread rather than just wins and losses.',
+      'Bankroll Management': 'Disciplined approach to managing your betting funds to minimize risk of ruin and maximize long-term profitability.'
+    };
+    return explanations[term] || 'Advanced betting concept - hover for more information';
   };
 
   if (error) {
@@ -501,9 +535,15 @@ export const NovaTitanEliteAIInsightsTab: React.FC = () => {
                           <div className="flex items-start justify-between mb-6">
                             <div className="flex-1">
                               <div className="flex items-center space-x-4 mb-4">
-                                <span className={`text-sm px-4 py-2 rounded-full border font-bold shadow-lg ${recType.color}`}>
-                                  {recType.icon} {recType.label}
-                                </span>
+                                <HelpTooltip
+                                  content={getBettingTermExplanation(recType.label)}
+                                  position="top"
+                                  size="lg"
+                                >
+                                  <span className={`text-sm px-4 py-2 rounded-full border font-bold shadow-lg ${recType.color} cursor-help`}>
+                                    {recType.icon} {recType.label}
+                                  </span>
+                                </HelpTooltip>
                                 <span className={`text-xs px-3 py-2 rounded-full border font-bold shadow-lg ${getPriorityColor(recommendation.priority)}`}>
                                   {recommendation.priority.toUpperCase()} PRIORITY
                                 </span>
@@ -521,9 +561,15 @@ export const NovaTitanEliteAIInsightsTab: React.FC = () => {
                               <div className="bg-blue-800/50 text-blue-200 px-4 py-2 rounded-lg text-sm font-bold mb-2 border border-blue-600/50">
                                 {recommendation.confidence}% Confidence
                               </div>
-                              <div className="bg-emerald-800/50 text-emerald-200 px-3 py-2 rounded-lg text-sm font-bold border border-emerald-600/50">
-                                +{recommendation.expectedValue}% EV
-                              </div>
+                              <HelpTooltip
+                                content={getBettingTermExplanation('Expected Value')}
+                                position="left"
+                                size="lg"
+                              >
+                                <div className="bg-emerald-800/50 text-emerald-200 px-3 py-2 rounded-lg text-sm font-bold border border-emerald-600/50 cursor-help">
+                                  +{recommendation.expectedValue}% EV
+                                </div>
+                              </HelpTooltip>
                             </div>
                           </div>
 
@@ -547,10 +593,27 @@ export const NovaTitanEliteAIInsightsTab: React.FC = () => {
                               </div>
                             </div>
 
-                            <button className="flex items-center space-x-2 px-6 py-3 bg-blue-700 hover:bg-blue-600 text-white rounded-xl font-bold transition-all duration-300 transform hover:scale-105 shadow-lg border border-blue-600">
-                              <Eye className="w-4 h-4" />
-                              <span>Track Insight</span>
-                              <ArrowRight className="w-4 h-4" />
+                            <button 
+                              onClick={() => handleTrackInsight(recommendation)}
+                              className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 shadow-lg border ${
+                                trackedInsights.includes(recommendation.id) 
+                                  ? 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600' 
+                                  : 'bg-blue-700 hover:bg-blue-600 text-white border-blue-600'
+                              }`}
+                            >
+                              {trackedInsights.includes(recommendation.id) ? (
+                                <>
+                                  <CheckCircle className="w-4 h-4" />
+                                  <span>Tracking</span>
+                                  <Eye className="w-4 h-4" />
+                                </>
+                              ) : (
+                                <>
+                                  <Eye className="w-4 h-4" />
+                                  <span>Track Insight</span>
+                                  <ArrowRight className="w-4 h-4" />
+                                </>
+                              )}
                             </button>
                           </div>
                         </div>

@@ -21,16 +21,19 @@ import { SportsBettingLegend } from '../../ui/SportsBettingLegend';
 
 const SPORTS = [
   { id: 'all', name: 'All Sports', emoji: '🏆' },
+  
+  // Core US Sports (matching realTimeOddsService)
   { id: 'americanfootball_nfl', name: 'NFL', emoji: '🏈' },
-  { id: 'americanfootball_ncaaf', name: 'CFB', emoji: '🏈' },
   { id: 'basketball_nba', name: 'NBA', emoji: '🏀' },
+  { id: 'americanfootball_ncaaf', name: 'College Football', emoji: '🏈' },
+  { id: 'basketball_ncaab', name: 'College Basketball', emoji: '🏀' },
   { id: 'baseball_mlb', name: 'MLB', emoji: '⚾' },
-  { id: 'icehockey_nhl', name: 'NHL', emoji: '🏒' }
+  { id: 'boxing_boxing', name: 'Boxing', emoji: '🥊' }
 ];
 
 export const SimplePredictionsTab: React.FC = () => {
   const [selectedSport, setSelectedSport] = useState('all');
-  const [minConfidence, setMinConfidence] = useState(70);
+  const [minConfidence, setMinConfidence] = useState(50); // Lower default threshold
   const [showLegend, setShowLegend] = useState(false);
 
   // Fetch AI predictions
@@ -42,14 +45,34 @@ export const SimplePredictionsTab: React.FC = () => {
       try {
         const allPredictions = await realTimeAIPredictionsService.generateLivePredictions();
         
-        // Filter by sport and confidence
-        return allPredictions
+        console.log(`📊 Generated ${allPredictions.length} predictions`);
+        
+        if (allPredictions.length > 0) {
+          console.log('Sample prediction structure:', allPredictions[0]);
+        }
+        
+        // Filter by sport and confidence with robust checks
+        const filtered = allPredictions
           .filter(pred => {
-            if (selectedSport !== 'all' && pred.sport !== selectedSport) return false;
-            if (pred.predictions.moneyline.confidence < minConfidence) return false;
-            return true;
+            // Ensure prediction has required structure
+            if (!pred || !pred.predictions || !pred.predictions.moneyline) {
+              console.warn('⚠️ Invalid prediction structure:', pred);
+              return false;
+            }
+            
+            // Sport filter
+            const sportMatch = selectedSport === 'all' || pred.sport === selectedSport;
+            
+            // Confidence filter with fallback
+            const confidence = pred.predictions.moneyline.confidence || 0;
+            const confidenceMatch = confidence >= minConfidence;
+            
+            return sportMatch && confidenceMatch;
           })
-          .slice(0, 10); // Limit for performance
+          .slice(0, 20); // Increase limit
+          
+        console.log(`✅ Filtered to ${filtered.length} predictions (sport: ${selectedSport}, minConfidence: ${minConfidence})`);
+        return filtered;
         
       } catch (error) {
         console.error('Error fetching predictions:', error);

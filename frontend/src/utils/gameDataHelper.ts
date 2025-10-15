@@ -213,24 +213,128 @@ export function processGameData(rawGames: any[], selectedBookmaker: string = 'al
  * Get team logo with fallback
  */
 function getTeamLogo(teamName: string): string {
-  // Always use SVG fallback for consistent display - ESPN CDN has CORS issues
+  // ESPN Logo mapping - user requested original ESPN logos
+  const espnLogos: { [key: string]: string } = {
+    // NFL Teams
+    'Arizona Cardinals': 'https://a.espncdn.com/i/teamlogos/nfl/500/ari.png',
+    'Atlanta Falcons': 'https://a.espncdn.com/i/teamlogos/nfl/500/atl.png',
+    'Baltimore Ravens': 'https://a.espncdn.com/i/teamlogos/nfl/500/bal.png',
+    'Buffalo Bills': 'https://a.espncdn.com/i/teamlogos/nfl/500/buf.png',
+    'Carolina Panthers': 'https://a.espncdn.com/i/teamlogos/nfl/500/car.png',
+    'Chicago Bears': 'https://a.espncdn.com/i/teamlogos/nfl/500/chi.png',
+    'Cincinnati Bengals': 'https://a.espncdn.com/i/teamlogos/nfl/500/cin.png',
+    'Cleveland Browns': 'https://a.espncdn.com/i/teamlogos/nfl/500/cle.png',
+    'Dallas Cowboys': 'https://a.espncdn.com/i/teamlogos/nfl/500/dal.png',
+    'Denver Broncos': 'https://a.espncdn.com/i/teamlogos/nfl/500/den.png',
+    'Detroit Lions': 'https://a.espncdn.com/i/teamlogos/nfl/500/det.png',
+    'Green Bay Packers': 'https://a.espncdn.com/i/teamlogos/nfl/500/gb.png',
+    'Houston Texans': 'https://a.espncdn.com/i/teamlogos/nfl/500/hou.png',
+    'Indianapolis Colts': 'https://a.espncdn.com/i/teamlogos/nfl/500/ind.png',
+    'Jacksonville Jaguars': 'https://a.espncdn.com/i/teamlogos/nfl/500/jax.png',
+    'Kansas City Chiefs': 'https://a.espncdn.com/i/teamlogos/nfl/500/kc.png',
+    'Las Vegas Raiders': 'https://a.espncdn.com/i/teamlogos/nfl/500/lv.png',
+    'Los Angeles Chargers': 'https://a.espncdn.com/i/teamlogos/nfl/500/lac.png',
+    'Los Angeles Rams': 'https://a.espncdn.com/i/teamlogos/nfl/500/lar.png',
+    'Miami Dolphins': 'https://a.espncdn.com/i/teamlogos/nfl/500/mia.png',
+    'Minnesota Vikings': 'https://a.espncdn.com/i/teamlogos/nfl/500/min.png',
+    'New England Patriots': 'https://a.espncdn.com/i/teamlogos/nfl/500/ne.png',
+    'New Orleans Saints': 'https://a.espncdn.com/i/teamlogos/nfl/500/no.png',
+    'New York Giants': 'https://a.espncdn.com/i/teamlogos/nfl/500/nyg.png',
+    'New York Jets': 'https://a.espncdn.com/i/teamlogos/nfl/500/nyj.png',
+    'Philadelphia Eagles': 'https://a.espncdn.com/i/teamlogos/nfl/500/phi.png',
+    'Pittsburgh Steelers': 'https://a.espncdn.com/i/teamlogos/nfl/500/pit.png',
+    'San Francisco 49ers': 'https://a.espncdn.com/i/teamlogos/nfl/500/sf.png',
+    'Seattle Seahawks': 'https://a.espncdn.com/i/teamlogos/nfl/500/sea.png',
+    'Tampa Bay Buccaneers': 'https://a.espncdn.com/i/teamlogos/nfl/500/tb.png',
+    'Tennessee Titans': 'https://a.espncdn.com/i/teamlogos/nfl/500/ten.png',
+    'Washington Commanders': 'https://a.espncdn.com/i/teamlogos/nfl/500/wsh.png',
+    
+    // NBA Teams
+    'Atlanta Hawks': 'https://a.espncdn.com/i/teamlogos/nba/500/atl.png',
+    'Boston Celtics': 'https://a.espncdn.com/i/teamlogos/nba/500/bos.png',
+    'Brooklyn Nets': 'https://a.espncdn.com/i/teamlogos/nba/500/bkn.png',
+    'Charlotte Hornets': 'https://a.espncdn.com/i/teamlogos/nba/500/cha.png',
+    'Chicago Bulls': 'https://a.espncdn.com/i/teamlogos/nba/500/chi.png',
+    'Cleveland Cavaliers': 'https://a.espncdn.com/i/teamlogos/nba/500/cle.png',
+    'Dallas Mavericks': 'https://a.espncdn.com/i/teamlogos/nba/500/dal.png',
+    'Denver Nuggets': 'https://a.espncdn.com/i/teamlogos/nba/500/den.png',
+    'Detroit Pistons': 'https://a.espncdn.com/i/teamlogos/nba/500/det.png',
+    'Golden State Warriors': 'https://a.espncdn.com/i/teamlogos/nba/500/gs.png',
+    'Houston Rockets': 'https://a.espncdn.com/i/teamlogos/nba/500/hou.png',
+    'Indiana Pacers': 'https://a.espncdn.com/i/teamlogos/nba/500/ind.png',
+    'Los Angeles Clippers': 'https://a.espncdn.com/i/teamlogos/nba/500/lac.png',
+    'Los Angeles Lakers': 'https://a.espncdn.com/i/teamlogos/nba/500/lal.png',
+    'Memphis Grizzlies': 'https://a.espncdn.com/i/teamlogos/nba/500/mem.png',
+    'Miami Heat': 'https://a.espncdn.com/i/teamlogos/nba/500/mia.png',
+    'Milwaukee Bucks': 'https://a.espncdn.com/i/teamlogos/nba/500/mil.png',
+    'Minnesota Timberwolves': 'https://a.espncdn.com/i/teamlogos/nba/500/min.png',
+    'New Orleans Pelicans': 'https://a.espncdn.com/i/teamlogos/nba/500/no.png',
+    'New York Knicks': 'https://a.espncdn.com/i/teamlogos/nba/500/ny.png',
+    'Oklahoma City Thunder': 'https://a.espncdn.com/i/teamlogos/nba/500/okc.png',
+    'Orlando Magic': 'https://a.espncdn.com/i/teamlogos/nba/500/orl.png',
+    'Philadelphia 76ers': 'https://a.espncdn.com/i/teamlogos/nba/500/phi.png',
+    'Phoenix Suns': 'https://a.espncdn.com/i/teamlogos/nba/500/phx.png',
+    'Portland Trail Blazers': 'https://a.espncdn.com/i/teamlogos/nba/500/por.png',
+    'Sacramento Kings': 'https://a.espncdn.com/i/teamlogos/nba/500/sac.png',
+    'San Antonio Spurs': 'https://a.espncdn.com/i/teamlogos/nba/500/sa.png',
+    'Toronto Raptors': 'https://a.espncdn.com/i/teamlogos/nba/500/tor.png',
+    'Utah Jazz': 'https://a.espncdn.com/i/teamlogos/nba/500/utah.png',
+    'Washington Wizards': 'https://a.espncdn.com/i/teamlogos/nba/500/wsh.png',
+    
+    // MLB Teams
+    'Arizona Diamondbacks': 'https://a.espncdn.com/i/teamlogos/mlb/500/ari.png',
+    'Atlanta Braves': 'https://a.espncdn.com/i/teamlogos/mlb/500/atl.png',
+    'Baltimore Orioles': 'https://a.espncdn.com/i/teamlogos/mlb/500/bal.png',
+    'Boston Red Sox': 'https://a.espncdn.com/i/teamlogos/mlb/500/bos.png',
+    'Chicago Cubs': 'https://a.espncdn.com/i/teamlogos/mlb/500/chc.png',
+    'Chicago White Sox': 'https://a.espncdn.com/i/teamlogos/mlb/500/chw.png',
+    'Cincinnati Reds': 'https://a.espncdn.com/i/teamlogos/mlb/500/cin.png',
+    'Cleveland Guardians': 'https://a.espncdn.com/i/teamlogos/mlb/500/cle.png',
+    'Colorado Rockies': 'https://a.espncdn.com/i/teamlogos/mlb/500/col.png',
+    'Detroit Tigers': 'https://a.espncdn.com/i/teamlogos/mlb/500/det.png',
+    'Houston Astros': 'https://a.espncdn.com/i/teamlogos/mlb/500/hou.png',
+    'Kansas City Royals': 'https://a.espncdn.com/i/teamlogos/mlb/500/kc.png',
+    'Los Angeles Angels': 'https://a.espncdn.com/i/teamlogos/mlb/500/laa.png',
+    'Los Angeles Dodgers': 'https://a.espncdn.com/i/teamlogos/mlb/500/lad.png',
+    'Miami Marlins': 'https://a.espncdn.com/i/teamlogos/mlb/500/mia.png',
+    'Milwaukee Brewers': 'https://a.espncdn.com/i/teamlogos/mlb/500/mil.png',
+    'Minnesota Twins': 'https://a.espncdn.com/i/teamlogos/mlb/500/min.png',
+    'New York Mets': 'https://a.espncdn.com/i/teamlogos/mlb/500/nym.png',
+    'New York Yankees': 'https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png',
+    'Oakland Athletics': 'https://a.espncdn.com/i/teamlogos/mlb/500/oak.png',
+    'Philadelphia Phillies': 'https://a.espncdn.com/i/teamlogos/mlb/500/phi.png',
+    'Pittsburgh Pirates': 'https://a.espncdn.com/i/teamlogos/mlb/500/pit.png',
+    'San Diego Padres': 'https://a.espncdn.com/i/teamlogos/mlb/500/sd.png',
+    'San Francisco Giants': 'https://a.espncdn.com/i/teamlogos/mlb/500/sf.png',
+    'Seattle Mariners': 'https://a.espncdn.com/i/teamlogos/mlb/500/sea.png',
+    'St. Louis Cardinals': 'https://a.espncdn.com/i/teamlogos/mlb/500/stl.png',
+    'Tampa Bay Rays': 'https://a.espncdn.com/i/teamlogos/mlb/500/tb.png',
+    'Texas Rangers': 'https://a.espncdn.com/i/teamlogos/mlb/500/tex.png',
+    'Toronto Blue Jays': 'https://a.espncdn.com/i/teamlogos/mlb/500/tor.png',
+    'Washington Nationals': 'https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png'
+  };
+
+  // Try to find ESPN logo first
+  const espnLogo = espnLogos[teamName];
+  if (espnLogo) {
+    console.log(`🏈 Using ESPN logo for ${teamName}: ${espnLogo}`);
+    return espnLogo;
+  }
+
+  // Fallback to enhanced SVG if ESPN logo not found
   const initials = teamName
     .split(' ')
-    .filter(word => word.length > 0)  // Filter out empty strings
+    .filter(word => word.length > 0)
     .map(word => word.charAt(0))
     .join('')
     .toUpperCase()
     .slice(0, 3);
   
-  // Ensure initials are valid for URL - minimum 1 character
   const validInitials = initials.length > 0 ? initials.replace(/[^A-Z0-9]/g, 'T') : 'TEAM';
-  
-  // Enhanced SVG with team colors based on name
   const teamColor = getTeamColor(teamName);
   
-  console.log(`🏈 Creating logo for ${teamName} -> ${validInitials} (color: ${teamColor})`);
+  console.log(`🏈 Creating SVG fallback for ${teamName} -> ${validInitials} (color: ${teamColor})`);
   
-  // Create improved SVG logo with better styling
   return `data:image/svg+xml;base64,${btoa(`
     <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg">
       <defs>

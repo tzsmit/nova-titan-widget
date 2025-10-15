@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { HelpTooltip } from '../../ui/HelpTooltip';
 import { SportsBettingLegend } from '../../ui/SportsBettingLegend';
+import { TeamStatsModal } from '../../ui/TeamStatsModal';
 
 
 
@@ -53,6 +54,11 @@ export const SimpleGamesTab: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFilters, setSearchFilters] = useState({ type: 'all' as const, sport: 'all' as const });
   const [showLegend, setShowLegend] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState<{name: string, logo: string} | null>(null);
+
+  const handleTeamClick = (teamName: string, teamLogo: string) => {
+    setSelectedTeam({ name: teamName, logo: teamLogo });
+  };
 
   // Test API on component mount (disabled to prevent rate limiting)
   useEffect(() => {
@@ -201,6 +207,44 @@ export const SimpleGamesTab: React.FC = () => {
     setSearchFilters(filters);
   };
 
+  // Handle search result selection
+  const handleSearchResultSelect = (result: any) => {
+    console.log(`🔍 Search result selected: ${result.type} - ${result.title}`);
+    
+    if (result.type === 'team') {
+      // Open team stats modal for searched team
+      setSelectedTeam({ 
+        name: result.title, 
+        logo: result.image || `data:image/svg+xml;base64,${btoa(`
+          <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg">
+            <rect width="48" height="48" rx="8" fill="#3B82F6"/>
+            <text x="24" y="30" font-family="Arial" font-size="14" fill="white" text-anchor="middle" font-weight="bold">
+              ${result.title.split(' ').map((w: string) => w[0]).join('').slice(0, 3)}
+            </text>
+          </svg>
+        `)}`
+      });
+    } else if (result.type === 'player') {
+      // For now, just show team stats for the player's team
+      // Extract team name from subtitle (e.g., "QB • Kansas City Chiefs")
+      const teamName = result.subtitle.split(' • ')[1] || result.title;
+      setSelectedTeam({ 
+        name: teamName, 
+        logo: result.image || `data:image/svg+xml;base64,${btoa(`
+          <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg">
+            <rect width="48" height="48" rx="8" fill="#10B981"/>
+            <text x="24" y="30" font-family="Arial" font-size="14" fill="white" text-anchor="middle" font-weight="bold">
+              ${result.title.split(' ').map((w: string) => w[0]).join('').slice(0, 3)}
+            </text>
+          </svg>
+        `)}`
+      });
+    } else if (result.type === 'game') {
+      // For games, could show game details or team comparison
+      console.log(`🎮 Game selected: ${result.title}`);
+    }
+  };
+
   return (
     <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto">
       {/* Enhanced Controls - Mobile Optimized */}
@@ -214,6 +258,7 @@ export const SimpleGamesTab: React.FC = () => {
           <SearchBar
             placeholder="Search teams or players..."
             onSearch={handleSearch}
+            onResultSelect={handleSearchResultSelect}
             className="w-full"
           />
         </div>
@@ -395,17 +440,20 @@ export const SimpleGamesTab: React.FC = () => {
                 <div className="p-3 sm:p-6">
                   <div className="flex items-center justify-between mb-4 sm:mb-6">
                     {/* Away Team */}
-                    <div className="flex items-center gap-2 sm:gap-4 flex-1">
+                    <button 
+                      onClick={() => handleTeamClick(game.away_team, game.awayTeamLogo)}
+                      className="flex items-center gap-2 sm:gap-4 flex-1 hover:bg-slate-700/30 rounded-lg p-2 -ml-2 transition-colors cursor-pointer group"
+                    >
                       <img 
                         src={game.awayTeamLogo}
                         alt={game.away_team}
-                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border border-slate-600 bg-slate-700"
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border border-slate-600 bg-slate-700 group-hover:border-blue-500 transition-colors"
                       />
-                      <div className="min-w-0 flex-1">
-                        <div className="font-semibold text-slate-100 text-sm sm:text-base truncate">{game.away_team}</div>
-                        <div className="text-xs text-slate-400">Away</div>
+                      <div className="min-w-0 flex-1 text-left">
+                        <div className="font-semibold text-slate-100 text-sm sm:text-base truncate group-hover:text-blue-300 transition-colors">{game.away_team}</div>
+                        <div className="text-xs text-slate-400">Away • Click for stats</div>
                       </div>
-                    </div>
+                    </button>
 
                     {/* VS with Sport Category */}
                     <div className="flex flex-col items-center mx-2 sm:mx-4">
@@ -416,17 +464,20 @@ export const SimpleGamesTab: React.FC = () => {
                     </div>
 
                     {/* Home Team */}
-                    <div className="flex items-center gap-2 sm:gap-4 flex-1 justify-end">
+                    <button 
+                      onClick={() => handleTeamClick(game.home_team, game.homeTeamLogo)}
+                      className="flex items-center gap-2 sm:gap-4 flex-1 justify-end hover:bg-slate-700/30 rounded-lg p-2 -mr-2 transition-colors cursor-pointer group"
+                    >
                       <div className="text-right min-w-0 flex-1">
-                        <div className="font-semibold text-slate-100 text-sm sm:text-base truncate">{game.home_team}</div>
-                        <div className="text-xs text-slate-400">Home</div>
+                        <div className="font-semibold text-slate-100 text-sm sm:text-base truncate group-hover:text-blue-300 transition-colors">{game.home_team}</div>
+                        <div className="text-xs text-slate-400">Home • Click for stats</div>
                       </div>
                       <img 
                         src={game.homeTeamLogo}
                         alt={game.home_team}
-                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border border-slate-600 bg-slate-700"
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border border-slate-600 bg-slate-700 group-hover:border-blue-500 transition-colors"
                       />
-                    </div>
+                    </button>
                   </div>
 
                   {/* Odds */}
@@ -530,6 +581,14 @@ export const SimpleGamesTab: React.FC = () => {
       <SportsBettingLegend 
         isOpen={showLegend} 
         onClose={() => setShowLegend(false)} 
+      />
+
+      {/* Team Stats Modal */}
+      <TeamStatsModal
+        isOpen={selectedTeam !== null}
+        onClose={() => setSelectedTeam(null)}
+        teamName={selectedTeam?.name || ''}
+        teamLogo={selectedTeam?.logo || ''}
       />
     </div>
   );

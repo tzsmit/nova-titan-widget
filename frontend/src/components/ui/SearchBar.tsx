@@ -274,6 +274,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     setQuery(result.title);
     setResults([]);
     setIsExpanded(false);
+    
+    console.log(`🔍 Search result selected: ${result.type} - ${result.title}`);
+    
     if (onResultSelect) {
       onResultSelect(result);
     }

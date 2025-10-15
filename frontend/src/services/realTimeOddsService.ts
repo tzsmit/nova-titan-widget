@@ -56,37 +56,54 @@ export interface RealPlayerProp {
 }
 
 class RealTimeOddsService {
-  // Primary API for main odds data
-  private readonly PRIMARY_ODDS_API_KEY = import.meta.env.VITE_PRIMARY_ODDS_API_KEY;
-  // Secondary API for player props and backup
-  private readonly SECONDARY_ODDS_API_KEY = import.meta.env.VITE_SECONDARY_ODDS_API_KEY;
+  // Primary API for main odds data - ONLY use this key since secondary is invalid
+  private readonly PRIMARY_ODDS_API_KEY = import.meta.env.VITE_PRIMARY_ODDS_API_KEY || 'effdb0775abef82ff5dd944ae2180cae';
   private readonly BASE_URL = 'https://api.the-odds-api.com/v4';
   
-  // Smart API selection for different endpoints
-  private getApiKey(endpoint: 'props' | 'odds' | 'backup'): string {
-    let key: string;
-    switch (endpoint) {
-      case 'props':
-        // Temporarily use primary key for props if secondary is invalid
-        key = this.SECONDARY_ODDS_API_KEY || this.PRIMARY_ODDS_API_KEY;
-        break;
-      case 'backup':
-        key = this.PRIMARY_ODDS_API_KEY; // Use primary as backup
-        break;
-      case 'odds':
-      default:
-        key = this.PRIMARY_ODDS_API_KEY; // Use primary for main odds
-        break;
-    }
+  // Use ONLY the primary API key for ALL endpoints (secondary key is invalid)
+  private getApiKey(): string {
+    const key = this.PRIMARY_ODDS_API_KEY;
     
     if (!key) {
-      console.error(`❌ API key missing for endpoint: ${endpoint}`);
-      throw new Error(`API key not configured for ${endpoint} endpoint`);
+      console.error(`❌ Primary API key missing`);
+      throw new Error(`Primary API key not configured`);
     }
     
+    console.log(`🔑 Using primary API key: ${key.substring(0, 8)}...`);
     return key;
   }
   
+  /**
+   * Fetch player props for a specific game and market
+   */
+  private async fetchPlayerPropsForGameMarket(sport: string, eventId: string, market: string): Promise<RealPlayerProp[]> {
+    try {
+      const url = `${this.BASE_URL}/sports/${sport}/events/${eventId}/odds/?` +
+        `apiKey=${this.getApiKey()}&` +
+        `regions=us&` +
+        `markets=${market}&` +
+        `bookmakers=draftkings,fanduel&` +
+        `oddsFormat=american&` +
+        `dateFormat=iso`;
+
+      const response = await fetch(url);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.bookmakers && data.bookmakers.length > 0) {
+          return this.transformPlayerPropsData([data], market);
+        }
+      } else {
+        const errorText = await response.text();
+        console.warn(`⚠️ ${market} for game ${eventId}: ${response.status} - ${errorText}`);
+      }
+    } catch (error) {
+      console.warn(`Failed to fetch ${market} for game ${eventId}:`, error);
+    }
+    
+    return [];
+  }
+
   /**
    * Rate limiting helper to preserve API credits
    */
@@ -247,7 +264,7 @@ class RealTimeOddsService {
       
       // Get games for the next 7 days to capture upcoming games in October 2025
       const url = `${this.BASE_URL}/sports/${sport}/odds/?` +
-        `apiKey=${this.getApiKey('odds')}&` +
+        `apiKey=${this.getApiKey()}&` +
         `regions=us&` +
         `markets=h2h,spreads,totals&` +
         `bookmakers=${bookmakerKeys}&` +
@@ -257,7 +274,7 @@ class RealTimeOddsService {
         `commenceTimeTo=${formatDateForOddsAPI(sevenDaysLater)}`;
 
       await this.respectRateLimit(); // Preserve API credits
-      console.log(`🌐 Calling Odds API for ${sport}: ${url.replace(this.getApiKey('odds'), 'API_KEY_HIDDEN')}`);
+      console.log(`🌐 Calling Odds API for ${sport}: ${url.replace(this.getApiKey(), 'API_KEY_HIDDEN')}`);
       const response = await fetch(url);
       console.log(`📡 API Response for ${sport}: ${response.status} ${response.statusText}`);
       
@@ -361,51 +378,48 @@ class RealTimeOddsService {
         return [];
       }
 
-      const allProps: RealPlayerProp[] = [];
-
-      // Fetch props for each game (limit to first 3 games to avoid rate limits)
-      const gamesToProcess = games.slice(0, 3);
+      // Optimize by creating batch requests
+      const gamesToProcess = games.slice(0, 2); // Reduce to 2 games for better speed
+      console.log(`🚀 Processing ${gamesToProcess.length} games with ${propMarkets.length} markets each`);
       
-      for (const game of gamesToProcess) {
-        try {
-          // Use the events/{eventId}/odds endpoint for player props
-          const eventId = game.gameId || game.id;
-          
-          for (const market of propMarkets) {
-            try {
-              await this.respectRateLimit(); // Use smart rate limiting
-              
-              const url = `${this.BASE_URL}/sports/${sport}/events/${eventId}/odds/?` +
-                `apiKey=${this.getApiKey('props')}&` +
-                `regions=us&` +
-                `markets=${market}&` +
-                `bookmakers=draftkings,fanduel&` +
-                `oddsFormat=american&` +
-                `dateFormat=iso`;
-
-              console.log(`🔍 Fetching ${market} props for game ${eventId}`);
-              const response = await fetch(url);
-              
-              if (response.ok) {
-                const data = await response.json();
-                if (data && data.bookmakers && data.bookmakers.length > 0) {
-                  const props = this.transformPlayerPropsData([data], market);
-                  allProps.push(...props);
-                  console.log(`✅ Found ${props.length} ${market} props for game ${eventId}`);
-                } else {
-                  console.log(`📭 No props data for ${market} in game ${eventId}`);
-                }
-              } else {
-                const errorText = await response.text();
-                console.warn(`⚠️ ${market} for game ${eventId}: ${response.status} - ${errorText}`);
-              }
-            } catch (marketError) {
-              console.warn(`Failed to fetch ${market} for game ${eventId}:`, marketError);
+      // Create all request promises upfront
+      const requestPromises = gamesToProcess.flatMap(game => 
+        propMarkets.map(market => ({
+          game,
+          market,
+          promise: this.fetchPlayerPropsForGameMarket(sport, game.gameId || game.id, market)
+        }))
+      );
+      
+      console.log(`⚡ Executing ${requestPromises.length} parallel requests with rate limiting...`);
+      
+      // Execute requests in parallel with controlled concurrency
+      const allProps: RealPlayerProp[] = [];
+      const batchSize = 3; // Process 3 requests at a time to respect rate limits
+      
+      for (let i = 0; i < requestPromises.length; i += batchSize) {
+        const batch = requestPromises.slice(i, i + batchSize);
+        
+        // Execute batch in parallel
+        const batchResults = await Promise.allSettled(
+          batch.map(async (req, index) => {
+            if (index > 0) {
+              // Add small delay for rate limiting
+              await new Promise(resolve => setTimeout(resolve, 200 * index));
             }
+            return req.promise;
+          })
+        );
+        
+        // Process results
+        batchResults.forEach((result, index) => {
+          if (result.status === 'fulfilled' && result.value) {
+            allProps.push(...result.value);
+            console.log(`✅ Batch ${Math.floor(i/batchSize) + 1}: Got ${result.value.length} props for ${batch[index].market}`);
+          } else if (result.status === 'rejected') {
+            console.warn(`❌ Batch ${Math.floor(i/batchSize) + 1}: Failed ${batch[index].market}:`, result.reason);
           }
-        } catch (gameError) {
-          console.warn(`Failed to fetch props for game ${game.gameId || game.id}:`, gameError);
-        }
+        });
       }
 
       console.log(`🎯 Total player props found for ${sport}: ${allProps.length}`);
