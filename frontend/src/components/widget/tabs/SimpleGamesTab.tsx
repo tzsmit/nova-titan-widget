@@ -100,7 +100,7 @@ export const SimpleGamesTab: React.FC = () => {
         if (selectedSport !== 'all') {
           const beforeSportFilter = processedGames.length;
           processedGames = processedGames.filter(game => 
-            game.sport_key === selectedSport
+            game.sport_key === selectedSport || game.sport === selectedSport
           );
           console.log(`🏈 Sport filter (${selectedSport}): ${beforeSportFilter} -> ${processedGames.length} games`);
         }
@@ -112,7 +112,7 @@ export const SimpleGamesTab: React.FC = () => {
             const gameDateTime = new Date(game.commence_time);
             const cstDate = gameDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
             const utcDate = gameDateTime.toISOString().split('T')[0];
-            console.log(`📊 Game ${idx + 1}: ${game.away_team} @ ${game.home_team}`);
+            console.log(`📊 Game ${idx + 1}: ${game.awayTeam || game.away_team} @ ${game.homeTeam || game.home_team}`);
             console.log(`   Time: ${game.commence_time} -> CST: ${cstDate}, UTC: ${utcDate}`);
           }
         });
@@ -141,7 +141,7 @@ export const SimpleGamesTab: React.FC = () => {
             const matches = cstDate === selectedDate || utcDate === selectedDate;
             
             if (matches) {
-              console.log(`✅ MATCH FOUND: ${game.away_team} @ ${game.home_team} (${cstDate} matches ${selectedDate})`);
+              console.log(`✅ MATCH FOUND: ${game.awayTeam || game.away_team} @ ${game.homeTeam || game.home_team} (${cstDate} matches ${selectedDate})`);
             }
             
             return matches;
@@ -157,8 +157,8 @@ export const SimpleGamesTab: React.FC = () => {
         if (searchQuery.trim()) {
           const query = searchQuery.toLowerCase();
           processedGames = processedGames.filter(game => 
-            game.home_team.toLowerCase().includes(query) || 
-            game.away_team.toLowerCase().includes(query)
+(game.homeTeam || game.home_team).toLowerCase().includes(query) || 
+            (game.awayTeam || game.away_team).toLowerCase().includes(query)
           );
         }
 
@@ -203,11 +203,11 @@ export const SimpleGamesTab: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Enhanced Controls */}
-      <div className="mb-6 space-y-4">
-        {/* Date Selector and Search Bar */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto">
+      {/* Enhanced Controls - Mobile Optimized */}
+      <div className="mb-4 md:mb-6 space-y-3 md:space-y-4">
+        {/* Date Selector and Search Bar - Mobile First */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           <DateSelector
             selectedDate={selectedDate}
             onDateSelect={setSelectedDate}
@@ -219,50 +219,57 @@ export const SimpleGamesTab: React.FC = () => {
           />
         </div>
 
-        {/* Sport and Bookmaker Filters */}
-        <div className="flex flex-wrap items-center gap-4 mb-4">
-          {/* Sport Filter */}
-          <div className="flex items-center gap-2">
-            <span className="text-slate-300 text-sm font-medium">Sport:</span>
-            <HelpTooltip 
-              content="Filter games by sport league. Choose 'All Sports' to see games from all leagues." 
-              position="top"
-              size="md"
-            />
-            <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-600">
+        {/* Sport and Bookmaker Filters - Mobile Optimized */}
+        <div className="space-y-3 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-4 mb-3 md:mb-4">
+          {/* Sport Filter - Mobile Stack */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-slate-300 text-sm font-medium">Sport:</span>
+              <HelpTooltip 
+                content="Filter games by sport league. Choose 'All Sports' to see games from all leagues." 
+                position="top"
+                size="md"
+              />
+            </div>
+            {/* Mobile-friendly sport selector */}
+            <div className="grid grid-cols-2 sm:flex bg-slate-800 rounded-lg p-1 border border-slate-600 gap-1">
               {SPORTS.map((sport) => (
                 <button
                   key={sport.id}
                   onClick={() => setSelectedSport(sport.id)}
                   className={`
-                    px-3 py-1 rounded text-sm font-medium transition-all
+                    px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium transition-all text-center
                     ${selectedSport === sport.id
                       ? 'bg-blue-600 text-white'
                       : 'text-slate-300 hover:text-white hover:bg-slate-700'
                     }
                   `}
                 >
-                  {sport.emoji} {sport.name}
+                  <span className="block sm:inline">{sport.emoji}</span>
+                  <span className="hidden sm:inline ml-1">{sport.name}</span>
+                  <span className="block sm:hidden text-xs">{sport.name}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Bookmaker Filter */}
-          <div className="flex items-center gap-2">
-            <span className="text-slate-300 text-sm font-medium">Sportsbook:</span>
-            <HelpTooltip 
-              content="Filter odds by sportsbook. Different sportsbooks offer different odds on the same games." 
-              position="top"
-              size="md"
-            />
-            <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-600">
+          {/* Bookmaker Filter - Mobile Optimized */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-slate-300 text-sm font-medium">Sportsbook:</span>
+              <HelpTooltip 
+                content="Filter odds by sportsbook. Different sportsbooks offer different odds on the same games." 
+                position="top"
+                size="md"
+              />
+            </div>
+            <div className="grid grid-cols-2 sm:flex bg-slate-800 rounded-lg p-1 border border-slate-600 gap-1">
               {BOOKMAKERS.map((book) => (
                 <button
                   key={book.id}
                   onClick={() => setSelectedBookmaker(book.id)}
                   className={`
-                    px-3 py-1 rounded text-sm font-medium transition-all
+                    px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium transition-all text-center
                     ${selectedBookmaker === book.id
                       ? 'bg-blue-600 text-white'
                       : 'text-slate-300 hover:text-white hover:bg-slate-700'
@@ -275,18 +282,20 @@ export const SimpleGamesTab: React.FC = () => {
             </div>
           </div>
 
-          <div className="ml-auto flex items-center gap-3">
+          {/* Action Buttons - Mobile Optimized */}
+          <div className="flex flex-col sm:flex-row sm:ml-auto gap-2 sm:gap-3">
             <button
               onClick={() => setShowLegend(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm"
             >
               <BookOpen className="h-4 w-4" />
-              Guide
+              <span className="hidden sm:inline">Guide</span>
+              <span className="sm:hidden">Help</span>
             </button>
             <button
               onClick={() => refetch()}
               disabled={isLoading}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 text-sm"
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
@@ -351,33 +360,47 @@ export const SimpleGamesTab: React.FC = () => {
                 transition={{ delay: index * 0.05 }}
                 className="bg-slate-800/50 border border-slate-600 rounded-xl overflow-hidden hover:border-slate-500 transition-all"
               >
-                {/* Game Header */}
-                <div className="bg-slate-900/50 px-6 py-4 border-b border-slate-700">
+                {/* Game Header - Mobile Optimized */}
+                <div className="bg-slate-900/50 px-3 sm:px-6 py-3 sm:py-4 border-b border-slate-700">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                       <div className="text-xs px-2 py-1 bg-blue-600 text-white rounded font-medium">
                         LIVE
                       </div>
-                      <div className="text-slate-300 text-sm">
+                      {/* Sport Category Badge */}
+                      <div className="text-xs px-2 py-1 bg-purple-600/80 text-purple-100 rounded font-medium">
+                        {SPORTS.find(s => s.id === game.sport_key)?.name || 
+                         game.sport || 
+                         (game.sport_key === 'americanfootball_nfl' ? 'NFL' :
+                          game.sport_key === 'basketball_nba' ? 'NBA' :
+                          game.sport_key === 'americanfootball_ncaaf' ? 'CFB' :
+                          game.sport_key === 'baseball_mlb' ? 'MLB' :
+                          game.sport_key === 'boxing_boxing' ? 'Boxing' : 'Sports')}
+                      </div>
+                      <div className="text-slate-300 text-sm hidden sm:block">
                         {game.displayDate}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-slate-100 font-semibold">{game.displayTime}</div>
+                      <div className="text-slate-100 font-semibold text-sm sm:text-base">{game.displayTime}</div>
                       <div className="text-xs text-slate-400">Central Time</div>
                     </div>
                   </div>
+                  {/* Mobile Date Display */}
+                  <div className="text-slate-300 text-sm mt-2 sm:hidden">
+                    {game.displayDate}
+                  </div>
                 </div>
 
-                {/* Teams */}
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-6">
+                {/* Teams - Mobile Optimized */}
+                <div className="p-3 sm:p-6">
+                  <div className="flex items-center justify-between mb-4 sm:mb-6">
                     {/* Away Team */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 sm:gap-4 flex-1">
                       <img 
                         src={game.awayTeamLogo}
                         alt={game.away_team}
-                        className="w-12 h-12 rounded-lg border border-slate-600 bg-slate-700"
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border border-slate-600 bg-slate-700"
                         onError={(e) => {
                           const img = e.target as HTMLImageElement;
                           const initials = game.away_team
@@ -398,24 +421,30 @@ export const SimpleGamesTab: React.FC = () => {
                           `)}`;
                         }}
                       />
-                      <div>
-                        <div className="font-semibold text-slate-100">{game.away_team}</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold text-slate-100 text-sm sm:text-base truncate">{game.away_team}</div>
                         <div className="text-xs text-slate-400">Away</div>
                       </div>
                     </div>
 
-                    <div className="text-slate-500 text-2xl font-bold">VS</div>
+                    {/* VS with Sport Category */}
+                    <div className="flex flex-col items-center mx-2 sm:mx-4">
+                      <div className="text-slate-500 text-lg sm:text-2xl font-bold">VS</div>
+                      <div className="text-xs text-slate-400 mt-1 hidden sm:block">
+                        {SPORTS.find(s => s.id === game.sport_key)?.emoji || '🏆'}
+                      </div>
+                    </div>
 
                     {/* Home Team */}
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div className="font-semibold text-slate-100">{game.home_team}</div>
+                    <div className="flex items-center gap-2 sm:gap-4 flex-1 justify-end">
+                      <div className="text-right min-w-0 flex-1">
+                        <div className="font-semibold text-slate-100 text-sm sm:text-base truncate">{game.home_team}</div>
                         <div className="text-xs text-slate-400">Home</div>
                       </div>
                       <img 
                         src={game.homeTeamLogo}
                         alt={game.home_team}
-                        className="w-12 h-12 rounded-lg border border-slate-600 bg-slate-700"
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border border-slate-600 bg-slate-700"
                         onError={(e) => {
                           const img = e.target as HTMLImageElement;
                           const initials = game.home_team

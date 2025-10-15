@@ -186,7 +186,7 @@ export function processGameData(rawGames: any[], selectedBookmaker: string = 'al
     const network = TV_NETWORKS[Math.floor(Math.random() * TV_NETWORKS.length)];
 
     const processedGame: ProcessedGame = {
-      id: game.id || `game_${index}`,
+      id: game.gameId || game.id || `game_${index}`,
       sport_key: game.sport_key || game.sport || 'unknown',
       home_team: homeTeam,
       away_team: awayTeam,

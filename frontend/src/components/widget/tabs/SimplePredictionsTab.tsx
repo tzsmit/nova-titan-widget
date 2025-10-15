@@ -85,7 +85,7 @@ export const SimplePredictionsTab: React.FC = () => {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6 text-center">
         <div className="flex items-center justify-center gap-3 mb-2">
@@ -100,9 +100,9 @@ export const SimplePredictionsTab: React.FC = () => {
         <p className="text-slate-300">Advanced machine learning predictions</p>
       </div>
 
-      {/* Controls */}
-      <div className="mb-6">
-        <div className="flex flex-wrap items-center gap-4 mb-4">
+      {/* Controls - Mobile Optimized */}
+      <div className="mb-4 md:mb-6">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-4 mb-4">
           {/* Sport Filter */}
           <div className="flex items-center gap-2">
             <span className="text-slate-300 text-sm font-medium">Sport:</span>

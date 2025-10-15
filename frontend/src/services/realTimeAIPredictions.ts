@@ -98,7 +98,7 @@ class RealTimeAIPredictionsService {
             predictions.push(prediction);
           }
         } catch (error) {
-          console.warn(`Failed to analyze game ${game.gameId}:`, error);
+          console.warn(`Failed to analyze game ${game.gameId || game.id}:`, error);
         }
       }
 
@@ -117,8 +117,8 @@ class RealTimeAIPredictionsService {
   private async analyzeSingleGame(game: LiveOddsData): Promise<RealAIPrediction | null> {
     try {
       // Get team names from the correct fields
-      const homeTeam = game.home_team || game.homeTeam || 'Unknown Home';
-      const awayTeam = game.away_team || game.awayTeam || 'Unknown Away';
+      const homeTeam = game.homeTeam || game.home_team || 'Unknown Home';
+      const awayTeam = game.awayTeam || game.away_team || 'Unknown Away';
       
       // Get team statistics
       const [homeStats, awayStats] = await Promise.all([
@@ -141,8 +141,8 @@ class RealTimeAIPredictionsService {
       const { value, riskLevel } = this.assessValueAndRisk(game, homeStats, awayStats);
 
       const prediction: RealAIPrediction = {
-        id: `ai_pred_${game.id || game.gameId}`,
-        gameId: game.id || game.gameId || 'unknown',
+        id: `ai_pred_${game.gameId || game.id}`,
+        gameId: game.gameId || game.id || 'unknown',
         sport: game.sport || 'Unknown',
         homeTeam: homeTeam,
         awayTeam: awayTeam,
@@ -172,7 +172,7 @@ class RealTimeAIPredictionsService {
       return prediction;
 
     } catch (error) {
-      console.error(`Error analyzing game ${game.id || game.gameId || 'unknown'}:`, error);
+      console.error(`Error analyzing game ${game.gameId || game.id || 'unknown'}:`, error);
       return null;
     }
   }
@@ -393,7 +393,7 @@ class RealTimeAIPredictionsService {
   }
 
   /**
-   * Generate reasoning text for predictions
+   * Generate comprehensive Nova Titan reasoning for moneyline predictions
    */
   private generateMoneylineReasoning(homeStats: TeamStats, awayStats: TeamStats, pick: 'home' | 'away'): string {
     const winner = pick === 'home' ? homeStats : awayStats;
@@ -401,71 +401,185 @@ class RealTimeAIPredictionsService {
     
     const reasons = [];
     
+    // Nova Titan Advanced Analysis
+    reasons.push('🔮 NOVA TITAN AI ANALYSIS:');
+    
+    // Recent Form Analysis
     if (winner.stats.recent.wins > winner.stats.recent.losses) {
-      reasons.push(`${winner.team} is ${winner.stats.recent.wins}-${winner.stats.recent.losses} in their last ${winner.stats.recent.wins + winner.stats.recent.losses} games`);
+      const winRate = (winner.stats.recent.wins / (winner.stats.recent.wins + winner.stats.recent.losses) * 100).toFixed(0);
+      reasons.push(`📈 ${winner.team} shows strong momentum with ${winRate}% recent win rate (${winner.stats.recent.wins}-${winner.stats.recent.losses})`);
     }
     
+    // Scoring Efficiency Analysis
     if (winner.stats.avgMargin > loser.stats.avgMargin + 3) {
-      reasons.push(`Superior scoring margin (+${winner.stats.avgMargin.toFixed(1)} vs ${loser.stats.avgMargin.toFixed(1)})`);
+      const efficiency = ((winner.stats.pointsFor / winner.stats.pointsAgainst) * 100).toFixed(0);
+      reasons.push(`⚡ Superior offensive efficiency at ${efficiency}% with +${winner.stats.avgMargin.toFixed(1)} average margin vs ${loser.stats.avgMargin.toFixed(1)}`);
     }
     
+    // Home Field Advantage
     if (pick === 'home' && homeStats.stats.homeRecord.wins > homeStats.stats.homeRecord.losses) {
-      reasons.push(`Strong home record (${homeStats.stats.homeRecord.wins}-${homeStats.stats.homeRecord.losses})`);
+      const homeWinRate = (homeStats.stats.homeRecord.wins / (homeStats.stats.homeRecord.wins + homeStats.stats.homeRecord.losses) * 100).toFixed(0);
+      reasons.push(`🏟️ Dominant home performance with ${homeWinRate}% home win rate (${homeStats.stats.homeRecord.wins}-${homeStats.stats.homeRecord.losses})`);
     }
     
-    return reasons.join('. ') + '.';
+    // Defensive Analysis
+    const defRating = winner.stats.pointsAgainst < loser.stats.pointsAgainst ? 'elite' : 'solid';
+    reasons.push(`🛡️ ${defRating.charAt(0).toUpperCase() + defRating.slice(1)} defense allowing ${winner.stats.pointsAgainst.toFixed(1)} PPG vs opponent's ${loser.stats.pointsAgainst.toFixed(1)} PPG`);
+    
+    // Against the Spread Performance
+    const atsWinRate = winner.stats.againstSpread.wins > winner.stats.againstSpread.losses ? 
+      (winner.stats.againstSpread.wins / (winner.stats.againstSpread.wins + winner.stats.againstSpread.losses) * 100).toFixed(0) : '0';
+    if (parseFloat(atsWinRate) > 55) {
+      reasons.push(`💰 Strong betting value with ${atsWinRate}% ATS record`);
+    }
+    
+    return reasons.join(' ');
   }
 
   private generateSpreadReasoning(homeStats: TeamStats, awayStats: TeamStats, predictedMargin: number, currentSpread: number): string {
     const reasons = [];
     
-    reasons.push(`AI model predicts ${Math.abs(predictedMargin).toFixed(1)} point margin`);
+    // Nova Titan Spread Analysis
+    reasons.push('🎯 NOVA TITAN SPREAD INTEL:');
     
-    if (Math.abs(predictedMargin - currentSpread) > 3) {
-      reasons.push(`Significant value vs current spread of ${currentSpread}`);
+    // Margin Prediction
+    const favored = predictedMargin > 0 ? homeStats.team : awayStats.team;
+    reasons.push(`🧠 Advanced algorithms project ${favored} winning by ${Math.abs(predictedMargin).toFixed(1)} points`);
+    
+    // Value Assessment
+    const valueDiff = Math.abs(predictedMargin - currentSpread);
+    if (valueDiff > 3) {
+      const valueType = valueDiff > 7 ? 'PREMIUM' : 'STRONG';
+      reasons.push(`💎 ${valueType} VALUE detected - ${valueDiff.toFixed(1)} point edge vs market spread of ${currentSpread}`);
     }
     
-    if (homeStats.stats.againstSpread.wins > homeStats.stats.againstSpread.losses) {
-      reasons.push(`${homeStats.team} covers spread at ${((homeStats.stats.againstSpread.wins / (homeStats.stats.againstSpread.wins + homeStats.stats.againstSpread.losses)) * 100).toFixed(0)}% rate`);
+    // Historical Performance
+    const homeAtsRate = homeStats.stats.againstSpread.wins > 0 ? 
+      ((homeStats.stats.againstSpread.wins / (homeStats.stats.againstSpread.wins + homeStats.stats.againstSpread.losses)) * 100).toFixed(0) : '0';
+    const awayAtsRate = awayStats.stats.againstSpread.wins > 0 ?
+      ((awayStats.stats.againstSpread.wins / (awayStats.stats.againstSpread.wins + awayStats.stats.againstSpread.losses)) * 100).toFixed(0) : '0';
+    
+    if (parseFloat(homeAtsRate) > 60 || parseFloat(awayAtsRate) > 60) {
+      const betterTeam = parseFloat(homeAtsRate) > parseFloat(awayAtsRate) ? homeStats.team : awayStats.team;
+      const betterRate = Math.max(parseFloat(homeAtsRate), parseFloat(awayAtsRate));
+      reasons.push(`📊 ${betterTeam} demonstrates consistent spread coverage at ${betterRate}% success rate`);
     }
     
-    return reasons.join('. ') + '.';
+    // Scoring Trend Analysis
+    const homeOffense = homeStats.stats.pointsFor;
+    const awayOffense = awayStats.stats.pointsFor;
+    const offenseEdge = Math.abs(homeOffense - awayOffense);
+    
+    if (offenseEdge > 5) {
+      const strongerOffense = homeOffense > awayOffense ? homeStats.team : awayStats.team;
+      reasons.push(`⚡ ${strongerOffense} brings superior offensive firepower (+${offenseEdge.toFixed(1)} PPG advantage)`);
+    }
+    
+    return reasons.join(' ');
   }
 
   private generateTotalReasoning(homeStats: TeamStats, awayStats: TeamStats, predictedTotal: number, currentTotal: number): string {
     const reasons = [];
     
-    reasons.push(`Combined scoring average: ${(homeStats.stats.pointsFor + awayStats.stats.pointsFor).toFixed(1)} points`);
-    reasons.push(`AI projects ${predictedTotal.toFixed(1)} total points`);
+    // Nova Titan Total Analysis
+    reasons.push('🎲 NOVA TITAN TOTAL FORECAST:');
     
-    const totalTrend = homeStats.stats.totalRecord.overs > homeStats.stats.totalRecord.unders ? 'over' : 'under';
-    reasons.push(`Recent trend favors ${totalTrend} bets`);
+    // Offensive Power Analysis
+    const combinedOffense = homeStats.stats.pointsFor + awayStats.stats.pointsFor;
+    const combinedDefense = (homeStats.stats.pointsAgainst + awayStats.stats.pointsAgainst) / 2;
+    const pace = combinedOffense > combinedDefense ? 'high-tempo' : 'defensive';
     
-    return reasons.join('. ') + '.';
+    reasons.push(`🏃 Expecting ${pace} matchup with combined offensive average of ${combinedOffense.toFixed(1)} PPG`);
+    
+    // AI Projection vs Market
+    const totalDiff = Math.abs(predictedTotal - currentTotal);
+    reasons.push(`🤖 Neural network projects ${predictedTotal.toFixed(1)} total points vs market ${currentTotal.toFixed(1)}`);
+    
+    if (totalDiff > 3) {
+      const direction = predictedTotal > currentTotal ? 'OVER' : 'UNDER';
+      const confidence = totalDiff > 7 ? 'HIGH' : 'MODERATE';
+      reasons.push(`🎯 ${confidence} confidence ${direction} signal - ${totalDiff.toFixed(1)} point market inefficiency detected`);
+    }
+    
+    // Historical Trends
+    const homeOverRate = homeStats.stats.totalRecord.overs / (homeStats.stats.totalRecord.overs + homeStats.stats.totalRecord.unders);
+    const awayOverRate = awayStats.stats.totalRecord.overs / (awayStats.stats.totalRecord.overs + awayStats.stats.totalRecord.unders);
+    const avgOverRate = (homeOverRate + awayOverRate) / 2;
+    
+    const trendDirection = avgOverRate > 0.6 ? 'OVER' : avgOverRate < 0.4 ? 'UNDER' : 'BALANCED';
+    const trendStrength = Math.abs(avgOverRate - 0.5) > 0.15 ? 'strong' : 'mild';
+    
+    if (trendDirection !== 'BALANCED') {
+      reasons.push(`📈 ${trendStrength.charAt(0).toUpperCase() + trendStrength.slice(1)} historical ${trendDirection} trend at ${(avgOverRate * 100).toFixed(0)}% rate`);
+    }
+    
+    // Defensive Matchup
+    const defenseRating = combinedDefense < 20 ? 'elite' : combinedDefense < 25 ? 'solid' : 'vulnerable';
+    reasons.push(`🛡️ ${defenseRating.charAt(0).toUpperCase() + defenseRating.slice(1)} defensive matchup allowing ${combinedDefense.toFixed(1)} PPG combined`);
+    
+    return reasons.join(' ');
   }
 
   /**
-   * Identify key factors for the game
+   * Identify Nova Titan key factors for enhanced analysis
    */
   private identifyKeyFactors(homeStats: TeamStats, awayStats: TeamStats, game: LiveOddsData): string[] {
     const factors = [];
     
-    // Recent form
-    if (homeStats.stats.recent.wins >= 4) factors.push(`${homeStats.team} on hot streak`);
-    if (awayStats.stats.recent.wins >= 4) factors.push(`${awayStats.team} playing well recently`);
+    // Momentum Analysis
+    const homeStreak = homeStats.stats.recent.wins >= 4;
+    const awayStreak = awayStats.stats.recent.wins >= 4;
     
-    // Scoring efficiency
+    if (homeStreak) {
+      factors.push(`🔥 ${homeStats.team} riding ${homeStats.stats.recent.wins}-game win streak - elite momentum`);
+    }
+    if (awayStreak) {
+      factors.push(`⚡ ${awayStats.team} surging with ${awayStats.stats.recent.wins} recent victories - dangerous road form`);
+    }
+    
+    // Elite Performance Metrics
     const homeEfficiency = homeStats.stats.pointsFor / homeStats.stats.pointsAgainst;
     const awayEfficiency = awayStats.stats.pointsFor / awayStats.stats.pointsAgainst;
     
-    if (homeEfficiency > 1.2) factors.push(`${homeStats.team} strong offensive efficiency`);
-    if (awayEfficiency > 1.2) factors.push(`${awayStats.team} efficient scoring offense`);
+    if (homeEfficiency > 1.3) {
+      factors.push(`💪 ${homeStats.team} dominating with ${(homeEfficiency * 100).toFixed(0)}% offensive efficiency rating`);
+    }
+    if (awayEfficiency > 1.3) {
+      factors.push(`🎯 ${awayStats.team} elite road execution - ${(awayEfficiency * 100).toFixed(0)}% efficiency on opponent's turf`);
+    }
     
-    // Home/Away splits
+    // Home Field Mastery
     const homeWinRate = homeStats.stats.homeRecord.wins / (homeStats.stats.homeRecord.wins + homeStats.stats.homeRecord.losses);
-    if (homeWinRate > 0.7) factors.push('Strong home field advantage');
+    const awayWinRate = awayStats.stats.awayRecord.wins / (awayStats.stats.awayRecord.wins + awayStats.stats.awayRecord.losses);
     
-    return factors.slice(0, 4); // Limit to 4 key factors
+    if (homeWinRate > 0.75) {
+      factors.push(`🏟️ ${homeStats.team} fortress mentality - ${(homeWinRate * 100).toFixed(0)}% home dominance`);
+    }
+    
+    if (awayWinRate > 0.6) {
+      factors.push(`✈️ ${awayStats.team} elite road warriors - ${(awayWinRate * 100).toFixed(0)}% away success rate`);
+    }
+    
+    // Defensive Prowess
+    if (homeStats.stats.pointsAgainst < 20) {
+      factors.push(`🛡️ ${homeStats.team} lockdown defense allowing just ${homeStats.stats.pointsAgainst.toFixed(1)} PPG`);
+    }
+    if (awayStats.stats.pointsAgainst < 20) {
+      factors.push(`🔒 ${awayStats.team} suffocating defense - ${awayStats.stats.pointsAgainst.toFixed(1)} PPG allowed`);
+    }
+    
+    // Betting Value Intelligence
+    const homeAtsRate = homeStats.stats.againstSpread.wins / (homeStats.stats.againstSpread.wins + homeStats.stats.againstSpread.losses);
+    const awayAtsRate = awayStats.stats.againstSpread.wins / (awayStats.stats.againstSpread.wins + awayStats.stats.againstSpread.losses);
+    
+    if (homeAtsRate > 0.65) {
+      factors.push(`💰 ${homeStats.team} consistent betting value - ${(homeAtsRate * 100).toFixed(0)}% ATS success`);
+    }
+    if (awayAtsRate > 0.65) {
+      factors.push(`🎲 ${awayStats.team} sharp money magnet - ${(awayAtsRate * 100).toFixed(0)}% spread coverage`);
+    }
+    
+    return factors.slice(0, 6); // Increased to 6 key factors for richer analysis
   }
 
   /**

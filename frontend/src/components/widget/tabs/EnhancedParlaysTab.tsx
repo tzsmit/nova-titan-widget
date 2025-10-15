@@ -59,7 +59,7 @@ export const EnhancedParlaysTab: React.FC = () => {
   const [showOptimization, setShowOptimization] = useState(false);
   const [betType, setBetType] = useState<'h2h' | 'spreads' | 'totals' | 'player_props'>('h2h');
   const [selectedSport, setSelectedSport] = useState<string>('all');
-  const [selectedBookmaker, setSelectedBookmaker] = useState<string>('draftkings');
+  const [selectedBookmaker, setSelectedBookmaker] = useState<string>('all');
 
   // Fetch live odds data
   const { data: oddsData, isLoading: oddsLoading, error: oddsError } = useQuery({
@@ -72,7 +72,9 @@ export const EnhancedParlaysTab: React.FC = () => {
       } else {
         // Get all sports odds and filter by sport if not 'all'
         const allOdds = await realTimeOddsService.getLiveOddsAllSports();
-        return selectedSport === 'all' ? allOdds : allOdds.filter(game => game.sport_key === selectedSport);
+        return selectedSport === 'all' ? allOdds : allOdds.filter(game => 
+          game.sport_key === selectedSport || game.sport === selectedSport
+        );
       }
     },
     enabled: true,
@@ -98,46 +100,84 @@ export const EnhancedParlaysTab: React.FC = () => {
     const legs: ParlayLeg[] = [];
 
     console.log('🔍 Processing odds data for parlays:', oddsData.length, 'games');
+    console.log('🎯 Selected bookmaker for parlays:', selectedBookmaker);
     
     oddsData.forEach((game: any, index: number) => {
-      const gameId = game.id;
-      const homeTeam = game.home_team;
-      const awayTeam = game.away_team;
+      const gameId = game.gameId || game.id;
+      const homeTeam = game.homeTeam || game.home_team;
+      const awayTeam = game.awayTeam || game.away_team;
       
       // Debug logging for first few games
-      if (index < 3) {
-        console.log(`📊 Game ${index + 1}:`, {
+      if (index < 5) {
+        console.log(`📊 Parlay Game ${index + 1}:`, {
           id: gameId,
-          home: homeTeam,
-          away: awayTeam,
-          bookmakers: Object.keys(game.bookmakers || {})
+          homeTeam: homeTeam,
+          awayTeam: awayTeam,
+          commence_time: game.commence_time,
+          bookmakers: Object.keys(game.bookmakers || {}),
+          selectedBookmaker: selectedBookmaker,
+          hasSelectedBookmaker: game.bookmakers?.[selectedBookmaker] ? 'YES' : 'NO'
         });
       }
       
-      // Handle missing team names
-      if (!homeTeam || !awayTeam) {
-        console.warn('Missing team names for game:', game);
-        return;
+      // Handle missing team names with detailed debugging
+      if (!homeTeam || !awayTeam || homeTeam === 'undefined' || awayTeam === 'undefined') {
+        console.warn('❌ Invalid team names detected:', {
+          homeTeam,
+          awayTeam,
+          gameId,
+          rawGame: {
+            homeTeam: game.homeTeam,
+            awayTeam: game.awayTeam,
+            home_team: game.home_team,
+            away_team: game.away_team
+          }
+        });
+        return; // Skip this game entirely
       }
       
       const gameDate = new Date(game.commence_time).toLocaleDateString();
       const gameTime = new Date(game.commence_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const gameDisplay = `${awayTeam} @ ${homeTeam}`;
+      // Create game display with validation
+      const gameDisplay = `${awayTeam || 'Away Team'} @ ${homeTeam || 'Home Team'}`;
+      
+      // Additional validation to ensure we don't get "undefined @ undefined"
+      if (gameDisplay.includes('undefined')) {
+        console.error('🚨 Undefined in game display:', {
+          gameDisplay,
+          homeTeam,
+          awayTeam,
+          game
+        });
+        return; // Skip this game
+      }
 
       // Get AI confidence for this game
       const prediction = predictionsData?.find((p: any) => 
-        p.game_id === gameId || 
-        p.home_team === homeTeam || 
-        p.away_team === awayTeam
+        p.gameId === gameId || 
+        p.homeTeam === homeTeam || 
+        p.awayTeam === awayTeam
       );
 
       // Handle the transformed bookmakers object structure from realTimeOddsService
       if (game.bookmakers && typeof game.bookmakers === 'object') {
         const bookmakerKeys = Object.keys(game.bookmakers);
         
-        // Get the selected bookmaker's data or first available bookmaker
-        const bookmakerKey = bookmakerKeys.includes(selectedBookmaker) ? selectedBookmaker : bookmakerKeys[0];
+        // Get the selected bookmaker's data or first available bookmaker (matching games component logic)
+        const bookmakerKey = selectedBookmaker === 'all' 
+          ? bookmakerKeys[0]
+          : (bookmakerKeys.includes(selectedBookmaker) ? selectedBookmaker : bookmakerKeys[0]);
         const bookmakerData = game.bookmakers[bookmakerKey];
+        
+        // Debug logging for bookmaker selection
+        if (index < 3) {
+          console.log(`📊 Parlay bookmaker selection for ${gameDisplay}:`, {
+            available: bookmakerKeys,
+            selected: selectedBookmaker,
+            using: bookmakerKey,
+            hasData: !!bookmakerData
+          });
+        }
         
         if (bookmakerData) {
           // Moneyline bets
@@ -150,7 +190,7 @@ export const EnhancedParlaysTab: React.FC = () => {
                 bet: 'Moneyline',
                 odds: bookmakerData.moneyline.home,
                 confidence: prediction?.confidence || 65,
-                sport: game.sport_key || 'NFL',
+                sport: game.sport || game.sport_key || 'NFL',
                 gameDate,
                 venue: game.venue,
                 bookmaker: bookmakerKey
@@ -165,7 +205,7 @@ export const EnhancedParlaysTab: React.FC = () => {
                 bet: 'Moneyline',
                 odds: bookmakerData.moneyline.away,
                 confidence: prediction?.confidence || 65,
-                sport: game.sport_key || 'NFL',
+                sport: game.sport || game.sport_key || 'NFL',
                 gameDate,
                 venue: game.venue,
                 bookmaker: bookmakerKey
@@ -182,7 +222,7 @@ export const EnhancedParlaysTab: React.FC = () => {
               bet: `Spread -${bookmakerData.spread.line}`,
               odds: bookmakerData.spread.home,
               confidence: prediction?.spread_confidence || 70,
-              sport: game.sport_key || 'NFL',
+              sport: game.sport || game.sport_key || 'NFL',
               gameDate,
               venue: game.venue,
               bookmaker: bookmakerKey
@@ -195,7 +235,7 @@ export const EnhancedParlaysTab: React.FC = () => {
               bet: `Spread +${bookmakerData.spread.line}`,
               odds: bookmakerData.spread.away,
               confidence: prediction?.spread_confidence || 70,
-              sport: game.sport_key || 'NFL',
+              sport: game.sport || game.sport_key || 'NFL',
               gameDate,
               venue: game.venue,
               bookmaker: bookmakerKey
@@ -211,7 +251,7 @@ export const EnhancedParlaysTab: React.FC = () => {
               bet: 'Total',
               odds: bookmakerData.total.over,
               confidence: prediction?.total_confidence || 65,
-              sport: game.sport_key || 'NFL',
+              sport: game.sport || game.sport_key || 'NFL',
               gameDate,
               venue: game.venue,
               bookmaker: bookmakerKey
@@ -224,7 +264,7 @@ export const EnhancedParlaysTab: React.FC = () => {
               bet: 'Total',
               odds: bookmakerData.total.under,
               confidence: prediction?.total_confidence || 65,
-              sport: game.sport_key || 'NFL',
+              sport: game.sport || game.sport_key || 'NFL',
               gameDate,
               venue: game.venue,
               bookmaker: bookmakerKey
@@ -422,12 +462,13 @@ export const EnhancedParlaysTab: React.FC = () => {
               onChange={(e) => setSelectedBookmaker(e.target.value)}
               className="w-full bg-gray-700 text-white px-3 py-2 rounded-md border border-gray-600 focus:border-blue-500"
             >
-              <option value="draftkings">DraftKings</option>
-              <option value="fanduel">FanDuel</option>
-              <option value="betmgm">BetMGM</option>
-              <option value="caesars">Caesars</option>
-              <option value="pointsbetsportsbook">PointsBet</option>
-              <option value="betrivers">BetRivers</option>
+              <option value="all">🏆 All Sportsbooks</option>
+              <option value="draftkings">🟠 DraftKings</option>
+              <option value="fanduel">🔵 FanDuel</option>
+              <option value="betmgm">🟡 BetMGM</option>
+              <option value="caesars">🟣 Caesars</option>
+              <option value="pointsbet">📈 PointsBet</option>
+              <option value="betrivers">🌊 BetRivers</option>
             </select>
           </div>
         </div>

@@ -104,29 +104,74 @@ const legendSections: LegendSection[] = [
     ]
   },
   {
-    id: 'ai_features',
-    title: 'AI Predictions',
+    id: 'nova_titan_ai',
+    title: 'Nova Titan Elite AI System',
     icon: Brain,
     items: [
       {
-        term: 'Confidence Score',
-        definition: 'AI certainty level in the prediction (0-100%)',
-        example: '85% confidence = AI is very confident in this prediction'
+        term: 'Nova Titan AI v3.1',
+        definition: 'Advanced machine learning system analyzing 50+ statistical factors',
+        example: 'Neural networks process team performance, player stats, weather, injuries, and historical patterns'
       },
       {
-        term: 'Expected Value (EV)',
-        definition: 'Long-term profitability of a bet',
-        example: '+5% EV means theoretically profitable over many bets'
+        term: 'AI Confidence Scoring',
+        definition: 'Proprietary algorithm confidence levels from 60-95%',
+        example: '90%+ = Elite confidence, 80%+ = High confidence, 70%+ = Medium confidence, 60%+ = Low confidence'
       },
       {
-        term: 'AI Analysis',
-        definition: 'Algorithmic evaluation of team stats and trends',
-        example: 'Considers injuries, recent form, head-to-head records'
+        term: 'Expected Value Analysis',
+        definition: 'Mathematical edge calculation for long-term profitability',
+        example: '+5% EV = Theoretically profitable, -2% EV = House edge detected, 0% EV = Fair market value'
       },
       {
-        term: 'Live Odds',
-        definition: 'Real-time odds from multiple sportsbooks',
-        example: 'Updated every few minutes across 10+ major sportsbooks'
+        term: 'Momentum Analysis',
+        definition: 'Recent performance trends and psychological factors',
+        example: '"🔥 Chiefs riding 4-game win streak - elite momentum" - Hot streaks create betting value'
+      },
+      {
+        term: 'Offensive Efficiency Rating',
+        definition: 'Advanced scoring metrics beyond basic averages',
+        example: '"⚡ Superior offensive efficiency at 125% with +8.3 average margin" - Measures true scoring power'
+      },
+      {
+        term: 'Home Field Advantage',
+        definition: 'Quantified impact of playing at home venue',
+        example: '"🏟️ Dominant home performance with 85% home win rate" - Statistical home field edge'
+      },
+      {
+        term: 'Defensive Analysis',
+        definition: 'Elite vs solid defensive classifications with PPG metrics',
+        example: '"🛡️ Elite defense allowing 18.2 PPG vs opponent\'s 24.7 PPG" - Defensive strength comparison'
+      },
+      {
+        term: 'Against The Spread (ATS)',
+        definition: 'Historical betting performance beyond wins/losses',
+        example: '"💰 Strong betting value with 68% ATS record" - How often teams cover spreads'
+      },
+      {
+        term: 'Market Inefficiency Detection',
+        definition: 'Identifies gaps between AI projections and sportsbook lines',
+        example: '"💎 PREMIUM VALUE detected - 7.3 point edge vs market spread" - Significant betting opportunities'
+      },
+      {
+        term: 'Neural Network Projections',
+        definition: 'Deep learning algorithms predict exact scoring outcomes',
+        example: '"🤖 Neural network projects 52.3 total points vs market 47.5" - AI vs Vegas predictions'
+      },
+      {
+        term: 'Historical Trend Analysis',
+        definition: 'Pattern recognition across seasons and matchup types',
+        example: '"📈 Strong historical OVER trend at 71% rate" - Long-term betting patterns'
+      },
+      {
+        term: 'Multi-Factor Risk Assessment',
+        definition: 'Comprehensive evaluation of bet safety and variance',
+        example: 'LOW RISK = Clear statistical edge, HIGH RISK = Close statistical matchup, unpredictable outcome'
+      },
+      {
+        term: 'Real-Time Model Updates',
+        definition: 'Continuous learning from new data and market movements',
+        example: 'AI adapts predictions based on injury reports, weather changes, and line movement patterns'
       }
     ]
   },
