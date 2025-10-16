@@ -9,6 +9,13 @@ frontend/.env*
 # Local test files with API keys
 index-with-api-key.html
 config-local.js
+**/config-local.js
+
+# API Keys and secrets
+*.key
+*.pem
+secrets.json
+config.json
 
 # Node modules and build files
 node_modules/
@@ -22,3 +29,17 @@ build/
 .idea/
 *.swp
 *.swo
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Additional API key protection
+frontend/.env
+frontend/.env.production
+frontend/.env.local
+frontend/.env.development
+index-with-api-key.html
+**/SECURE_COMMIT_INSTRUCTIONS.md
+
