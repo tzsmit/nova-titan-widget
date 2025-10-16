@@ -242,10 +242,11 @@
     
     <!-- Configuration Script (replace API key before deployment) -->
     <script>
-      // REPLACE 'your_api_key_here' with your actual API key before deployment
-      // DO NOT commit your real API key to public repositories
-      window.NOVA_TITAN_API_KEY = 'your_api_key_here';
-    </script>
+  // Use environment variable in production, fallback for local dev
+  window.NOVA_TITAN_API_KEY = (typeof process !== 'undefined' && process.env && process.env.NOVA_TITAN_API_KEY) 
+    || window.NOVA_TITAN_API_KEY 
+    || 'your_api_key_here';
+</script>
     
     <!-- Mobile Optimized React Bundle -->
     <script type="module" crossorigin src="./assets/index-mobile-fixed.js"></script>
