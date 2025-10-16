@@ -94,8 +94,7 @@
     max-width: 100%;
     min-height: 500px;
   }
-}
-
+  
   /* Mobile Layout Fixes */
   .mobile-container {
     @apply min-h-0 overflow-y-auto;
