@@ -66,7 +66,7 @@ EOF
 git status
 
 # Search for your API key in staged files
-git diff --cached | grep -i "YOUR_API_KEY_HERE"
+git diff --cached | grep -i "your_api_key_here"
 
 # If the above command returns anything, STOP and remove the API key first!
 ```
@@ -227,7 +227,7 @@ Before pushing, verify:
 2. **Add your API key securely:**
    ```bash
    # Replace placeholder in deployed version:
-   sed -i "s/your_api_key_here/YOUR_API_KEY_HERE/" index.html
+   sed -i "s/your_api_key_here/your_api_key_here/" index.html
    ```
 3. **Test functionality**
 4. **Go live and make money!** 💰

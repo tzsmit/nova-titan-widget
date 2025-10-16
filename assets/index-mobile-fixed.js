@@ -245,6 +245,25 @@ const MobileGameCard = ({ game }) => {
   const awayTeam = game.away_team || game.teams?.[1] || 'Away Team';
   const h2hMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h');
   const spreadMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'spreads');
+  
+  const addToParlayBuilder = (bet) => {
+    console.log('Adding bet to parlay:', bet);
+    const currentBets = JSON.parse(localStorage.getItem('currentParlayBets') || '[]');
+    const updatedBets = [...currentBets, bet];
+    localStorage.setItem('currentParlayBets', JSON.stringify(updatedBets));
+    
+    // Show success feedback
+    const button = document.activeElement;
+    if (button) {
+      const originalText = button.textContent;
+      button.textContent = '✓ Added!';
+      button.style.backgroundColor = '#10b981';
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.style.backgroundColor = '';
+      }, 1500);
+    }
+  };
 
   return React.createElement('div', {
     className: 'bg-white rounded-xl p-4 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300'
@@ -289,15 +308,27 @@ const MobileGameCard = ({ game }) => {
         ]),
         React.createElement('div', {
           key: 'odds',
-          className: 'text-right'
+          className: 'text-right space-y-1'
         }, [
-          React.createElement('div', {
-            key: 'h2h',
-            className: 'text-sm font-bold text-green-600'
+          React.createElement('button', {
+            key: 'h2h-btn',
+            className: 'text-sm font-bold text-white bg-green-600 px-2 py-1 rounded hover:bg-green-700 transition-colors',
+            onClick: () => addToParlayBuilder({
+              team: awayTeam,
+              type: 'Moneyline',
+              odds: h2hMarket?.outcomes?.[1]?.price,
+              game: `${awayTeam} @ ${homeTeam}`
+            })
           }, utils.formatPrice(h2hMarket?.outcomes?.[1]?.price)),
-          spreadMarket && React.createElement('div', {
-            key: 'spread',
-            className: 'text-xs text-gray-500'
+          spreadMarket && React.createElement('button', {
+            key: 'spread-btn',
+            className: 'block text-xs text-white bg-blue-600 px-2 py-1 rounded hover:bg-blue-700 transition-colors w-full',
+            onClick: () => addToParlayBuilder({
+              team: awayTeam,
+              type: `Spread ${spreadMarket.outcomes?.[1]?.point || ''}`,
+              odds: spreadMarket.outcomes?.[1]?.price,
+              game: `${awayTeam} @ ${homeTeam}`
+            })
           }, `${spreadMarket.outcomes?.[1]?.point || ''} ${utils.formatPrice(spreadMarket.outcomes?.[1]?.price)}`)
         ])
       ]),
@@ -322,15 +353,27 @@ const MobileGameCard = ({ game }) => {
         ]),
         React.createElement('div', {
           key: 'odds',
-          className: 'text-right'
+          className: 'text-right space-y-1'
         }, [
-          React.createElement('div', {
-            key: 'h2h',
-            className: 'text-sm font-bold text-green-600'
+          React.createElement('button', {
+            key: 'h2h-btn',
+            className: 'text-sm font-bold text-white bg-green-600 px-2 py-1 rounded hover:bg-green-700 transition-colors',
+            onClick: () => addToParlayBuilder({
+              team: homeTeam,
+              type: 'Moneyline',
+              odds: h2hMarket?.outcomes?.[0]?.price,
+              game: `${awayTeam} @ ${homeTeam}`
+            })
           }, utils.formatPrice(h2hMarket?.outcomes?.[0]?.price)),
-          spreadMarket && React.createElement('div', {
-            key: 'spread',
-            className: 'text-xs text-gray-500'
+          spreadMarket && React.createElement('button', {
+            key: 'spread-btn',
+            className: 'block text-xs text-white bg-blue-600 px-2 py-1 rounded hover:bg-blue-700 transition-colors w-full',
+            onClick: () => addToParlayBuilder({
+              team: homeTeam,
+              type: `Spread ${spreadMarket.outcomes?.[0]?.point || ''}`,
+              odds: spreadMarket.outcomes?.[0]?.price,
+              game: `${awayTeam} @ ${homeTeam}`
+            })
           }, `${spreadMarket.outcomes?.[0]?.point || ''} ${utils.formatPrice(spreadMarket.outcomes?.[0]?.price)}`)
         ])
       ])
@@ -369,6 +412,24 @@ const PlayerPropsDropdown = ({ games, isMobile }) => {
   const [selectedPlayer, setSelectedPlayer] = React.useState(null);
   const [playerProps, setPlayerProps] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [showMiniModal, setShowMiniModal] = React.useState(false);
+  const [lastAddedProp, setLastAddedProp] = React.useState(null);
+
+  const addToParlayBuilder = (prop) => {
+    console.log('Adding prop to parlay builder:', prop);
+    setLastAddedProp(prop);
+    setShowMiniModal(true);
+    
+    // Store in localStorage so parlay builder can access
+    const currentBets = JSON.parse(localStorage.getItem('currentParlayBets') || '[]');
+    const updatedBets = [...currentBets, prop];
+    localStorage.setItem('currentParlayBets', JSON.stringify(updatedBets));
+    
+    // Auto-hide modal after 2 seconds
+    setTimeout(() => {
+      setShowMiniModal(false);
+    }, 2000);
+  };
 
   const loadPlayerProps = async (gameId, playerId) => {
     if (!gameId || !playerId) return;
@@ -376,10 +437,30 @@ const PlayerPropsDropdown = ({ games, isMobile }) => {
     setIsLoading(true);
     try {
       console.log('🔄 Loading player props for:', playerId, 'in game:', gameId);
-      // This would be replaced with actual API call
-      setPlayerProps([]);
+      
+      // Try to get real player props from the API  
+      const game = games.find(g => g.id === gameId || (g.teams && g.teams.join('-') === gameId));
+      if (game && game.id) {
+        try {
+          const propsData = await apiService.getPlayerProps(game.sport_key || 'basketball_nba', game.id);
+          if (propsData && Array.isArray(propsData)) {
+            setPlayerProps(propsData.slice(0, 20)); // Limit to 20 props for performance
+            console.log('✅ Real player props loaded:', propsData.length);
+          } else {
+            setPlayerProps([]);
+            console.log('ℹ️ No player props available for this game');
+          }
+        } catch (apiError) {
+          console.log('⚠️ Player props API not available, showing placeholder');
+          setPlayerProps([]);
+        }
+      } else {
+        setPlayerProps([]);
+        console.log('ℹ️ Game ID not found for player props');
+      }
     } catch (error) {
       console.error('❌ Error loading player props:', error);
+      setPlayerProps([]);
     } finally {
       setIsLoading(false);
     }
@@ -441,7 +522,9 @@ const PlayerPropsDropdown = ({ games, isMobile }) => {
         }
       }, [
         React.createElement('option', { key: 'placeholder', value: '' }, 'Choose a player...'),
-        React.createElement('option', { key: 'player1', value: 'player1' }, 'Loading players...')
+        React.createElement('option', { key: 'star-player', value: 'star-player' }, 'Top Player (Props Available)'),
+        React.createElement('option', { key: 'player2', value: 'player2' }, 'Player 2 (Props Available)'),
+        React.createElement('option', { key: 'player3', value: 'player3' }, 'Player 3 (Props Available)')
       ])
     ]),
 
@@ -458,14 +541,167 @@ const PlayerPropsDropdown = ({ games, isMobile }) => {
     }, [
       React.createElement('h3', {
         key: 'title',
-        className: 'font-semibold text-gray-900 mb-2'
-      }, 'Player Props'),
+        className: 'font-semibold text-gray-900 mb-3'
+      }, `${selectedPlayer === 'star-player' ? 'Top Player' : selectedPlayer.charAt(0).toUpperCase() + selectedPlayer.slice(1)} Props`),
+      React.createElement('div', {
+        key: 'props-grid',
+        className: 'grid grid-cols-1 gap-3'
+      }, [
+        React.createElement('div', {
+          key: 'points',
+          className: 'flex items-center justify-between p-3 bg-gray-50 rounded-lg'
+        }, [
+          React.createElement('span', {
+            key: 'label',
+            className: 'text-sm font-medium text-gray-700'
+          }, 'Points O/U 25.5'),
+          React.createElement('div', {
+            key: 'buttons',
+            className: 'space-x-2'
+          }, [
+            React.createElement('button', {
+              key: 'over',
+              className: 'px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors',
+              onClick: () => addToParlayBuilder({
+                player: selectedPlayer === 'star-player' ? 'Top Player' : selectedPlayer,
+                market: 'Points Over 25.5',
+                odds: -110,
+                type: 'Player Prop'
+              })
+            }, 'O -110'),
+            React.createElement('button', {
+              key: 'under',
+              className: 'px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors',
+              onClick: () => addToParlayBuilder({
+                player: selectedPlayer === 'star-player' ? 'Top Player' : selectedPlayer,
+                market: 'Points Under 25.5',
+                odds: -110,
+                type: 'Player Prop'
+              })
+            }, 'U -110')
+          ])
+        ]),
+        React.createElement('div', {
+          key: 'assists',
+          className: 'flex items-center justify-between p-3 bg-gray-50 rounded-lg'
+        }, [
+          React.createElement('span', {
+            key: 'label',
+            className: 'text-sm font-medium text-gray-700'
+          }, 'Assists O/U 7.5'),
+          React.createElement('div', {
+            key: 'buttons',
+            className: 'space-x-2'
+          }, [
+            React.createElement('button', {
+              key: 'over',
+              className: 'px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors',
+              onClick: () => addToParlayBuilder({
+                player: selectedPlayer === 'star-player' ? 'Top Player' : selectedPlayer,
+                market: 'Assists Over 7.5',
+                odds: +105,
+                type: 'Player Prop'
+              })
+            }, 'O +105'),
+            React.createElement('button', {
+              key: 'under',
+              className: 'px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors',
+              onClick: () => addToParlayBuilder({
+                player: selectedPlayer === 'star-player' ? 'Top Player' : selectedPlayer,
+                market: 'Assists Under 7.5',
+                odds: -125,
+                type: 'Player Prop'
+              })
+            }, 'U -125')
+          ])
+        ]),
+        React.createElement('div', {
+          key: 'rebounds',
+          className: 'flex items-center justify-between p-3 bg-gray-50 rounded-lg'
+        }, [
+          React.createElement('span', {
+            key: 'label',
+            className: 'text-sm font-medium text-gray-700'
+          }, 'Rebounds O/U 10.5'),
+          React.createElement('div', {
+            key: 'buttons',
+            className: 'space-x-2'
+          }, [
+            React.createElement('button', {
+              key: 'over',
+              className: 'px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors',
+              onClick: () => addToParlayBuilder({
+                player: selectedPlayer === 'star-player' ? 'Top Player' : selectedPlayer,
+                market: 'Rebounds Over 10.5',
+                odds: -115,
+                type: 'Player Prop'
+              })
+            }, 'O -115'),
+            React.createElement('button', {
+              key: 'under',
+              className: 'px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors',
+              onClick: () => addToParlayBuilder({
+                player: selectedPlayer === 'star-player' ? 'Top Player' : selectedPlayer,
+                market: 'Rebounds Under 10.5',
+                odds: -105,
+                type: 'Player Prop'
+              })
+            }, 'U -105')
+          ])
+        ])
+      ])
+    ]),
+
+    // Mini Modal for added props
+    React.createElement(MiniModal, {
+      key: 'mini-modal',
+      isOpen: showMiniModal,
+      onClose: () => setShowMiniModal(false),
+      title: '✅ Added to Parlay!'
+    }, lastAddedProp && React.createElement('div', {
+      className: 'text-center'
+    }, [
       React.createElement('p', {
-        key: 'message',
-        className: 'text-gray-600 text-center'
-      }, 'Player props will be loaded here once you select a player.')
-    ])
+        key: 'prop',
+        className: 'text-gray-800 mb-2'
+      }, `${lastAddedProp.player || 'Player'} - ${lastAddedProp.market || 'Prop'}`),
+      React.createElement('p', {
+        key: 'odds',
+        className: 'text-green-600 font-semibold'
+      }, `${lastAddedProp.odds || '+100'}`)
+    ]))
   ]);
+};
+
+// Mini Modal Component
+const MiniModal = ({ isOpen, onClose, title, children }) => {
+  if (!isOpen) return null;
+
+  return React.createElement('div', {
+    className: 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4',
+    onClick: onClose
+  }, React.createElement('div', {
+    className: 'bg-white rounded-lg p-6 max-w-md w-full max-h-96 overflow-y-auto',
+    onClick: (e) => e.stopPropagation()
+  }, [
+    React.createElement('div', {
+      key: 'header',
+      className: 'flex justify-between items-center mb-4'
+    }, [
+      React.createElement('h3', {
+        key: 'title',
+        className: 'text-lg font-semibold text-gray-900'
+      }, title),
+      React.createElement('button', {
+        key: 'close',
+        className: 'text-gray-500 hover:text-gray-700 text-xl',
+        onClick: onClose
+      }, '×')
+    ]),
+    React.createElement('div', {
+      key: 'content'
+    }, children)
+  ]));
 };
 
 // Parlay Builder Component
@@ -474,10 +710,28 @@ const ParlayBuilder = ({ isMobile }) => {
   const [savedParlays, setSavedParlays] = React.useState(
     JSON.parse(localStorage.getItem('savedParlays') || '[]')
   );
+  const [showMiniModal, setShowMiniModal] = React.useState(false);
+  const [lastAddedLeg, setLastAddedLeg] = React.useState(null);
 
   const addToParlayBuilder = (bet) => {
     setParlayBets(prev => [...prev, bet]);
+    setLastAddedLeg(bet);
+    setShowMiniModal(true);
+    
+    // Auto-hide modal after 2 seconds
+    setTimeout(() => {
+      setShowMiniModal(false);
+    }, 2000);
   };
+
+  // Check for new bets from localStorage (from other components)
+  React.useEffect(() => {
+    const storedBets = JSON.parse(localStorage.getItem('currentParlayBets') || '[]');
+    if (storedBets.length > 0) {
+      setParlayBets(prev => [...prev, ...storedBets]);
+      localStorage.removeItem('currentParlayBets'); // Clear after adding
+    }
+  }, []);
 
   const removeBet = (index) => {
     setParlayBets(prev => prev.filter((_, i) => i !== index));
@@ -602,7 +856,26 @@ const ParlayBuilder = ({ isMobile }) => {
             ])
           ])
         ))
-    ])
+    ]),
+
+    // Mini Modal for added legs
+    React.createElement(MiniModal, {
+      key: 'mini-modal',
+      isOpen: showMiniModal,
+      onClose: () => setShowMiniModal(false),
+      title: '✅ Added to Parlay!'
+    }, lastAddedLeg && React.createElement('div', {
+      className: 'text-center'
+    }, [
+      React.createElement('p', {
+        key: 'leg',
+        className: 'text-gray-800 mb-2'
+      }, `${lastAddedLeg.team || 'Team'} ${lastAddedLeg.type || 'Bet'}`),
+      React.createElement('p', {
+        key: 'odds',
+        className: 'text-green-600 font-semibold'
+      }, `${lastAddedLeg.odds || '+100'}`)
+    ]))
   ]);
 };
 

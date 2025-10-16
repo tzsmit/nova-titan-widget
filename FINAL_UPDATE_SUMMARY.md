@@ -11,7 +11,7 @@
 
 #### 2. **🔑 Updated to Correct API Key**
 - **BEFORE**: Using placeholder API key `your_api_key_here`
-- **AFTER**: Using your actual API key `YOUR_API_KEY_HERE`
+- **AFTER**: Using your actual API key `your_api_key_here`
 - **Result**: Real sports data loading successfully (42 NBA games loaded in test)
 
 #### 3. **🏈 Fixed College Football (FBS Only)**
@@ -132,7 +132,7 @@ open index.html
 ### **For Production:**
 ```bash
 # Use secure version with external config
-echo "window.NOVA_TITAN_API_KEY = 'YOUR_API_KEY_HERE';" > config.js
+echo "window.NOVA_TITAN_API_KEY = 'your_api_key_here';" > config.js
 open index-production.html
 ```
 

@@ -21,7 +21,7 @@ Before committing any changes, ALWAYS verify:
 
 ```bash
 # Create config.js with your actual API key (this file is gitignored)
-echo "window.NOVA_TITAN_API_KEY = 'YOUR_API_KEY_HERE';" > config.js
+echo "window.NOVA_TITAN_API_KEY = 'your_api_key_here';" > config.js
 ```
 
 ### 2. **Verify .gitignore Protection**
@@ -40,7 +40,7 @@ git status
 
 ```bash
 # Replace the API key in index.html with placeholder
-sed -i 's/YOUR_API_KEY_HERE/your_api_key_here/g' index.html
+sed -i 's/your_api_key_here/your_api_key_here/g' index.html
 ```
 
 ### 4. **Stage and Commit Files**
@@ -50,7 +50,7 @@ sed -i 's/YOUR_API_KEY_HERE/your_api_key_here/g' index.html
 git add .
 
 # Double-check what you're about to commit
-git diff --staged | grep -i "YOUR_API_KEY_HERE"
+git diff --staged | grep -i "your_api_key_here"
 # This should return NOTHING. If it returns anything, DO NOT COMMIT!
 
 # Commit your changes
@@ -70,7 +70,7 @@ git commit -m "feat: Mobile-optimized sports betting platform with secure config
 
 ```bash
 # Final security check before pushing
-git log --oneline -5 | xargs -I {} git show {} | grep -i "YOUR_API_KEY_HERE"
+git log --oneline -5 | xargs -I {} git show {} | grep -i "your_api_key_here"
 # This should return NOTHING. If it finds the API key, DO NOT PUSH!
 
 # Check remote status
@@ -89,7 +89,7 @@ git push origin main
 1. **Use Environment Variables:**
    ```bash
    # Set environment variable on server
-   export NOVA_TITAN_API_KEY="YOUR_API_KEY_HERE"
+   export NOVA_TITAN_API_KEY="your_api_key_here"
    ```
 
 2. **Use index-production.html:**
@@ -117,7 +117,7 @@ git push origin main
 2. **Remove from Git History**
    ```bash
    # Remove the API key from all commits (DANGEROUS - backup first!)
-   git filter-branch --tree-filter 'sed -i "s/YOUR_API_KEY_HERE/your_api_key_here/g" index.html' HEAD
+   git filter-branch --tree-filter 'sed -i "s/your_api_key_here/your_api_key_here/g" index.html' HEAD
    
    # Force push to overwrite remote history (use with caution!)
    git push origin main --force
@@ -155,13 +155,13 @@ git push origin main
 
 ```bash
 # 1. Check for API key in staged files
-git diff --staged | grep -i "YOUR_API_KEY_HERE"
+git diff --staged | grep -i "your_api_key_here"
 
 # 2. Verify .gitignore is working
 git ls-files | grep config.js
 
 # 3. Check file contents
-grep -r "YOUR_API_KEY_HERE" . --exclude-dir=.git
+grep -r "your_api_key_here" . --exclude-dir=.git
 
 # 4. Verify what's being committed
 git status --porcelain
@@ -178,14 +178,14 @@ git status --porcelain
 
 ```bash
 # Safe commit workflow
-sed -i 's/YOUR_API_KEY_HERE/your_api_key_here/g' index.html
+sed -i 's/your_api_key_here/your_api_key_here/g' index.html
 git add .
-git diff --staged | grep -i "YOUR_API_KEY_HERE" || echo "✅ Safe to commit"
+git diff --staged | grep -i "your_api_key_here" || echo "✅ Safe to commit"
 git commit -m "your commit message"
 git push origin main
 
 # Restore API key for local development
-sed -i 's/your_api_key_here/YOUR_API_KEY_HERE/g' index.html
+sed -i 's/your_api_key_here/your_api_key_here/g' index.html
 ```
 
 ---
@@ -201,10 +201,10 @@ set -e
 echo "🔒 Securing files before commit..."
 
 # Replace API key with placeholder
-sed -i 's/YOUR_API_KEY_HERE/your_api_key_here/g' index.html
+sed -i 's/your_api_key_here/your_api_key_here/g' index.html
 
 # Security check
-if git diff --staged | grep -i "YOUR_API_KEY_HERE"; then
+if git diff --staged | grep -i "your_api_key_here"; then
     echo "❌ API key found in staged files! Aborting."
     exit 1
 fi
@@ -216,7 +216,7 @@ git add .
 git commit -m "${1:-Update: Secure mobile-optimized sports betting platform}"
 
 # Restore API key for local development  
-sed -i 's/your_api_key_here/YOUR_API_KEY_HERE/g' index.html
+sed -i 's/your_api_key_here/your_api_key_here/g' index.html
 
 echo "🚀 Committed successfully. Local API key restored."
 ```
