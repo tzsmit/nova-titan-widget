@@ -1,6 +1,7 @@
 [build]
-  command = "echo 'Static site - no build needed'"
-  publish = "."
+  base = "frontend/"
+  command = "npm install && npm run build"
+  publish = "dist"
 
 [build.environment]
   NODE_VERSION = "18"
