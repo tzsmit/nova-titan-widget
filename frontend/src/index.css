@@ -96,6 +96,29 @@
   }
 }
 
+  /* Mobile Layout Fixes */
+  .mobile-container {
+    @apply min-h-0 overflow-y-auto;
+  }
+  
+  .mobile-scrollable {
+    @apply overflow-y-auto overflow-x-hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .mobile-safe-area {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Fix flex children overflow */
+  .flex-child-fix {
+    @apply min-h-0;
+  }
+}
+
 @layer utilities {
   /* Animation utilities */
   .animate-fade-in {

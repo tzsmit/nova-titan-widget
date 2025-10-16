@@ -81,11 +81,11 @@ class RealTimeAIPredictionsService {
     console.log('🤖 Generating real-time AI predictions...');
     
     try {
-      // Get live odds data
+      // Get live odds data with validation
       const liveOdds = await realTimeOddsService.getLiveOddsAllSports();
       
-      if (liveOdds.length === 0) {
-        console.warn('No live odds available for predictions');
+      if (!Array.isArray(liveOdds) || liveOdds.length === 0) {
+        console.warn('No valid live odds available for predictions');
         return [];
       }
 
@@ -93,8 +93,14 @@ class RealTimeAIPredictionsService {
 
       for (const game of liveOdds) {
         try {
+          // Validate game data structure before processing
+          if (!this.isValidGameData(game)) {
+            console.warn('Skipping invalid game data:', game);
+            continue;
+          }
+          
           const prediction = await this.analyzeSingleGame(game);
-          if (prediction) {
+          if (prediction && this.isValidPrediction(prediction)) {
             predictions.push(prediction);
           }
         } catch (error) {
@@ -108,6 +114,47 @@ class RealTimeAIPredictionsService {
     } catch (error) {
       console.error('Error generating AI predictions:', error);
       return [];
+    }
+  }
+
+  /**
+   * Validate game data structure
+   */
+  private isValidGameData(game: any): game is LiveOddsData {
+    if (!game || typeof game !== 'object') return false;
+    
+    // Check required fields
+    const hasTeams = (game.homeTeam || game.home_team) && (game.awayTeam || game.away_team);
+    const hasId = game.gameId || game.id;
+    const hasSport = game.sport;
+    
+    return hasTeams && hasId && hasSport;
+  }
+
+  /**
+   * Validate prediction structure
+   */
+  private isValidPrediction(prediction: any): prediction is RealAIPrediction {
+    if (!prediction || typeof prediction !== 'object') return false;
+    
+    try {
+      // Check required top-level fields
+      if (!prediction.id || !prediction.gameId || !prediction.sport) return false;
+      
+      // Check predictions object
+      if (!prediction.predictions || typeof prediction.predictions !== 'object') return false;
+      
+      // Check moneyline prediction
+      const moneyline = prediction.predictions.moneyline;
+      if (!moneyline || typeof moneyline.confidence !== 'number') return false;
+      
+      // Check analysis object
+      if (!prediction.analysis || typeof prediction.analysis !== 'object') return false;
+      
+      return true;
+    } catch (error) {
+      console.warn('Prediction validation failed:', error);
+      return false;
     }
   }
 

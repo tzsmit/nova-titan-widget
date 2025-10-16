@@ -57,33 +57,42 @@ export const SimplePredictionsTab: React.FC = () => {
           console.log('🔍 Prediction sports found:', [...new Set(allPredictions.map(p => p.sport || p.sport_key || 'unknown'))]);
         }
         
+        // Sport normalization mapping
+        const sportNormalizationMap: { [key: string]: string[] } = {
+          'americanfootball_nfl': ['nfl', 'american football', 'football'],
+          'basketball_nba': ['nba', 'basketball'],
+          'americanfootball_ncaaf': ['ncaaf', 'college football', 'cfb'],
+          'basketball_ncaab': ['ncaab', 'college basketball', 'cbb'],
+          'baseball_mlb': ['mlb', 'baseball'],
+          'boxing_boxing': ['boxing']
+        };
+        
         // Filter by sport and confidence with robust checks
         const filtered = allPredictions
           .filter(pred => {
-            // Much more lenient filtering - only check basic structure
+            // Null/undefined check
             if (!pred) {
               console.warn('⚠️ Null prediction:', pred);
               return false;
             }
             
-            // Very lenient sport filter - accept almost everything when 'all' is selected
-            const sportMatch = selectedSport === 'all' || 
-                              (pred.sport && pred.sport.toLowerCase().includes(selectedSport.toLowerCase())) ||
-                              (pred.sport_key && pred.sport_key.toLowerCase().includes(selectedSport.toLowerCase())) ||
-                              selectedSport === 'all';
+            // Sport filter with normalization
+            let sportMatch = selectedSport === 'all';
+            if (!sportMatch && selectedSport !== 'all') {
+              const targetSports = sportNormalizationMap[selectedSport] || [selectedSport];
+              const predSport = (pred.sport || pred.sport_key || '').toLowerCase();
+              sportMatch = targetSports.some(sport => 
+                predSport.includes(sport.toLowerCase())
+              );
+            }
             
-            // Very lenient confidence filter - accept almost anything
+            // Confidence filter with safe access
             const confidence = pred.predictions?.moneyline?.confidence || 
                               pred.confidence ||
                               75; // Default confidence if missing
             const confidenceMatch = minConfidence <= 30 ? true : confidence >= minConfidence;
             
-            const passed = sportMatch && confidenceMatch;
-            if (!passed) {
-              console.log(`❌ Filtered out prediction: sport=${pred.sport || pred.sport_key}, confidence=${confidence}, sportMatch=${sportMatch}, confidenceMatch=${confidenceMatch}`);
-            }
-            
-            return passed;
+            return sportMatch && confidenceMatch;
           })
           .slice(0, 50); // Much higher limit for more results
           

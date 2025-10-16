@@ -84,6 +84,10 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
   const [showSavedParlays, setShowSavedParlays] = useState(false);
   const [parlayName, setParlayName] = useState('');
   const [showSaveDialog, setShowSaveDialog] = useState(false);
+  
+  // Mini modal state for added legs
+  const [showMiniModal, setShowMiniModal] = useState(false);
+  const [lastAddedLeg, setLastAddedLeg] = useState<ParlayLeg | null>(null);
 
   // Load available bets for parlay building
   const { data: availableBets = [], isLoading: betsLoading } = useQuery({
@@ -326,15 +330,20 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
     console.log('🗑️ Parlay deleted:', parlayId);
   };
 
-  // Load saved parlays on mount
+  // Load saved parlays on mount with null checks
   useEffect(() => {
-    const saved = localStorage.getItem('novaTitanParlays');
-    if (saved) {
-      try {
-        setSavedParlays(JSON.parse(saved));
-      } catch (error) {
-        console.error('Error loading saved parlays:', error);
+    try {
+      const saved = localStorage.getItem('novaTitanParlays');
+      if (saved && saved !== 'null' && saved !== 'undefined') {
+        const parsedParlays = JSON.parse(saved);
+        if (Array.isArray(parsedParlays)) {
+          setSavedParlays(parsedParlays);
+        }
       }
+    } catch (error) {
+      console.error('Error loading saved parlays:', error);
+      // Initialize with empty array on error
+      setSavedParlays([]);
     }
   }, []);
 
@@ -521,18 +530,18 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
                   }
                 ].map((parlay, index) => (
                   <motion.div
-                    key={index}
+                    key={`suggested-parlay-${index}-${parlay.name.replace(/\s+/g, '-')}`}
                     variants={itemVariants}
                     className="bg-slate-800/40 rounded-lg border border-purple-600/20 p-4 hover:border-purple-500/40 transition-all cursor-pointer group"
                     onClick={() => {
                       // Auto-fill parlay builder with suggested combination
                       const suggestedLegs = parlay.legs.map((leg, i) => ({
-                        id: `suggested-${Date.now()}-${i}`,
+                        id: `suggested-${Date.now()}-${index}-${i}`,
                         game: `Game ${i + 1}`,
                         team: leg.split(' ')[0],
                         bet: leg,
                         odds: Math.floor(Math.random() * 200) - 100,
-                        confidence: parlay.confidence
+                        confidence: parlay.confidence || 75
                       }));
                       
                       // Clear current parlay and add suggested legs
@@ -557,14 +566,14 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
                         <div className="text-lg font-bold text-green-400">{parlay.totalOdds}</div>
                         <div className="flex items-center gap-1 text-xs text-slate-300">
                           <Star className="h-3 w-3 text-yellow-400" />
-                          {parlay.confidence}%
+                          {parlay.confidence || 75}%
                         </div>
                       </div>
                     </div>
                     
                     <div className="space-y-2 mb-3">
                       {parlay.legs.map((leg, i) => (
-                        <div key={i} className="text-sm text-slate-300 bg-slate-900/30 rounded px-2 py-1">
+                        <div key={`parlay-leg-${index}-${i}-${leg}`} className="text-sm text-slate-300 bg-slate-900/30 rounded px-2 py-1">
                           {i + 1}. {leg}
                         </div>
                       ))}
@@ -615,9 +624,9 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
                     </p>
                   </div>
                 ) : (
-                  filteredBets.map((bet) => (
+                  filteredBets.map((bet, betIndex) => (
                   <motion.div
-                    key={bet.id}
+                    key={bet.id || `bet-${betIndex}-${bet.game}-${bet.team}`}
                     variants={itemVariants}
                     className="bg-slate-900/50 rounded-lg border border-slate-600 p-4 hover:border-blue-500 transition-all group cursor-pointer"
                     onClick={() => addLegToParlay(bet)}
@@ -649,7 +658,7 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-1 text-xs">
                           <Star className="h-3 w-3 text-yellow-400" />
-                          <span className="text-slate-300">{bet.confidence}% conf.</span>
+                          <span className="text-slate-300">{bet.confidence || 70}% conf.</span>
                         </div>
                       </div>
 
@@ -686,8 +695,8 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
                       <p className="text-slate-400 text-sm">Add bets to build your parlay</p>
                     </div>
                   ) : (
-                    parlayBuilder.legs.map((leg, index) => (
-                      <div key={leg.id} className="bg-slate-900/50 rounded-lg border border-slate-600 p-3">
+                    parlayBuilder.legs.map((leg, legIndex) => (
+                      <div key={leg.id || `parlay-leg-${legIndex}`} className="bg-slate-900/50 rounded-lg border border-slate-600 p-3">
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0">
                             <div className="text-sm font-medium text-slate-100 mb-1 truncate">
@@ -888,9 +897,9 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {savedParlays.map((parlay) => (
+                  {savedParlays.map((parlay, parlayIndex) => (
                     <motion.div
-                      key={parlay.id}
+                      key={parlay.id || `saved-parlay-${parlayIndex}`}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="bg-slate-700/50 p-4 rounded-lg border border-slate-600 hover:border-slate-500 transition-colors"
