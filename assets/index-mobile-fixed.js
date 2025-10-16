@@ -5,7 +5,7 @@
 
 // Environment Configuration
 const CONFIG = {
-  API_KEY: window.NOVA_TITAN_API_KEY || 'your_api_key_here',
+  API_KEY: window.NOVA_TITAN_API_KEY || 'effdb0775abef82ff5dd944ae2180cae',
   USE_DEMO_DATA: false, // Never use demo data
   BASE_URL: 'https://api.the-odds-api.com/v4',
   RATE_LIMIT_MS: 2000,
@@ -740,17 +740,24 @@ const ParlayBuilder = ({ isMobile }) => {
   const saveParlayBuilder = () => {
     if (parlayBets.length === 0) return;
     
-    const newParlay = {
-      id: Date.now(),
-      bets: parlayBets,
-      created: new Date().toISOString(),
-      totalOdds: parlayBets.reduce((acc, bet) => acc * (Math.abs(bet.odds) / 100), 1)
-    };
-    
-    const updated = [...savedParlays, newParlay];
-    setSavedParlays(updated);
-    localStorage.setItem('savedParlays', JSON.stringify(updated));
-    setParlayBets([]);
+    try {
+      const newParlay = {
+        id: Date.now(),
+        bets: parlayBets,
+        created: new Date().toISOString(),
+        totalOdds: parlayBets.reduce((acc, bet) => {
+          const odds = bet.odds || bet.price || 100; // Safe fallback
+          return acc * (Math.abs(Number(odds)) / 100 || 1);
+        }, 1)
+      };
+      
+      const updated = [...savedParlays, newParlay];
+      setSavedParlays(updated);
+      localStorage.setItem('savedParlays', JSON.stringify(updated));
+      setParlayBets([]);
+    } catch (error) {
+      console.error('Error saving parlay:', error);
+    }
   };
 
   const clearParlayBuilder = () => {
@@ -792,7 +799,7 @@ const ParlayBuilder = ({ isMobile }) => {
               React.createElement('span', {
                 key: 'bet',
                 className: 'text-sm'
-              }, `${bet.team} ${bet.type}: ${utils.formatPrice(bet.odds)}`),
+              }, `${bet.team || 'Unknown'} ${bet.type || 'Bet'}: ${utils.formatPrice(bet.odds || bet.price || 100)}`),
               React.createElement('button', {
                 key: 'remove',
                 className: 'text-red-600 hover:text-red-800 text-xs',
@@ -1014,7 +1021,28 @@ const App = () => {
         ]);
 
       case 'parlays':
-        return React.createElement(ParlayBuilder, { isMobile: state.isMobile });
+        try {
+          return React.createElement(ParlayBuilder, { isMobile: state.isMobile });
+        } catch (error) {
+          console.error('Error rendering ParlayBuilder:', error);
+          return React.createElement('div', {
+            className: 'text-center py-8'
+          }, [
+            React.createElement('h2', {
+              key: 'error-title',
+              className: 'text-xl font-bold text-red-600 mb-4'
+            }, '🏆 Parlay Builder'),
+            React.createElement('p', {
+              key: 'error-msg',
+              className: 'text-gray-600 mb-4'
+            }, 'There was an issue loading the parlay builder. Please try again.'),
+            React.createElement('button', {
+              key: 'retry',
+              className: 'px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700',
+              onClick: () => window.location.reload()
+            }, 'Retry')
+          ]);
+        }
 
       case 'props':
         return React.createElement(PlayerPropsDropdown, { 

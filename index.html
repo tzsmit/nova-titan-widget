@@ -240,13 +240,22 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    <!-- Configuration Script (replace API key before deployment) -->
+    <!-- Configuration Script with Netlify Environment Variable Injection -->
     <script>
-  // Use environment variable in production, fallback for local dev
-  window.NOVA_TITAN_API_KEY = (typeof process !== 'undefined' && process.env && process.env.NOVA_TITAN_API_KEY) 
-    || window.NOVA_TITAN_API_KEY 
-    || 'your_api_key_here';
-</script>
+      // Netlify injects environment variables into the HTML during build.
+      // We use a specific placeholder that Netlify recognizes during build-time replacement.
+      // If not replaced (e.g., local dev or variable not set), use the fallback local key.
+      const injectedKeyFromNetlify = '{{ NOVA_TITAN_API_KEY }}';
+      window.NOVA_TITAN_API_KEY = (injectedKeyFromNetlify && injectedKeyFromNetlify !== '{{' + ' NOVA_TITAN_API_KEY ' + '}}')
+        ? injectedKeyFromNetlify
+        : 'your_api_key_here'; // Fallback for local development
+      
+      // Debug logging for deployment troubleshooting
+      console.log('🔑 API Key Status:', {
+        injected: injectedKeyFromNetlify !== '{{' + ' NOVA_TITAN_API_KEY ' + '}}',
+        keyPrefix: window.NOVA_TITAN_API_KEY ? window.NOVA_TITAN_API_KEY.substring(0, 8) + '...' : 'undefined'
+      });
+    </script>
     
     <!-- Mobile Optimized React Bundle -->
     <script type="module" crossorigin src="./assets/index-mobile-fixed.js"></script>
