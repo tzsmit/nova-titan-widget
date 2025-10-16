@@ -57,7 +57,7 @@ export interface RealPlayerProp {
 
 class RealTimeOddsService {
   // Primary API for main odds data - ONLY use this key since secondary is invalid
-  private readonly PRIMARY_ODDS_API_KEY = import.meta.env.VITE_PRIMARY_ODDS_API_KEY || 'your_api_key_here';
+  private readonly PRIMARY_ODDS_API_KEY = import.meta.env.VITE_PRIMARY_ODDS_API_KEY || 'effdb0775abef82ff5dd944ae2180cae';
   private readonly BASE_URL = 'https://api.the-odds-api.com/v4';
   
   // Use ONLY the primary API key for ALL endpoints (secondary key is invalid)

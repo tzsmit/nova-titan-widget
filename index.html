@@ -138,28 +138,34 @@
       }
 
       /* Mobile optimizations */
-      .loading-container {
-        padding: 20px;
-      }
-      
-      .loading-spinner {
-        width: 48px;
-        height: 48px;
-        border-width: 2px;
-      }
-      
-      .loading-text {
-        font-size: 16px;
-      }
-      
-      .loading-subtext {
-        font-size: 12px;
-        max-width: 300px;
-        padding: 0 10px;
+      @media (max-width: 768px) {
+        html {
+          font-size: 14px;
+        }
+        
+        .loading-container {
+          padding: 20px;
+        }
+        
+        .loading-spinner {
+          width: 48px;
+          height: 48px;
+          border-width: 2px;
+        }
+        
+        .loading-text {
+          font-size: 16px;
+        }
+        
+        .loading-subtext {
+          font-size: 12px;
+          max-width: 300px;
+          padding: 0 10px;
+        }
       }
 
       /* Tablet and Desktop Media Queries */
-      @media (min-width: 768px) {
+      @media (min-width: 769px) {
         html {
           font-size: 16px;
         }
@@ -240,19 +246,52 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    <!-- Configuration Script - WORKING VERSION -->
+    <!-- Configuration Script with Multiple API Key Sources -->
     <script>
-      // Direct API key for production - this WILL work
-      window.NOVA_TITAN_API_KEY = 'effdb0775abef82ff5dd944ae2180cae';
+      // Multi-source API key configuration for maximum compatibility
       
-      // Debug logging
-      console.log('🔑 API Key Status:', {
-        keySet: !!window.NOVA_TITAN_API_KEY,
-        keyPrefix: window.NOVA_TITAN_API_KEY ? window.NOVA_TITAN_API_KEY.substring(0, 8) + '...' : 'undefined'
+      // 1. Try Netlify environment variable injection first
+      const netlifyInjected = '{{ NOVA_TITAN_API_KEY }}';
+      
+      // 2. Try window.env (if set by build process)
+      const buildEnv = (typeof window !== 'undefined' && window.env && window.env.NOVA_TITAN_API_KEY);
+      
+      // 3. Try process.env (if available)
+      const processEnv = (typeof process !== 'undefined' && process.env && process.env.NOVA_TITAN_API_KEY);
+      
+      // 4. Fallback to local development key
+      const fallbackKey = 'effdb0775abef82ff5dd944ae2180cae';
+      
+      // Priority order: Netlify > Build Env > Process Env > Fallback
+      let apiKey = fallbackKey;
+      
+      if (netlifyInjected && netlifyInjected !== '{{' + ' NOVA_TITAN_API_KEY ' + '}}') {
+        apiKey = netlifyInjected;
+        console.log('🔑 Using Netlify injected API key');
+      } else if (buildEnv) {
+        apiKey = buildEnv;
+        console.log('🔑 Using build environment API key');
+      } else if (processEnv) {
+        apiKey = processEnv;
+        console.log('🔑 Using process environment API key');
+      } else {
+        console.log('🔑 Using fallback API key for development');
+      }
+      
+      // Set the global API key
+      window.NOVA_TITAN_API_KEY = apiKey;
+      
+      // Debug logging for deployment troubleshooting
+      console.log('🔑 API Key Configuration:', {
+        netlifyAvailable: netlifyInjected !== '{{' + ' NOVA_TITAN_API_KEY ' + '}}',
+        buildEnvAvailable: !!buildEnv,
+        processEnvAvailable: !!processEnv,
+        finalKeyPrefix: window.NOVA_TITAN_API_KEY ? window.NOVA_TITAN_API_KEY.substring(0, 8) + '...' : 'undefined',
+        isValidKey: window.NOVA_TITAN_API_KEY && window.NOVA_TITAN_API_KEY !== 'your_api_key_here'
       });
     </script>
     
     <!-- Mobile Optimized React Bundle -->
-    <script type="module" crossorigin src="./assets/index-mobile-fixed.js"></script>
+    <script type="module" crossorigin src="./assets/index-production-fixed.js"></script>
   </body>
 </html>
