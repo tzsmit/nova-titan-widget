@@ -21,7 +21,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Core Styles -->
+    <!-- Core Styles - Mobile First -->
     <style>
       * {
         margin: 0;
@@ -43,6 +43,7 @@
         -moz-osx-font-smoothing: grayscale;
       }
       
+      /* Mobile optimizations */
       .loading-container {
         display: flex;
         flex-direction: column;
@@ -50,31 +51,34 @@
         justify-content: center;
         min-height: 100vh;
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        padding: 20px;
       }
       
       .loading-spinner {
-        width: 64px;
-        height: 64px;
-        border: 3px solid #374151;
-        border-top: 3px solid #3b82f6;
+        width: 48px;
+        height: 48px;
+        border: 2px solid #374151;
+        border-top: 2px solid #3b82f6;
         border-radius: 50%;
         animation: spin 1s linear infinite;
-        margin-bottom: 24px;
+        margin-bottom: 20px;
       }
       
       .loading-text {
         color: #9ca3af;
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 500;
         margin-bottom: 8px;
+        text-align: center;
       }
       
       .loading-subtext {
         color: #6b7280;
-        font-size: 14px;
+        font-size: 12px;
         text-align: center;
-        max-width: 400px;
-        line-height: 1.5;
+        max-width: 300px;
+        line-height: 1.4;
+        padding: 0 10px;
       }
       
       .error-container {
@@ -88,74 +92,40 @@
       }
       
       .error-icon {
-        font-size: 64px;
-        margin-bottom: 24px;
+        font-size: 48px;
+        margin-bottom: 20px;
       }
       
       .error-title {
         color: #ef4444;
-        font-size: 24px;
+        font-size: 20px;
         font-weight: 700;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
       }
       
       .error-message {
         color: #9ca3af;
-        font-size: 16px;
-        margin-bottom: 32px;
-        max-width: 500px;
-        line-height: 1.5;
+        font-size: 14px;
+        margin-bottom: 24px;
+        max-width: 400px;
+        line-height: 1.4;
       }
       
       .retry-button {
         background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
         color: white;
         border: none;
-        padding: 12px 24px;
+        padding: 12px 20px;
         border-radius: 8px;
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 600;
         cursor: pointer;
         transition: transform 0.2s ease;
+        min-width: 140px;
       }
       
       .retry-button:hover {
-        transform: translateY(-2px);
-      }
-      
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      
-      .fade-in {
-        animation: fadeIn 0.5s ease-in;
-      }
-      
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-
-      /* Mobile optimizations */
-      .loading-container {
-        padding: 20px;
-      }
-      
-      .loading-spinner {
-        width: 48px;
-        height: 48px;
-        border-width: 2px;
-      }
-      
-      .loading-text {
-        font-size: 16px;
-      }
-      
-      .loading-subtext {
-        font-size: 12px;
-        max-width: 300px;
-        padding: 0 10px;
+        transform: translateY(-1px);
       }
 
       /* Tablet and Desktop Media Queries */
@@ -179,6 +149,37 @@
           max-width: 400px;
           padding: 0;
         }
+        
+        .error-icon {
+          font-size: 64px;
+        }
+        
+        .error-title {
+          font-size: 24px;
+        }
+        
+        .error-message {
+          font-size: 16px;
+        }
+        
+        .retry-button {
+          font-size: 16px;
+          padding: 12px 24px;
+        }
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      .fade-in {
+        animation: fadeIn 0.5s ease-in;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
       }
 
       /* Safe area insets for devices with notches */
@@ -240,14 +241,10 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    <!-- Configuration Script (replace API key before deployment) -->
-    <script>
-      // REPLACE 'your_api_key_here' with your actual API key before deployment
-      // DO NOT commit your real API key to public repositories
-      window.NOVA_TITAN_API_KEY = 'your_api_key_here';
-    </script>
+    <!-- Load configuration from external file (NOT tracked in git) -->
+    <script src="./config.js"></script>
     
-    <!-- Mobile Optimized React Bundle -->
+    <!-- Production React Bundle -->
     <script type="module" crossorigin src="./assets/index-mobile-fixed.js"></script>
   </body>
 </html>
