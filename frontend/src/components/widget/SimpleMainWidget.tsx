@@ -12,9 +12,9 @@ import { SimpleNavigation } from './SimpleNavigation';
 import { SimpleGamesTab } from './tabs/SimpleGamesTab';
 import { SimplePredictionsTab } from './tabs/SimplePredictionsTab';
 import { NovaTitanEliteAIInsightsTab } from './tabs/NovaTitanEliteAIInsightsTab';
-import { NovaTitanEliteParlaysTab } from './tabs/NovaTitanEliteParlaysTab';
-import { NovaTitanEliteSettingsTab } from './tabs/NovaTitanEliteSettingsTab';
-import { NovaTitanElitePlayerPropsTab } from './tabs/NovaTitanElitePlayerPropsTab';
+import { SimpleParlaysTab } from './tabs/SimpleParlaysTab';
+import { SimpleSettingsTab } from './tabs/SimpleSettingsTab';
+import { SimplePlayerPropsTab } from './tabs/SimplePlayerPropsTab';
 import { LegalDisclaimer } from '../legal/LegalDisclaimer';
 import { TerminologyGuide } from '../ui/TerminologyGuide';
 import { CacheStatsIndicator } from '../ui/CacheStatsIndicator';
@@ -73,13 +73,13 @@ export const SimpleMainWidget: React.FC = () => {
       case 'predictions':
         return <SimplePredictionsTab />;
       case 'player-props':
-        return <NovaTitanElitePlayerPropsTab />;
+        return <SimplePlayerPropsTab />;
       case 'ai-insights':
         return <NovaTitanEliteAIInsightsTab />;
       case 'parlays':
-        return <NovaTitanEliteParlaysTab />;
+        return <SimpleParlaysTab />;
       case 'settings':
-        return <NovaTitanEliteSettingsTab />;
+        return <SimpleSettingsTab />;
       default:
         return <SimpleGamesTab />;
     }

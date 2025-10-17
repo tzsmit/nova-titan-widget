@@ -132,21 +132,21 @@ export const SimplePlayerPropsTab: React.FC = () => {
       ];
 
   return (
-    <div className="bg-slate-900 min-h-screen">
+    <div className="w-full max-w-screen-sm sm:max-w-screen-md mx-auto p-2 sm:p-4 flex flex-col gap-4">
       {/* Simple Header */}
-      <div className="bg-slate-800 border-b border-slate-700 p-4">
-        <h1 className="text-xl font-bold text-white">Player Props</h1>
+      <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-3 sm:p-4">
+        <h1 className="text-lg sm:text-xl font-bold text-white">Player Props</h1>
       </div>
 
       {/* Simple Filters */}
-      <div className="bg-slate-800 border-b border-slate-700 p-4">
-        <div className="flex items-center gap-4">
-          <div>
+      <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <div className="flex-1">
             <label className="text-sm text-slate-300 mb-1 block">Sport</label>
             <select 
               value={selectedSport}
               onChange={(e) => setSelectedSport(e.target.value)}
-              className="bg-slate-700 text-white border border-slate-600 rounded px-3 py-1 text-sm"
+              className="w-full bg-slate-700 text-white border border-slate-600 rounded px-3 py-2 text-sm box-border"
             >
               <option value="nfl">🏈 NFL</option>
               <option value="nba">🏀 NBA</option>
@@ -154,12 +154,12 @@ export const SimplePlayerPropsTab: React.FC = () => {
             </select>
           </div>
           
-          <div>
+          <div className="flex-1">
             <label className="text-sm text-slate-300 mb-1 block">Prop Type</label>
             <select 
               value={selectedPropType}
               onChange={(e) => setSelectedPropType(e.target.value)}
-              className="bg-slate-700 text-white border border-slate-600 rounded px-3 py-1 text-sm"
+              className="w-full bg-slate-700 text-white border border-slate-600 rounded px-3 py-2 text-sm box-border"
             >
               {propTypes.map(type => (
                 <option key={type.value} value={type.value}>
@@ -172,21 +172,21 @@ export const SimplePlayerPropsTab: React.FC = () => {
       </div>
 
       {/* Props List */}
-      <div className="p-4">
+      <div className="w-full">
         {filteredProps.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-slate-400 text-lg">No props available</div>
+          <div className="text-center py-8 sm:py-12">
+            <div className="text-slate-400 text-base sm:text-lg">No props available</div>
             <div className="text-slate-500 text-sm mt-2">Try selecting different filters</div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 overflow-y-auto max-h-[60vh] sm:max-h-[70vh] w-full">
             {filteredProps.map((prop, index) => (
               <motion.div
                 key={prop.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-slate-800 rounded-lg border border-slate-700 p-6 hover:border-blue-500 transition-colors"
+                className="bg-slate-800/50 border border-slate-700 rounded-xl p-3 sm:p-4 hover:border-blue-500 transition-colors"
               >
                 {/* Player Header */}
                 <div className="flex items-center justify-between mb-4">
@@ -252,8 +252,8 @@ export const SimplePlayerPropsTab: React.FC = () => {
       </div>
 
       {/* Simple Footer */}
-      <div className="text-center p-4 border-t border-slate-700">
-        <div className="text-slate-500 text-sm">
+      <div className="text-center p-3 sm:p-4 border-t border-slate-700 mt-4">
+        <div className="text-slate-500 text-xs sm:text-sm">
           Player Props by{' '}
           <a 
             href="https://novatitan.net/" 
