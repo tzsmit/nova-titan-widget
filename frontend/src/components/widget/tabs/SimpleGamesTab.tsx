@@ -262,7 +262,7 @@ export const SimpleGamesTab: React.FC = () => {
   };
 
   return (
-    <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto">
+    <div className="w-full max-w-screen-sm sm:max-w-screen-md mx-auto p-2 sm:p-4 flex flex-col gap-4">
       {/* Enhanced Controls - Mobile Optimized */}
       <div className="mb-4 md:mb-6 space-y-3 md:space-y-4">
         {/* Date Selector and Search Bar - Mobile First */}
@@ -346,7 +346,7 @@ export const SimpleGamesTab: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:ml-auto gap-2 sm:gap-3">
             <button
               onClick={() => setShowLegend(true)}
-              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm box-border"
             >
               <BookOpen className="h-4 w-4" />
               <span className="hidden sm:inline">Guide</span>
@@ -355,7 +355,7 @@ export const SimpleGamesTab: React.FC = () => {
             <button
               onClick={() => refetch()}
               disabled={isLoading}
-              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 text-sm"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 text-sm box-border"
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
@@ -410,7 +410,7 @@ export const SimpleGamesTab: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="grid gap-4"
+            className="w-full flex flex-col gap-3 sm:gap-5 overflow-y-auto max-h-[60vh] sm:max-h-[70vh] p-2 sm:p-4"
           >
             {games.map((game: ProcessedGame, index: number) => (
               <motion.div
@@ -418,7 +418,7 @@ export const SimpleGamesTab: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-slate-800/50 border border-slate-600 rounded-xl overflow-hidden hover:border-slate-500 transition-all"
+                className="w-full flex flex-col sm:flex-row gap-2 sm:gap-4 p-2 sm:p-3 rounded-lg bg-card shadow-md overflow-hidden bg-slate-800/50 border border-slate-600 hover:border-slate-500 transition-all"
               >
                 {/* Game Header - Mobile Optimized */}
                 <div className="bg-slate-900/50 px-3 sm:px-6 py-3 sm:py-4 border-b border-slate-700">

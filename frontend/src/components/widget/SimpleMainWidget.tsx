@@ -113,33 +113,39 @@ export const SimpleMainWidget: React.FC = () => {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        {/* Simplified Header */}
-        <SimpleHeader onRefresh={() => refetch()} />
+        {/* Mobile-optimized main container */}
+        <div className="w-full max-w-screen-sm sm:max-w-screen-md mx-auto flex flex-col gap-0 overflow-hidden">
+          
+          {/* Simplified Header */}
+          <SimpleHeader onRefresh={() => refetch()} />
 
-        {/* Simplified Navigation */}
-        <SimpleNavigation />
+          {/* Simplified Navigation */}
+          <SimpleNavigation />
 
-        {/* Main Content */}
-        <div className="relative">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={selectedTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              {renderTabContent()}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Footer */}
-        {config.showDisclaimers && (
-          <div className="border-t border-slate-700 bg-slate-800/50">
-            <LegalDisclaimer />
+          {/* Main Content - Mobile responsive */}
+          <div className="relative w-full overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selectedTab}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="w-full"
+              >
+                {renderTabContent()}
+              </motion.div>
+            </AnimatePresence>
           </div>
-        )}
+
+          {/* Footer - Mobile responsive */}
+          {config.showDisclaimers && (
+            <div className="border-t border-slate-700 bg-slate-800/50 w-full">
+              <LegalDisclaimer />
+            </div>
+          )}
+
+        </div>
 
         {/* Terminology Guide */}
         <TerminologyGuide 
