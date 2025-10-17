@@ -112,18 +112,22 @@ export const SimpleMainWidget: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        {/* Mobile-optimized main container */}
-        <div className="w-full max-w-screen-sm sm:max-w-screen-md mx-auto flex flex-col gap-0 overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 prevent-horizontal-scroll">
+        {/* Mobile-optimized main container with proper viewport management */}
+        <div className="w-full max-w-screen-sm sm:max-w-screen-md mx-auto flex flex-col min-h-screen mobile-safe-area">
           
-          {/* Simplified Header */}
-          <SimpleHeader onRefresh={() => refetch()} />
+          {/* Simplified Header - Fixed height */}
+          <div className="flex-shrink-0">
+            <SimpleHeader onRefresh={() => refetch()} />
+          </div>
 
-          {/* Simplified Navigation */}
-          <SimpleNavigation />
+          {/* Simplified Navigation - Fixed height */}
+          <div className="flex-shrink-0">
+            <SimpleNavigation />
+          </div>
 
-          {/* Main Content - Mobile responsive */}
-          <div className="relative w-full overflow-hidden">
+          {/* Main Content - Flexible with proper scrolling */}
+          <div className="flex-1 relative w-full mobile-scrollable flex-child-fix">
             <AnimatePresence mode="wait">
               <motion.div
                 key={selectedTab}
@@ -131,16 +135,16 @@ export const SimpleMainWidget: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="w-full"
+                className="w-full h-full"
               >
                 {renderTabContent()}
               </motion.div>
             </AnimatePresence>
           </div>
 
-          {/* Footer - Mobile responsive */}
+          {/* Footer - Mobile responsive, fixed to bottom */}
           {config.showDisclaimers && (
-            <div className="border-t border-slate-700 bg-slate-800/50 w-full">
+            <div className="flex-shrink-0 border-t border-slate-700 bg-slate-800/50 w-full">
               <LegalDisclaimer />
             </div>
           )}

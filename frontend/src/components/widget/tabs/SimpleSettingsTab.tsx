@@ -43,7 +43,7 @@ export const SimpleSettingsTab: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-screen-sm sm:max-w-screen-md mx-auto p-2 sm:p-4 flex flex-col gap-4">
+    <div className="w-full max-w-screen-sm sm:max-w-screen-md mx-auto p-2 sm:p-4 flex flex-col gap-4 h-full overflow-hidden">
       {/* Simple Header */}
       <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-3 sm:p-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

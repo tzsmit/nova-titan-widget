@@ -65,29 +65,70 @@ export const NovaTitanEliteAIInsightsTab: React.FC = () => {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Toggle filter function
+  // Enhanced toggle filter function with debugging
   const toggleFilter = (filterType: string) => {
+    console.log(`🎛️ Toggling filter: ${filterType}`);
     setActiveFilters(prev => {
       const newFilters = new Set(prev);
-      if (newFilters.has(filterType)) {
+      const wasActive = newFilters.has(filterType);
+      
+      if (wasActive) {
         newFilters.delete(filterType);
+        console.log(`➖ Removed filter: ${filterType}. Active filters:`, Array.from(newFilters));
       } else {
         newFilters.add(filterType);
+        console.log(`➕ Added filter: ${filterType}. Active filters:`, Array.from(newFilters));
       }
+      
       return newFilters;
     });
   };
 
-  // Filter recommendations based on active filters
+  // Enhanced filter system with debugging
   const getFilteredRecommendations = (recommendations: AIRecommendation[]) => {
-    if (activeFilters.size === 0) return recommendations;
+    console.log(`🔍 Filtering ${recommendations.length} recommendations with filters:`, Array.from(activeFilters));
     
-    return recommendations.filter(rec => {
-      if (activeFilters.has('active') && !rec.id) return false;
-      if (activeFilters.has('value') && rec.type !== 'value_bet') return false;
-      if (activeFilters.has('confidence') && rec.confidence < 85) return false;
-      return true;
+    if (activeFilters.size === 0) {
+      console.log('✅ No filters active, returning all recommendations');
+      return recommendations;
+    }
+    
+    const filtered = recommendations.filter(rec => {
+      let shouldInclude = true;
+      
+      // Active bets filter (has valid ID)
+      if (activeFilters.has('active') && !rec.id) {
+        console.log(`❌ Filtered out ${rec.game}: No ID (active filter)`);
+        shouldInclude = false;
+      }
+      
+      // Value bets only
+      if (activeFilters.has('value') && rec.type !== 'value_bet') {
+        console.log(`❌ Filtered out ${rec.game}: Not value bet (${rec.type})`);
+        shouldInclude = false;
+      }
+      
+      // High confidence only (85%+)
+      if (activeFilters.has('confidence') && rec.confidence < 85) {
+        console.log(`❌ Filtered out ${rec.game}: Low confidence (${rec.confidence}%)`);
+        shouldInclude = false;
+      }
+      
+      // High priority only
+      if (activeFilters.has('priority') && rec.priority !== 'high') {
+        console.log(`❌ Filtered out ${rec.game}: Not high priority (${rec.priority})`);
+        shouldInclude = false;
+      }
+      
+      if (shouldInclude) {
+        console.log(`✅ Included ${rec.game}: Passes all active filters`);
+      }
+      
+      return shouldInclude;
     });
+    
+    console.log(`🎯 Filter results: ${filtered.length}/${recommendations.length} recommendations match criteria`);
+    return filtered;
   };
 
   // Fetch AI recommendations and market intelligence

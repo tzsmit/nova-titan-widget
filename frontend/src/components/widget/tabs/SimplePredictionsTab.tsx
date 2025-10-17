@@ -33,8 +33,13 @@ const SPORTS = [
 
 export const SimplePredictionsTab: React.FC = () => {
   const [selectedSport, setSelectedSport] = useState('all');
-  const [minConfidence, setMinConfidence] = useState(30); // Much lower threshold for more results
+  const [minConfidence, setMinConfidence] = useState(60); // Reasonable starting threshold
   const [showLegend, setShowLegend] = useState(false);
+  
+  // Enhanced filter state debugging
+  React.useEffect(() => {
+    console.log(`🎛️ Predictions filters updated - Sport: ${selectedSport}, Min Confidence: ${minConfidence}%`);
+  }, [selectedSport, minConfidence]);
 
   // Fetch AI predictions
   const { data: predictions = [], isLoading, error, refetch } = useQuery({
@@ -86,11 +91,15 @@ export const SimplePredictionsTab: React.FC = () => {
               );
             }
             
-            // Confidence filter with safe access
+            // Enhanced confidence filter with debugging
             const confidence = pred.predictions?.moneyline?.confidence || 
                               pred.confidence ||
                               75; // Default confidence if missing
-            const confidenceMatch = minConfidence <= 30 ? true : confidence >= minConfidence;
+            const confidenceMatch = confidence >= minConfidence;
+            
+            if (!confidenceMatch) {
+              console.log(`🎯 Filtered out prediction: ${pred.awayTeam || 'Unknown'} vs ${pred.homeTeam || 'Unknown'} (confidence: ${confidence}% < ${minConfidence}%)`);
+            }
             
             return sportMatch && confidenceMatch;
           })
@@ -133,7 +142,7 @@ export const SimplePredictionsTab: React.FC = () => {
   }
 
   return (
-    <div className="w-full max-w-screen-sm sm:max-w-screen-md mx-auto p-2 sm:p-4 flex flex-col gap-4">
+    <div className="w-full max-w-screen-sm sm:max-w-screen-md mx-auto p-2 sm:p-4 flex flex-col gap-4 h-full overflow-hidden">
       {/* Header */}
       <div className="mb-4 sm:mb-6 text-center">
         <div className="flex items-center justify-center gap-3 mb-2">
