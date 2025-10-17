@@ -415,10 +415,10 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="w-full max-w-screen-sm sm:max-w-screen-md mx-auto p-2 sm:p-4 flex flex-col gap-4 min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Elite Header */}
       <motion.div 
-        className="bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 border-b border-slate-700 shadow-2xl"
+        className="bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 border-b border-slate-700 shadow-2xl rounded-xl"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
@@ -459,10 +459,10 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Elite Controls */}
-      <div className="p-6">
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 shadow-xl p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      {/* Elite Controls - Mobile First */}
+      <div className="w-full p-2 sm:p-6">
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 shadow-xl p-3 sm:p-6 mb-4 sm:mb-6">
+          <div className="flex flex-col gap-3 sm:grid sm:grid-cols-1 md:grid-cols-5 sm:gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-200 mb-2">Sport</label>
               <select 
@@ -525,10 +525,10 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
               </select>
             </div>
 
-            <div className="flex items-end gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-2 w-full">
               <button
                 onClick={() => setShowBuilder(!showBuilder)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm box-border ${
                   showBuilder 
                     ? 'bg-green-600 hover:bg-green-700 text-white' 
                     : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
@@ -539,7 +539,7 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
               </button>
               <button
                 onClick={() => setShowLegend(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm box-border"
               >
                 <BookOpen className="h-4 w-4" />
                 Guide
@@ -547,7 +547,7 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
               <button
                 onClick={() => refetch()}
                 disabled={isLoading}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg transition-all"
+                className="w-full sm:flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg transition-all text-sm box-border"
               >
                 <RefreshCw className={`h-4 w-4 inline mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                 Refresh
@@ -577,7 +577,7 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
           </div>
         </div>
 
-        {/* Player Props Grid */}
+        {/* Player Props Grid - Mobile Optimized */}
         {error ? (
           <div className="bg-red-900/20 border border-red-700 rounded-xl p-6 text-center">
             <h3 className="text-red-400 font-semibold mb-2">Error Loading Props</h3>
@@ -593,7 +593,7 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
           </div>
         ) : (
           <motion.div 
-            className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"
+            className="flex flex-col gap-3 sm:gap-5 overflow-y-auto max-h-[60vh] sm:max-h-[70vh] p-2 sm:p-4 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -757,12 +757,18 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
           </motion.div>
         )}
 
-        {/* Trigger element for IntersectionObserver */}
+        {/* Trigger element for IntersectionObserver - Player Props Scroll Animation */}
         <div ref={builderTriggerRef} className="h-1" />
 
-        {/* Props Builder Panel - Shows when intersecting or manually opened */}
+        {/* Props Builder Panel - Scroll-triggered animation like Parlays */}
         {(showBuilder || builderVisible) && (
-          <div className="mt-6 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 shadow-xl p-6">
+          <motion.div
+            className="mt-6 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 shadow-xl p-3 sm:p-6 w-full opacity-0 translate-y-4"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 16 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
                 <Target className="h-5 w-5 text-purple-400" />
@@ -779,7 +785,7 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
               )}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 sm:gap-6 w-full">
               {/* Selected Bets */}
               <div className="lg:col-span-2">
                 <div className="space-y-3">
@@ -877,7 +883,7 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
                 )}
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {filteredProps.length === 0 && !isLoading && !error && (

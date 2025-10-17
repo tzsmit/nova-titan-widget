@@ -116,6 +116,16 @@
   .flex-child-fix {
     @apply min-h-0;
   }
+
+  /* Scrollbar hide utility */
+  .scrollbar-hide {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* WebKit */
+  }
 }
 
 @layer utilities {
@@ -127,6 +137,12 @@
   /* Text utilities */
   .text-gradient {
     @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+  }
+
+  /* Mobile responsive fixes */
+  button, input, select {
+    width: 100%;
+    box-sizing: border-box;
   }
 
   @keyframes fadeIn {

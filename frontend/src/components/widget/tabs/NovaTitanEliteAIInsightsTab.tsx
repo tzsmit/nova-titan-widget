@@ -349,7 +349,7 @@ export const NovaTitanEliteAIInsightsTab: React.FC = () => {
               <button
                 onClick={() => refetch()}
                 disabled={isLoading}
-                className="px-6 py-3 bg-blue-700 hover:bg-blue-600 disabled:bg-slate-600 text-white rounded-lg font-bold text-sm transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg border border-blue-600"
+                className="fixed bottom-4 right-4 sm:relative sm:bottom-auto sm:right-auto py-2 px-4 bg-blue-700 hover:bg-blue-600 disabled:bg-slate-600 text-white rounded-lg shadow-md hover:bg-accent-dark z-50 font-bold text-sm transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 border border-blue-600"
               >
                 <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                 <span>{isLoading ? 'Analyzing...' : 'Refresh AI'}</span>
@@ -488,68 +488,68 @@ export const NovaTitanEliteAIInsightsTab: React.FC = () => {
         )}
 
         {/* Elite Analytics Stats - Now Clickable Filters */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 w-full">
           <button
             onClick={() => toggleFilter('active')}
-            className={`bg-gradient-to-br from-emerald-800/40 to-emerald-900/40 border-2 rounded-xl p-6 text-center shadow-2xl backdrop-blur-sm transition-all duration-300 hover:scale-105 ${
+            className={`w-full py-2 px-2 rounded-lg transition-all duration-300 hover:scale-105 text-xs sm:text-sm truncate ${
               activeFilters.has('active') 
-                ? 'border-emerald-400 ring-2 ring-emerald-400/50' 
-                : 'border-emerald-600/30 hover:border-emerald-500/50'
+                ? 'bg-emerald-600 text-white border-emerald-400 ring-2 ring-emerald-400/50' 
+                : 'bg-emerald-800/40 text-emerald-300 hover:bg-emerald-700/50 border border-emerald-600/30'
             }`}
           >
-            <div className="text-3xl font-black text-emerald-200 mb-2">{aiInsights?.recommendations?.length || 0}</div>
-            <div className="text-sm font-bold text-emerald-300 mb-2">Active Insights</div>
-            <Brain className="w-5 h-5 text-emerald-400 mx-auto" />
+            <div className="text-lg sm:text-2xl font-black mb-1">{aiInsights?.recommendations?.length || 0}</div>
+            <div className="text-xs font-bold mb-1">Active Insights</div>
+            <Brain className="w-3 h-3 sm:w-4 sm:h-4 mx-auto" />
             {activeFilters.has('active') && (
-              <div className="mt-2 text-xs text-emerald-300 font-bold">✓ FILTERED</div>
+              <div className="mt-1 text-xs font-bold">✓ FILTERED</div>
             )}
           </button>
           
           <button
             onClick={() => toggleFilter('value')}
-            className={`bg-gradient-to-br from-blue-800/40 to-blue-900/40 border-2 rounded-xl p-6 text-center shadow-2xl backdrop-blur-sm transition-all duration-300 hover:scale-105 ${
+            className={`w-full py-2 px-2 rounded-lg transition-all duration-300 hover:scale-105 text-xs sm:text-sm truncate ${
               activeFilters.has('value') 
-                ? 'border-blue-400 ring-2 ring-blue-400/50' 
-                : 'border-blue-600/30 hover:border-blue-500/50'
+                ? 'bg-blue-600 text-white border-blue-400 ring-2 ring-blue-400/50' 
+                : 'bg-blue-800/40 text-blue-300 hover:bg-blue-700/50 border border-blue-600/30'
             }`}
           >
-            <div className="text-3xl font-black text-blue-200 mb-2">
+            <div className="text-lg sm:text-2xl font-black mb-1">
               {aiInsights?.recommendations?.filter(r => r.type === 'value_bet').length || 0}
             </div>
-            <div className="text-sm font-bold text-blue-300 mb-2">Value Bets</div>
-            <Target className="w-5 h-5 text-blue-400 mx-auto" />
+            <div className="text-xs font-bold mb-1">Value Bets</div>
+            <Target className="w-3 h-3 sm:w-4 sm:h-4 mx-auto" />
             {activeFilters.has('value') && (
-              <div className="mt-2 text-xs text-blue-300 font-bold">✓ FILTERED</div>
+              <div className="mt-1 text-xs font-bold">✓ FILTERED</div>
             )}
           </button>
           
           <button
             onClick={() => toggleFilter('confidence')}
-            className={`bg-gradient-to-br from-purple-800/40 to-purple-900/40 border-2 rounded-xl p-6 text-center shadow-2xl backdrop-blur-sm transition-all duration-300 hover:scale-105 ${
+            className={`w-full py-2 px-2 rounded-lg transition-all duration-300 hover:scale-105 text-xs sm:text-sm truncate ${
               activeFilters.has('confidence') 
-                ? 'border-purple-400 ring-2 ring-purple-400/50' 
-                : 'border-purple-600/30 hover:border-purple-500/50'
+                ? 'bg-purple-600 text-white border-purple-400 ring-2 ring-purple-400/50' 
+                : 'bg-purple-800/40 text-purple-300 hover:bg-purple-700/50 border border-purple-600/30'
             }`}
           >
-            <div className="text-3xl font-black text-purple-200 mb-2">
+            <div className="text-lg sm:text-2xl font-black mb-1">
               {aiInsights?.recommendations?.filter(r => r.confidence >= 85).length || 0}
             </div>
-            <div className="text-sm font-bold text-purple-300 mb-2">High Confidence</div>
-            <Award className="w-5 h-5 text-purple-400 mx-auto" />
+            <div className="text-xs font-bold mb-1">High Confidence</div>
+            <Award className="w-3 h-3 sm:w-4 sm:h-4 mx-auto" />
             {activeFilters.has('confidence') && (
-              <div className="mt-2 text-xs text-purple-300 font-bold">✓ FILTERED</div>
+              <div className="mt-1 text-xs font-bold">✓ FILTERED</div>
             )}
           </button>
           
-          <div className="bg-gradient-to-br from-yellow-800/40 to-yellow-900/40 border-2 border-yellow-600/30 rounded-xl p-6 text-center shadow-2xl backdrop-blur-sm">
-            <div className="text-3xl font-black text-yellow-200 mb-2">
+          <div className="w-full py-2 px-2 rounded-lg bg-yellow-800/40 text-yellow-300 border border-yellow-600/30">
+            <div className="text-lg sm:text-2xl font-black mb-1">
               {Math.round(
                 (aiInsights?.recommendations?.reduce((sum, r) => sum + r.expectedValue, 0) || 0) / 
                 Math.max(aiInsights?.recommendations?.length || 1, 1)
               )}%
             </div>
-            <div className="text-sm font-bold text-yellow-300 mb-2">Avg Expected Value</div>
-            <TrendingUp className="w-5 h-5 text-yellow-400 mx-auto" />
+            <div className="text-xs font-bold mb-1">Avg Expected Value</div>
+            <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 mx-auto" />
           </div>
         </div>
 
