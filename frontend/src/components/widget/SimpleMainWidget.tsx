@@ -11,10 +11,11 @@ import { SimpleHeader } from './SimpleHeader';
 import { SimpleNavigation } from './SimpleNavigation';
 import { SimpleGamesTab } from './tabs/SimpleGamesTab';
 import { SimplePredictionsTab } from './tabs/SimplePredictionsTab';
-import { NovaTitanEliteAIInsightsTab } from './tabs/NovaTitanEliteAIInsightsTab';
 import { SimpleParlaysTab } from './tabs/SimpleParlaysTab';
-import { SimpleSettingsTab } from './tabs/SimpleSettingsTab';
 import { SimplePlayerPropsTab } from './tabs/SimplePlayerPropsTab';
+import { SimpleSettingsTab } from './tabs/SimpleSettingsTab';
+// AI Insights tab will use enhanced predictions for now
+import { SimplePredictionsTab as SimpleAIInsightsTab } from './tabs/SimplePredictionsTab';
 import { LegalDisclaimer } from '../legal/LegalDisclaimer';
 import { TerminologyGuide } from '../ui/TerminologyGuide';
 import { CacheStatsIndicator } from '../ui/CacheStatsIndicator';
@@ -75,7 +76,7 @@ export const SimpleMainWidget: React.FC = () => {
       case 'player-props':
         return <SimplePlayerPropsTab />;
       case 'ai-insights':
-        return <NovaTitanEliteAIInsightsTab />;
+        return <SimpleAIInsightsTab />;
       case 'parlays':
         return <SimpleParlaysTab />;
       case 'settings':
@@ -112,44 +113,40 @@ export const SimpleMainWidget: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 prevent-horizontal-scroll">
-        {/* Mobile-optimized main container with proper viewport management */}
-        <div className="w-full max-w-screen-sm sm:max-w-screen-md mx-auto flex flex-col min-h-screen mobile-safe-area">
-          
-          {/* Simplified Header - Fixed height */}
-          <div className="flex-shrink-0">
-            <SimpleHeader onRefresh={() => refetch()} />
-          </div>
-
-          {/* Simplified Navigation - Fixed height */}
-          <div className="flex-shrink-0">
-            <SimpleNavigation />
-          </div>
-
-          {/* Main Content - Flexible with proper scrolling */}
-          <div className="flex-1 relative w-full mobile-scrollable flex-child-fix">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={selectedTab}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="w-full h-full"
-              >
-                {renderTabContent()}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          {/* Footer - Mobile responsive, fixed to bottom */}
-          {config.showDisclaimers && (
-            <div className="flex-shrink-0 border-t border-slate-700 bg-slate-800/50 w-full">
-              <LegalDisclaimer />
-            </div>
-          )}
-
+      {/* Mobile-first responsive container with proper flex layout */}
+      <div className="w-full max-w-screen-sm sm:max-w-screen-md mx-auto flex flex-col min-h-screen mobile-safe-area bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        {/* Simplified Header - Fixed height */}
+        <div className="flex-shrink-0">
+          <SimpleHeader onRefresh={() => refetch()} />
         </div>
+
+        {/* Simplified Navigation - Fixed height */}
+        <div className="flex-shrink-0">
+          <SimpleNavigation />
+        </div>
+
+        {/* Main Content - Flexible height with scroll */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={selectedTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="flex-1 overflow-hidden"
+            >
+              {renderTabContent()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Footer - Fixed height */}
+        {config.showDisclaimers && (
+          <div className="flex-shrink-0 border-t border-slate-700 bg-slate-800/50">
+            <LegalDisclaimer />
+          </div>
+        )}
 
         {/* Terminology Guide */}
         <TerminologyGuide 

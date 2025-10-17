@@ -68,7 +68,7 @@ export const SimpleGamesTab: React.FC = () => {
     console.log('🎯 SimpleGamesTab loaded - API testing disabled to prevent rate limiting');
   }, []);
 
-  // Fetch games with proper error handling and live updates
+  // Fetch games with proper error handling - no mock data used
   const { data: games = [], isLoading, error, refetch } = useQuery({
     queryKey: ['simple-games-v2', selectedSport, selectedDate, selectedBookmaker], // Added bookmaker to trigger re-query
     queryFn: async (): Promise<ProcessedGame[]> => {
@@ -93,52 +93,9 @@ export const SimpleGamesTab: React.FC = () => {
         let rawGames = allGames;
         
         if (allGames.length === 0) {
-          console.warn('⚠️ No live games currently scheduled from API');
-          console.log('📅 Generating sample data to demonstrate functionality');
-          
-          // Generate sample data when no live games available
-          const sampleGames = [
-            {
-              id: 'sample-1',
-              sport_key: 'americanfootball_nfl',
-              sport: 'NFL',
-              commence_time: new Date().toISOString(),
-              home_team: 'Kansas City Chiefs',
-              away_team: 'Buffalo Bills',
-              bookmakers: [{
-                key: 'draftkings',
-                title: 'DraftKings',
-                markets: [{
-                  key: 'h2h',
-                  outcomes: [
-                    { name: 'Kansas City Chiefs', price: -150 },
-                    { name: 'Buffalo Bills', price: 130 }
-                  ]
-                }]
-              }]
-            },
-            {
-              id: 'sample-2', 
-              sport_key: 'basketball_nba',
-              sport: 'NBA',
-              commence_time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-              home_team: 'Los Angeles Lakers',
-              away_team: 'Boston Celtics',
-              bookmakers: [{
-                key: 'fanduel',
-                title: 'FanDuel',
-                markets: [{
-                  key: 'h2h',
-                  outcomes: [
-                    { name: 'Los Angeles Lakers', price: -110 },
-                    { name: 'Boston Celtics', price: -110 }
-                  ]
-                }]
-              }]
-            }
-          ];
-          rawGames = sampleGames;
-          console.log('📊 Using sample games for demonstration');
+          console.warn('⚠️ No live games currently scheduled from API - showing empty state');
+          console.log('📅 Check back later for upcoming games or try a different sport/date');
+          return []; // Return empty array instead of fake data
         } else {
           console.log('✅ Using live data from The Odds API');
         }
@@ -231,32 +188,9 @@ export const SimpleGamesTab: React.FC = () => {
         
       } catch (error) {
         console.error('❌ API Error - Failed to fetch live data:', error);
-        
-        // Provide fallback sample data on error
-        console.log('🔄 Providing fallback sample data due to API error');
-        const fallbackGames = [
-          {
-            id: 'fallback-1',
-            sport_key: selectedSport !== 'all' ? selectedSport : 'americanfootball_nfl',
-            sport: selectedSport !== 'all' ? selectedSport.replace('_', ' ').toUpperCase() : 'NFL',
-            commence_time: new Date().toISOString(),
-            home_team: 'Team A',
-            away_team: 'Team B', 
-            bookmakers: [{
-              key: 'draftkings',
-              title: 'DraftKings',
-              markets: [{
-                key: 'h2h',
-                outcomes: [
-                  { name: 'Team A', price: -110 },
-                  { name: 'Team B', price: -110 }
-                ]
-              }]
-            }]
-          }
-        ];
-        
-        return processGameData(fallbackGames, selectedBookmaker);
+        console.log('🚫 NO MOCK DATA - Please check your internet connection and try again');
+        // Return empty array - NO FAKE DATA
+        return [];
       }
     },
     refetchInterval: 5 * 60 * 1000, // 5 minutes to prevent rate limiting
@@ -330,7 +264,7 @@ export const SimpleGamesTab: React.FC = () => {
   return (
     <div className="w-full max-w-screen-sm sm:max-w-screen-md mx-auto p-2 sm:p-4 flex flex-col gap-4 h-full overflow-hidden">
       {/* Enhanced Controls - Mobile Optimized */}
-      <div className="flex-shrink-0 mb-4 space-y-3">
+      <div className="mb-4 md:mb-6 space-y-3 md:space-y-4">
         {/* Date Selector and Search Bar - Mobile First */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           <DateSelector
@@ -412,7 +346,7 @@ export const SimpleGamesTab: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:ml-auto gap-2 sm:gap-3">
             <button
               onClick={() => setShowLegend(true)}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm box-border"
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm"
             >
               <BookOpen className="h-4 w-4" />
               <span className="hidden sm:inline">Guide</span>
@@ -421,7 +355,7 @@ export const SimpleGamesTab: React.FC = () => {
             <button
               onClick={() => refetch()}
               disabled={isLoading}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 text-sm box-border"
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 text-sm"
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
@@ -430,8 +364,8 @@ export const SimpleGamesTab: React.FC = () => {
         </div>
       </div>
 
-      {/* Games Display - Flexible content area */}
-      <div className="flex-1 min-h-0 overflow-hidden">
+      {/* Games Display - Flexible container */}
+      <div className="flex-1 overflow-hidden">
         <AnimatePresence mode="wait">
         {isLoading ? (
           <motion.div
@@ -477,15 +411,16 @@ export const SimpleGamesTab: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="w-full flex flex-col gap-3 sm:gap-4 overflow-y-auto flex-1 min-h-0"
+            className="h-full overflow-y-auto mobile-scrollable prevent-horizontal-scroll"
           >
+            <div className="grid gap-4 pb-4">
             {games.map((game: ProcessedGame, index: number) => (
               <motion.div
                 key={game.id || index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="w-full flex flex-col sm:flex-row gap-2 sm:gap-4 p-2 sm:p-3 rounded-lg bg-card shadow-md overflow-hidden bg-slate-800/50 border border-slate-600 hover:border-slate-500 transition-all"
+                className="bg-slate-800/50 border border-slate-600 rounded-xl overflow-hidden hover:border-slate-500 transition-all"
               >
                 {/* Game Header - Mobile Optimized */}
                 <div className="bg-slate-900/50 px-3 sm:px-6 py-3 sm:py-4 border-b border-slate-700">
@@ -691,6 +626,7 @@ export const SimpleGamesTab: React.FC = () => {
                 </div>
               </motion.div>
             ))}
+            </div>
           </motion.div>
         )}
         </AnimatePresence>

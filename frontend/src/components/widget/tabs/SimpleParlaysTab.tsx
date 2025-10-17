@@ -98,17 +98,17 @@ export const SimpleParlaysTab: React.FC = () => {
   return (
     <div className="w-full max-w-screen-sm sm:max-w-screen-md mx-auto p-2 sm:p-4 flex flex-col gap-4 h-full overflow-hidden">
       {/* Simple Header */}
-      <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-3 sm:p-4">
-        <h1 className="text-lg sm:text-xl font-bold text-white">Build Parlay</h1>
+      <div className="flex-shrink-0 bg-slate-800 border-b border-slate-700 p-4 rounded-lg">
+        <h1 className="text-xl font-bold text-white">Build Parlay</h1>
       </div>
 
-      <div className="w-full">
-        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4 sm:gap-6 w-full">
+      <div className="flex-1 overflow-y-auto mobile-scrollable prevent-horizontal-scroll p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
           {/* Available Bets */}
-          <div className="w-full">
-            <h2 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Available Bets</h2>
-            <div className="space-y-3 max-h-[40vh] sm:max-h-[50vh] overflow-y-auto">
+          <div>
+            <h2 className="text-lg font-semibold text-white mb-4">Available Bets</h2>
+            <div className="space-y-3">
               {availableBets.map((bet) => (
                 <motion.div
                   key={bet.id}
@@ -140,8 +140,8 @@ export const SimpleParlaysTab: React.FC = () => {
           </div>
 
           {/* Parlay Builder */}
-          <div className="w-full">
-            <h2 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Your Parlay</h2>
+          <div>
+            <h2 className="text-lg font-semibold text-white mb-4">Your Parlay</h2>
             
             <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
               {/* Parlay Legs */}
@@ -267,8 +267,8 @@ export const SimpleParlaysTab: React.FC = () => {
       </div>
 
       {/* Simple Footer */}
-      <div className="text-center p-3 sm:p-4 border-t border-slate-700 mt-4">
-        <div className="text-slate-500 text-xs sm:text-sm">
+      <div className="text-center p-4 border-t border-slate-700">
+        <div className="text-slate-500 text-sm">
           Parlay Builder by{' '}
           <a 
             href="https://novatitan.net/" 

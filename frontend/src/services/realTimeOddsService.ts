@@ -217,6 +217,8 @@ class RealTimeOddsService {
     }
   ];
 
+  private cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+
   /**
    * Get live odds for all games from all sportsbooks
    */
