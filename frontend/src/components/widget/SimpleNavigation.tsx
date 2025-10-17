@@ -19,6 +19,11 @@ const TABS = [
     icon: '🤖'
   },
   {
+    id: 'ai-insights' as WidgetTab,
+    name: 'AI Pro',
+    icon: '🧠'
+  },
+  {
     id: 'parlays' as WidgetTab,
     name: 'Parlays',
     icon: '💰'
@@ -27,11 +32,6 @@ const TABS = [
     id: 'player-props' as WidgetTab,
     name: 'Player Props',
     icon: '🎯'
-  },
-  {
-    id: 'ai-insights' as WidgetTab,
-    name: 'AI Pro',
-    icon: '🧠'
   },
   {
     id: 'settings' as WidgetTab,

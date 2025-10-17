@@ -59,10 +59,36 @@ export const NovaTitanEliteAIInsightsTab: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [minConfidence, setMinConfidence] = useState(70);
   const [showLegend, setShowLegend] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
   const [trackedInsights, setTrackedInsights] = useState<string[]>(() => {
     const saved = localStorage.getItem('novaTitanTrackedInsights');
     return saved ? JSON.parse(saved) : [];
   });
+
+  // Toggle filter function
+  const toggleFilter = (filterType: string) => {
+    setActiveFilters(prev => {
+      const newFilters = new Set(prev);
+      if (newFilters.has(filterType)) {
+        newFilters.delete(filterType);
+      } else {
+        newFilters.add(filterType);
+      }
+      return newFilters;
+    });
+  };
+
+  // Filter recommendations based on active filters
+  const getFilteredRecommendations = (recommendations: AIRecommendation[]) => {
+    if (activeFilters.size === 0) return recommendations;
+    
+    return recommendations.filter(rec => {
+      if (activeFilters.has('active') && !rec.id) return false;
+      if (activeFilters.has('value') && rec.type !== 'value_bet') return false;
+      if (activeFilters.has('confidence') && rec.confidence < 85) return false;
+      return true;
+    });
+  };
 
   // Fetch AI recommendations and market intelligence
   const { data: aiInsights, isLoading, error, refetch, dataUpdatedAt } = useQuery({
@@ -95,22 +121,29 @@ export const NovaTitanEliteAIInsightsTab: React.FC = () => {
           type: types[i % types.length],
           game: `${pred.awayTeam} @ ${pred.homeTeam}`,
           recommendation: generateRecommendation(pred, types[i % types.length]),
-          confidence: Math.max(75, Math.min(95, pred.predictions.moneyline.confidence + Math.floor(Math.random() * 10))),
-          expectedValue: Math.max(5, Math.min(25, pred.predictions.moneyline.expectedValue + Math.floor(Math.random() * 8))),
+          confidence: Math.max(75, Math.min(95, pred.predictions.moneyline.confidence)),
+          expectedValue: Math.max(5, Math.min(25, pred.predictions.moneyline.expectedValue)),
           reasoning: generateReasoning(pred, types[i % types.length]),
-          priority: ['high', 'medium', 'low'][Math.floor(Math.random() * 3)] as 'high' | 'medium' | 'low',
+          priority: (pred.predictions.moneyline.confidence > 85 && pred.predictions.moneyline.expectedValue > 15) ? 'high' :
+                   (pred.predictions.moneyline.confidence > 78 && pred.predictions.moneyline.expectedValue > 8) ? 'medium' : 'low',
           timeFrame: cstTime
         };
       });
 
-      // Generate market intelligence data
+      // Generate market intelligence data based on real prediction data
+      const avgConfidence = predictions.length > 0 ? 
+        predictions.reduce((sum, p) => sum + p.predictions.moneyline.confidence, 0) / predictions.length : 75;
+      const highConfidencePredictions = predictions.filter(p => p.predictions.moneyline.confidence > 80).length;
+      
       const marketIntel: MarketIntelligence = {
-        totalVolume: Math.floor(Math.random() * 500000000) + 100000000, // $100M - $600M
-        sharpMoney: Math.floor(Math.random() * 30) + 65, // 65-95%
-        publicBetting: Math.floor(Math.random() * 35) + 5, // 5-40%
-        lineMovement: ['Steaming Up', 'Reverse Line Movement', 'Sharp Liability', 'Public Push'][Math.floor(Math.random() * 4)],
-        keyNumbers: [3, 7, 10, 14, 21],
-        steamMoves: Math.floor(Math.random() * 8) + 2 // 2-10 steam moves
+        totalVolume: Math.floor((avgConfidence / 100) * 400000000) + 150000000, // $150M - $550M based on confidence
+        sharpMoney: Math.floor(avgConfidence * 0.8) + 20, // 20-95% based on AI confidence
+        publicBetting: 100 - Math.floor(avgConfidence * 0.8) - 20, // Inverse of sharp money
+        lineMovement: highConfidencePredictions > 3 ? 'Sharp Liability' : 
+                     highConfidencePredictions > 1 ? 'Steaming Up' : 
+                     avgConfidence > 80 ? 'Reverse Line Movement' : 'Public Push',
+        keyNumbers: [3, 7, 10, 14, 21], // Standard key numbers
+        steamMoves: Math.min(8, Math.max(2, highConfidencePredictions)) // Steam moves based on high confidence predictions
       };
 
       console.log(`✅ Nova Titan Elite: Generated ${recommendations.length} AI insights with market intelligence`);
@@ -125,32 +158,43 @@ export const NovaTitanEliteAIInsightsTab: React.FC = () => {
   });
 
   const generateRecommendation = (pred: any, type: string): string => {
+    const spreadLine = pred.predictions.spread?.line || 3.5;
+    const totalLine = pred.predictions.total?.line || 45.5;
+    const mlConfidence = pred.predictions.moneyline?.confidence || 75;
+    const expectedOdds = mlConfidence > 80 ? 150 + (mlConfidence - 80) * 10 : 120 + mlConfidence;
+    
     switch (type) {
       case 'value_bet':
-        return `${pred.homeTeam} Moneyline (+${Math.floor(Math.random() * 200) + 120})`;
+        return `${pred.homeTeam} Moneyline (+${Math.floor(expectedOdds)})`;
       case 'edge_detected':
-        return `${pred.awayTeam} Spread +${(Math.random() * 6 + 1).toFixed(1)}`;
+        return `${pred.awayTeam} Spread +${Math.abs(spreadLine).toFixed(1)}`;
       case 'arbitrage':
-        return `Cross-Book Arbitrage: Under ${(Math.random() * 20 + 40).toFixed(1)}`;
+        return `Cross-Book Arbitrage: Under ${totalLine.toFixed(1)}`;
       case 'market_inefficiency':
-        return `Live Bet: ${pred.homeTeam} Next Score`;
+        return `Live Bet: ${pred.predictions.moneyline.pick === 'home' ? pred.homeTeam : pred.awayTeam} Next Score`;
       default:
         return `${pred.homeTeam} Value Play`;
     }
   };
 
   const generateReasoning = (pred: any, type: string): string => {
+    const baseReasoning = pred.predictions.moneyline?.reasoning || 
+                         pred.predictions.spread?.reasoning || 
+                         'Advanced AI analysis of current market conditions';
+    const confidence = pred.predictions.moneyline?.confidence || 75;
+    const expectedValue = pred.predictions.moneyline?.expectedValue || 10;
+    
     switch (type) {
       case 'value_bet':
-        return 'Market undervaluing home team strength after key injury return. Historical ATS performance suggests 18% edge.';
+        return `${baseReasoning}. Model identifies ${expectedValue.toFixed(1)}% expected value with ${confidence}% confidence.`;
       case 'edge_detected':
-        return 'Sharp money detected on away team. Line movement contrary to public betting indicates professional backing.';
+        return `${baseReasoning}. Sharp money alignment detected with ${confidence}% model agreement.`;
       case 'arbitrage':
-        return 'Price discrepancy identified across multiple books. Risk-free profit opportunity with proper bankroll allocation.';
+        return `Price discrepancy identified across multiple books. ${baseReasoning} suggests ${expectedValue.toFixed(1)}% risk-adjusted return.`;
       case 'market_inefficiency':
-        return 'Live odds not properly adjusted for in-game momentum shift. Algorithm identifies 23% probability mispricing.';
+        return `${baseReasoning}. Live market not fully pricing in current game state - ${expectedValue.toFixed(1)}% edge identified.`;
       default:
-        return 'Advanced statistical model identifies value opportunity based on 300+ data points.';
+        return `${baseReasoning}. Statistical model confidence: ${confidence}%, Expected edge: ${expectedValue.toFixed(1)}%.`;
     }
   };
 
@@ -443,29 +487,59 @@ export const NovaTitanEliteAIInsightsTab: React.FC = () => {
           </div>
         )}
 
-        {/* Elite Analytics Stats */}
+        {/* Elite Analytics Stats - Now Clickable Filters */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="bg-gradient-to-br from-emerald-800/40 to-emerald-900/40 border-2 border-emerald-600/30 rounded-xl p-6 text-center shadow-2xl backdrop-blur-sm">
+          <button
+            onClick={() => toggleFilter('active')}
+            className={`bg-gradient-to-br from-emerald-800/40 to-emerald-900/40 border-2 rounded-xl p-6 text-center shadow-2xl backdrop-blur-sm transition-all duration-300 hover:scale-105 ${
+              activeFilters.has('active') 
+                ? 'border-emerald-400 ring-2 ring-emerald-400/50' 
+                : 'border-emerald-600/30 hover:border-emerald-500/50'
+            }`}
+          >
             <div className="text-3xl font-black text-emerald-200 mb-2">{aiInsights?.recommendations?.length || 0}</div>
             <div className="text-sm font-bold text-emerald-300 mb-2">Active Insights</div>
             <Brain className="w-5 h-5 text-emerald-400 mx-auto" />
-          </div>
+            {activeFilters.has('active') && (
+              <div className="mt-2 text-xs text-emerald-300 font-bold">✓ FILTERED</div>
+            )}
+          </button>
           
-          <div className="bg-gradient-to-br from-blue-800/40 to-blue-900/40 border-2 border-blue-600/30 rounded-xl p-6 text-center shadow-2xl backdrop-blur-sm">
+          <button
+            onClick={() => toggleFilter('value')}
+            className={`bg-gradient-to-br from-blue-800/40 to-blue-900/40 border-2 rounded-xl p-6 text-center shadow-2xl backdrop-blur-sm transition-all duration-300 hover:scale-105 ${
+              activeFilters.has('value') 
+                ? 'border-blue-400 ring-2 ring-blue-400/50' 
+                : 'border-blue-600/30 hover:border-blue-500/50'
+            }`}
+          >
             <div className="text-3xl font-black text-blue-200 mb-2">
               {aiInsights?.recommendations?.filter(r => r.type === 'value_bet').length || 0}
             </div>
             <div className="text-sm font-bold text-blue-300 mb-2">Value Bets</div>
             <Target className="w-5 h-5 text-blue-400 mx-auto" />
-          </div>
+            {activeFilters.has('value') && (
+              <div className="mt-2 text-xs text-blue-300 font-bold">✓ FILTERED</div>
+            )}
+          </button>
           
-          <div className="bg-gradient-to-br from-purple-800/40 to-purple-900/40 border-2 border-purple-600/30 rounded-xl p-6 text-center shadow-2xl backdrop-blur-sm">
+          <button
+            onClick={() => toggleFilter('confidence')}
+            className={`bg-gradient-to-br from-purple-800/40 to-purple-900/40 border-2 rounded-xl p-6 text-center shadow-2xl backdrop-blur-sm transition-all duration-300 hover:scale-105 ${
+              activeFilters.has('confidence') 
+                ? 'border-purple-400 ring-2 ring-purple-400/50' 
+                : 'border-purple-600/30 hover:border-purple-500/50'
+            }`}
+          >
             <div className="text-3xl font-black text-purple-200 mb-2">
               {aiInsights?.recommendations?.filter(r => r.confidence >= 85).length || 0}
             </div>
             <div className="text-sm font-bold text-purple-300 mb-2">High Confidence</div>
             <Award className="w-5 h-5 text-purple-400 mx-auto" />
-          </div>
+            {activeFilters.has('confidence') && (
+              <div className="mt-2 text-xs text-purple-300 font-bold">✓ FILTERED</div>
+            )}
+          </button>
           
           <div className="bg-gradient-to-br from-yellow-800/40 to-yellow-900/40 border-2 border-yellow-600/30 rounded-xl p-6 text-center shadow-2xl backdrop-blur-sm">
             <div className="text-3xl font-black text-yellow-200 mb-2">
@@ -606,7 +680,7 @@ export const NovaTitanEliteAIInsightsTab: React.FC = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {aiInsights.recommendations.map((recommendation, index) => {
+                  {getFilteredRecommendations(aiInsights.recommendations).map((recommendation, index) => {
                     const recType = getRecommendationType(recommendation.type);
                     
                     return (

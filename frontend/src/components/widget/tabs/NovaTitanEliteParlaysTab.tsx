@@ -505,30 +505,8 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
 
             <div className="p-6">
               <div className="grid gap-4 md:grid-cols-3">
-                {/* Generate sample suggested parlays */}
-                {[
-                  {
-                    name: "Sunday Super Parlay",
-                    legs: ["Chiefs ML (-150)", "Bills +3.5 (-110)", "Over 47.5 (-105)"],
-                    totalOdds: "+485",
-                    confidence: 78,
-                    reasoning: "Strong home favorites with high-scoring potential"
-                  },
-                  {
-                    name: "Safe NBA Combo",
-                    legs: ["Lakers ML (-120)", "Celtics +2.5 (-110)", "Under 218.5 (-110)"],
-                    totalOdds: "+220",
-                    confidence: 85,
-                    reasoning: "Conservative spreads with defensive matchups"
-                  },
-                  {
-                    name: "College Football Special",
-                    legs: ["Georgia -7 (-110)", "Michigan ML (-180)", "Ohio State Over 28.5 (-115)"],
-                    totalOdds: "+320",
-                    confidence: 72,
-                    reasoning: "Top-ranked teams in favorable matchups"
-                  }
-                ].map((parlay, index) => (
+                {/* No suggested parlays - using real data only */}
+                {[].map((parlay, index) => (
                   <motion.div
                     key={`suggested-parlay-${index}-${parlay.name.replace(/\s+/g, '-')}`}
                     variants={itemVariants}

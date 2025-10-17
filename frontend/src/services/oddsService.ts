@@ -83,8 +83,8 @@ class OddsService {
       const response = await fetch(`${this.baseUrl}/sports/?apiKey=${this.apiKey}&all=false`);
       return await response.json();
     } catch (error) {
-      console.warn('Failed to fetch live sports, using mock data:', error);
-      return this.getMockSports();
+      console.error('Failed to fetch live sports:', error);
+      return [];
     }
   }
 
@@ -93,7 +93,8 @@ class OddsService {
    */
   async getLiveOdds(sport: string): Promise<LiveOdds[]> {
     if (!this.apiKey) {
-      return this.getMockOdds(sport);
+      console.error('No API key configured for odds service');
+      return [];
     }
 
     try {
@@ -105,8 +106,8 @@ class OddsService {
       
       return this.transformOddsData(data);
     } catch (error) {
-      console.warn('Failed to fetch live odds, using mock data:', error);
-      return this.getMockOdds(sport);
+      console.error('Failed to fetch live odds:', error);
+      return [];
     }
   }
 
@@ -278,66 +279,7 @@ class OddsService {
     return bestOdds;
   }
 
-  /**
-   * Mock data for development/fallback
-   */
-  private getMockSports() {
-    return [
-      { key: 'americanfootball_nfl', title: 'NFL' },
-      { key: 'basketball_nba', title: 'NBA' },
-      { key: 'icehockey_nhl', title: 'NHL' },
-      { key: 'baseball_mlb', title: 'MLB' },
-      { key: 'soccer_usa_mls', title: 'MLS' }
-    ];
-  }
 
-  /**
-   * Mock odds data for development
-   */
-  private getMockOdds(sport: string): LiveOdds[] {
-    return [
-      {
-        bookmaker: 'DraftKings',
-        sport: sport,
-        game: 'Lakers @ Warriors',
-        homeTeam: 'Golden State Warriors',
-        awayTeam: 'Los Angeles Lakers',
-        gameTime: new Date(Date.now() + 3600000).toISOString(),
-        odds: {
-          moneyline: { home: -110, away: -110 },
-          spread: { 
-            home: { point: -2.5, odds: -110 }, 
-            away: { point: 2.5, odds: -110 } 
-          },
-          total: { 
-            over: { point: 225.5, odds: -110 }, 
-            under: { point: 225.5, odds: -110 } 
-          }
-        },
-        lastUpdate: new Date().toISOString()
-      },
-      {
-        bookmaker: 'FanDuel',
-        sport: sport,
-        game: 'Lakers @ Warriors',
-        homeTeam: 'Golden State Warriors',
-        awayTeam: 'Los Angeles Lakers',
-        gameTime: new Date(Date.now() + 3600000).toISOString(),
-        odds: {
-          moneyline: { home: -105, away: -115 },
-          spread: { 
-            home: { point: -2.5, odds: -105 }, 
-            away: { point: 2.5, odds: -115 } 
-          },
-          total: { 
-            over: { point: 225.5, odds: -115 }, 
-            under: { point: 225.5, odds: -105 } 
-          }
-        },
-        lastUpdate: new Date().toISOString()
-      }
-    ];
-  }
 }
 
 export const oddsService = new OddsService();

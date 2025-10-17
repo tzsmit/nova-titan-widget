@@ -92,7 +92,7 @@ const MOCK_GAMES = [
 export const GamesTab: React.FC = () => {
   const { config, games, isLoadingGames } = useWidgetStore();
 
-  // Transform real games data to display format, with fallback to mock data for demo
+  // Transform real games data to display format - no mock data used
   const safeGames = Array.isArray(games) ? games : [];
   
   const transformedGames = safeGames.map(game => ({

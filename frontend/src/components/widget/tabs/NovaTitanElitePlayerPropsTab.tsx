@@ -70,6 +70,8 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
   const [showBuilder, setShowBuilder] = useState(false);
   const [showMiniModal, setShowMiniModal] = useState(false);
   const [lastAddedProp, setLastAddedProp] = useState<any>(null);
+  const [builderVisible, setBuilderVisible] = useState(false);
+  const builderTriggerRef = React.useRef<HTMLDivElement>(null);
   const [propsParlay, setPropsParlay] = useState<PropsParlay>({
     bets: [],
     stake: 100,
@@ -77,6 +79,26 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
     potentialPayout: 0,
     impliedProbability: 0
   });
+
+  // IntersectionObserver for builder pop-up behavior
+  useEffect(() => {
+    if (!builderTriggerRef.current) return;
+    
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setBuilderVisible(entry.isIntersecting);
+      },
+      {
+        root: null,
+        rootMargin: '0px 0px -20% 0px', // Trigger when 20% from bottom
+        threshold: 0.1
+      }
+    );
+    
+    observer.observe(builderTriggerRef.current);
+    
+    return () => observer.disconnect();
+  }, []);
 
   const { data: playerProps, isLoading, error, refetch } = useQuery({
     queryKey: ['player-props', selectedSport, selectedProp],
@@ -96,6 +118,13 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
         const realPlayerProps = await realTimeOddsService.getLivePlayerProps(sportMap[selectedSport]);
         console.log(`✅ Found ${realPlayerProps.length} live player props from API`);
         
+        // Enhanced debugging for vs data and stats
+        if (realPlayerProps.length > 0) {
+          console.log('🔍 Sample prop structure:', JSON.stringify(realPlayerProps[0], null, 2));
+          console.log('🔍 Available prop types:', [...new Set(realPlayerProps.map(p => p.propType))]);
+          console.log('🔍 Available teams:', [...new Set(realPlayerProps.map(p => p.team))]);
+        }
+        
         // Debug first few props to check structure
         if (realPlayerProps.length > 0) {
           console.log('📊 Sample player props structure:', realPlayerProps.slice(0, 2).map(prop => ({
@@ -109,7 +138,7 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
         return realPlayerProps;
       } catch (error) {
         console.error('❌ Failed to fetch real player props:', error);
-        return []; // Return empty array - NO FAKE DATA
+        return []; // Return empty array - NO MOCK DATA
       }
     },
     refetchInterval: false,
@@ -728,8 +757,11 @@ export const NovaTitanElitePlayerPropsTab: React.FC = () => {
           </motion.div>
         )}
 
-        {/* Props Builder Panel */}
-        {showBuilder && (
+        {/* Trigger element for IntersectionObserver */}
+        <div ref={builderTriggerRef} className="h-1" />
+
+        {/* Props Builder Panel - Shows when intersecting or manually opened */}
+        {(showBuilder || builderVisible) && (
           <div className="mt-6 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 shadow-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">

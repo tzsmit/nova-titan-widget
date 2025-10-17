@@ -68,7 +68,7 @@ export const SimpleGamesTab: React.FC = () => {
     console.log('🎯 SimpleGamesTab loaded - API testing disabled to prevent rate limiting');
   }, []);
 
-  // Fetch games with proper error handling and fallback to mock data
+  // Fetch games with proper error handling - no mock data used
   const { data: games = [], isLoading, error, refetch } = useQuery({
     queryKey: ['simple-games-v2', selectedSport, selectedDate, selectedBookmaker], // Added bookmaker to trigger re-query
     queryFn: async (): Promise<ProcessedGame[]> => {
@@ -125,7 +125,7 @@ export const SimpleGamesTab: React.FC = () => {
           }
         });
         
-        // Filter by date - Use a more flexible date matching approach
+        // Enhanced filtering to keep live games visible
         const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' }); 
         console.log(`📅 Today's date (CST): ${today}, Selected date: ${selectedDate}`);
         
@@ -144,21 +144,35 @@ export const SimpleGamesTab: React.FC = () => {
             // Convert to YYYY-MM-DD format in CST (local time zone)
             const cstDate = gameDateTime.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
             
-            // Only match against CST date for accurate local date filtering
-            const matches = cstDate === selectedDate;
+            // Enhanced logic: keep games visible if they are:
+            // 1. On the selected date
+            // 2. Live (started but not finished)
+            // 3. Recently finished (within 6 hours)
+            const isSelectedDate = cstDate === selectedDate;
+            const now = new Date();
+            const hoursSinceStart = (now.getTime() - gameDateTime.getTime()) / (1000 * 60 * 60);
             
-            if (matches) {
-              console.log(`✅ MATCH FOUND: ${game.awayTeam || game.away_team} @ ${game.homeTeam || game.home_team} (CST: ${cstDate} matches ${selectedDate})`);
+            // Determine game status
+            const isUpcoming = gameDateTime > now;
+            const isLive = game.status === 'live' || (hoursSinceStart >= 0 && hoursSinceStart < 4);
+            const isRecentlyEnded = game.status === 'final' || (hoursSinceStart >= 4 && hoursSinceStart < 6);
+            
+            // Keep games that match the selected date OR are currently live/recently ended
+            const shouldKeep = isSelectedDate || isLive || (selectedDate === today && isRecentlyEnded);
+            
+            if (shouldKeep) {
+              console.log(`✅ KEEPING GAME: ${game.awayTeam || game.away_team} @ ${game.homeTeam || game.home_team}`);
+              console.log(`   Date: ${cstDate}, Status: ${game.status || 'calculated'}, Hours since start: ${hoursSinceStart.toFixed(1)}`);
             }
             
-            return matches;
+            return shouldKeep;
             
           } catch (error) {
             console.error('Date filtering error:', error);
             return false;
           }
         });
-        console.log(`📅 Date filter result: ${beforeFilter} games → ${processedGames.length} games for ${selectedDate}`);
+        console.log(`📅 Enhanced filter result: ${beforeFilter} games → ${processedGames.length} games (including live/recent)`);
 
         // Filter by search query
         if (searchQuery.trim()) {
@@ -485,11 +499,18 @@ export const SimpleGamesTab: React.FC = () => {
                       </div>
                     </button>
 
-                    {/* VS with Sport Category */}
+                    {/* VS with Sport Category and Venue */}
                     <div className="flex flex-col items-center mx-2 sm:mx-4">
                       <div className="text-slate-500 text-lg sm:text-2xl font-bold">VS</div>
-                      <div className="text-xs text-slate-400 mt-1 hidden sm:block">
-                        {SPORTS.find(s => s.id === game.sport_key)?.emoji || '🏆'}
+                      <div className="text-xs text-slate-400 mt-1 text-center">
+                        <div className="hidden sm:block">
+                          {SPORTS.find(s => s.id === game.sport_key)?.emoji || '🏆'}
+                        </div>
+                        {game.venue && (
+                          <div className="text-xs text-slate-500 mt-1 max-w-20 truncate">
+                            {game.venue}
+                          </div>
+                        )}
                       </div>
                     </div>
 
