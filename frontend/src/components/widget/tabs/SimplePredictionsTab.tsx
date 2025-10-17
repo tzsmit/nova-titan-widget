@@ -133,46 +133,42 @@ export const SimplePredictionsTab: React.FC = () => {
   }
 
   return (
-    <div className="w-full max-w-screen-sm sm:max-w-screen-md mx-auto p-2 sm:p-4 flex flex-col gap-4">
+    <div className="w-full max-w-screen-sm sm:max-w-screen-md mx-auto p-2 sm:p-4 flex flex-col gap-4 h-full overflow-hidden">
       {/* Header */}
-      <div className="mb-4 sm:mb-6 text-center">
+      <div className="mb-6 text-center">
         <div className="flex items-center justify-center gap-3 mb-2">
-          <Brain className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400" />
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-100">AI Predictions</h2>
+          <Brain className="h-8 w-8 text-blue-400" />
+          <h2 className="text-2xl font-bold text-slate-100">AI Predictions</h2>
           <HelpTooltip 
             content="AI analyzes team stats, recent performance, injuries, and historical data to generate predictive recommendations with confidence scores." 
             position="bottom"
             size="lg"
           />
         </div>
-        <p className="text-slate-300 text-sm sm:text-base">Advanced machine learning predictions</p>
+        <p className="text-slate-300">Advanced machine learning predictions</p>
       </div>
 
       {/* Controls - Mobile Optimized */}
-      <div className="mb-4 sm:mb-6">
-        <div className="flex flex-col gap-3 sm:gap-4 mb-4">
-          {/* Sport Filter - Mobile Friendly */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-slate-300 text-sm font-medium">Sport:</span>
-              <HelpTooltip content="Filter AI predictions by sport league. Each sport uses different statistical models for optimal accuracy." position="top" size="md" />
-            </div>
-            <div className="grid grid-cols-2 sm:flex bg-slate-800 rounded-lg p-1 border border-slate-600 gap-1 w-full sm:w-auto">
-              {SPORTS.slice(0, 4).map((sport) => (
+      <div className="mb-4 md:mb-6">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-4 mb-4">
+          {/* Sport Filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-slate-300 text-sm font-medium">Sport:</span>
+            <HelpTooltip content="Filter AI predictions by sport league. Each sport uses different statistical models for optimal accuracy." position="top" size="md" />
+            <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-600">
+              {SPORTS.map((sport) => (
                 <button
                   key={sport.id}
                   onClick={() => setSelectedSport(sport.id)}
                   className={`
-                    px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium transition-all text-center
+                    px-3 py-1 rounded text-sm font-medium transition-all
                     ${selectedSport === sport.id
                       ? 'bg-blue-600 text-white'
                       : 'text-slate-300 hover:text-white hover:bg-slate-700'
                     }
                   `}
                 >
-                  <span className="block sm:inline">{sport.emoji}</span>
-                  <span className="hidden sm:inline ml-1">{sport.name}</span>
-                  <span className="block sm:hidden text-xs">{sport.name}</span>
+                  {sport.emoji} {sport.name}
                 </button>
               ))}
             </div>
@@ -205,10 +201,10 @@ export const SimplePredictionsTab: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="ml-auto flex items-center gap-3">
             <button
               onClick={() => setShowLegend(true)}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm box-border"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
             >
               <BookOpen className="h-4 w-4" />
               Guide
@@ -216,7 +212,7 @@ export const SimplePredictionsTab: React.FC = () => {
             <button
               onClick={() => refetch()}
               disabled={isLoading}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 text-sm box-border"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
@@ -225,8 +221,9 @@ export const SimplePredictionsTab: React.FC = () => {
         </div>
       </div>
 
-      {/* Predictions */}
-      <AnimatePresence mode="wait">
+      {/* Predictions - Scrollable Container */}
+      <div className="flex-1 overflow-hidden">
+        <AnimatePresence mode="wait">
         {isLoading ? (
           <motion.div
             key="loading"
@@ -449,7 +446,8 @@ export const SimplePredictionsTab: React.FC = () => {
             ))}
           </motion.div>
         )}
-      </AnimatePresence>
+        </AnimatePresence>
+      </div>
 
       {/* Sports Betting Legend */}
       <SportsBettingLegend 
