@@ -51,7 +51,10 @@ export const NovaTitanLogo: React.FC<NovaTitanLogoProps> = ({
   return (
     <div className={`flex items-center gap-3 nova-titan-protected nova-titan-branding ${className}`}>
       <LogoComponent 
-        className={`${sizeClasses[size]} nova-titan-logo-container rounded-xl flex items-center justify-center shadow-lg overflow-hidden bg-gradient-to-br from-blue-600 to-purple-600`}
+        className={`${sizeClasses[size]} nova-titan-logo-container rounded-xl flex items-center justify-center shadow-lg overflow-hidden nova-gradient-card`}
+        style={{
+          background: 'linear-gradient(135deg, var(--nova-primary-600) 0%, var(--nova-purple-600) 100%)'
+        }}
         {...logoProps}
       >
         <img 
@@ -67,7 +70,7 @@ export const NovaTitanLogo: React.FC<NovaTitanLogoProps> = ({
             userDrag: 'none'
           }}
           onContextMenu={(e) => e.preventDefault()}
-          onSelectStart={(e) => e.preventDefault()}
+
           onDragStart={(e) => e.preventDefault()}
           draggable={false}
         />
@@ -75,18 +78,20 @@ export const NovaTitanLogo: React.FC<NovaTitanLogoProps> = ({
       
       {showBranding && (
         <div className="nova-titan-protected">
-          <h1 className={`${textSizeClasses[size]} font-bold text-slate-100 nova-titan-protected`}>
+          <h1 className={`${textSizeClasses[size]} nova-logo-text nova-titan-protected`}>
             Nova Titan Elite
           </h1>
-          <div className={`flex items-center gap-2 ${brandingSizeClasses[size]} text-slate-400 nova-titan-protected`}>
+          <div className={`flex items-center gap-2 ${brandingSizeClasses[size]} nova-titan-protected`} style={{ color: 'var(--nova-text-secondary)' }}>
             <Globe className="h-3 w-3" />
             <span>Powered by </span>
             <a 
               href="https://novatitan.net/" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-blue-400 hover:text-blue-300 underline transition-colors nova-titan-protected"
+              className="nova-transition nova-titan-protected"
               style={{
+                color: 'var(--nova-text-accent)',
+                textDecoration: 'underline',
                 userSelect: 'none',
                 WebkitUserSelect: 'none',
                 WebkitTouchCallout: 'none'
@@ -95,8 +100,8 @@ export const NovaTitanLogo: React.FC<NovaTitanLogoProps> = ({
             >
               Nova TitanAI
             </a>
-            <span className="text-slate-500 nova-titan-protected"> a product of </span>
-            <span className="text-blue-400 font-medium nova-titan-protected">Nova Titan Systems</span>
+            <span className="nova-titan-protected" style={{ color: 'var(--nova-text-muted)' }}> a product of </span>
+            <span className="font-medium nova-titan-protected" style={{ color: 'var(--nova-text-accent)' }}>Nova Titan Systems</span>
           </div>
         </div>
       )}

@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { oddsAPI, LiveOdds, ArbitrageOpportunity } from '../../services/oddsAPI';
 import { HelpTooltip } from '../ui/HelpTooltip';
 import { TrendingUp, RefreshCw, Zap, Clock } from 'lucide-react';
+import { formatOdds, formatPercentage, formatNumber } from '../../utils/numberFormatting';
 
 interface LiveOddsDisplayProps {
   sport?: string;
@@ -63,10 +64,7 @@ export const LiveOddsDisplay: React.FC<LiveOddsDisplayProps> = ({
     }
   };
 
-  const formatOdds = (odds: number): string => {
-    if (odds > 0) return `+${odds}`;
-    return odds.toString();
-  };
+  // Using formatOdds from numberFormatting utilities for consistent formatting
 
   const getBookmakerDisplay = (bookmaker: string): string => {
     const bookNames: Record<string, string> = {

@@ -39,7 +39,7 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
         timeZone: 'America/Chicago'
       });
       
-      console.log(`📅 DateSelector generating: ${dateStr} (${displayDate})`);
+
       
       dates.push({
         value: dateStr,

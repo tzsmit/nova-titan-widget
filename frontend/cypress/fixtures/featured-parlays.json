@@ -1,0 +1,94 @@
+[
+  {
+    "id": "featured-1",
+    "title": "Safe NFL Favorites",
+    "description": "Low-risk parlay with strong home favorites",
+    "confidence": 78,
+    "expectedValue": 1.45,
+    "stake": 25,
+    "category": "safe",
+    "legs": [
+      {
+        "id": "leg-1", 
+        "gameId": "game-1",
+        "team": "Kansas City Chiefs",
+        "opponent": "Buffalo Bills",
+        "betType": "moneyline",
+        "selection": "Chiefs ML",
+        "odds": -150,
+        "description": "Chiefs to win at home",
+        "sport": "americanfootball_nfl"
+      },
+      {
+        "id": "leg-2",
+        "gameId": "game-3", 
+        "team": "Alabama Crimson Tide",
+        "opponent": "Georgia Bulldogs",
+        "betType": "moneyline",
+        "selection": "Alabama ML",
+        "odds": -200,
+        "description": "Alabama to win at home",
+        "sport": "americanfootball_ncaaf"
+      }
+    ],
+    "reasoning": "Both teams are strong home favorites with excellent records this season"
+  },
+  {
+    "id": "featured-2",
+    "title": "NBA High Scoring",
+    "description": "Over bets on high-pace matchups",
+    "confidence": 65,
+    "expectedValue": 2.15,
+    "stake": 15,
+    "category": "value",
+    "legs": [
+      {
+        "id": "leg-3",
+        "gameId": "game-2",
+        "team": "Los Angeles Lakers",
+        "opponent": "Boston Celtics", 
+        "betType": "total",
+        "selection": "Over 225.5",
+        "odds": -105,
+        "line": 225.5,
+        "description": "Total points Over 225.5",
+        "sport": "basketball_nba"
+      }
+    ],
+    "reasoning": "Both teams have fast-paced offenses and weak defenses recently"
+  },
+  {
+    "id": "featured-3",
+    "title": "Longshot Special",
+    "description": "High-risk, high-reward underdogs",
+    "confidence": 35,
+    "expectedValue": 8.50,
+    "stake": 10,
+    "category": "longshot", 
+    "legs": [
+      {
+        "id": "leg-4",
+        "gameId": "game-1",
+        "team": "Buffalo Bills",
+        "opponent": "Kansas City Chiefs",
+        "betType": "moneyline", 
+        "selection": "Bills ML",
+        "odds": 130,
+        "description": "Bills upset win on the road",
+        "sport": "americanfootball_nfl"
+      },
+      {
+        "id": "leg-5",
+        "gameId": "game-2",
+        "team": "Los Angeles Lakers", 
+        "opponent": "Boston Celtics",
+        "betType": "moneyline",
+        "selection": "Lakers ML", 
+        "odds": 120,
+        "description": "Lakers home win",
+        "sport": "basketball_nba"
+      }
+    ],
+    "reasoning": "Road underdogs with strong recent form could provide great value"
+  }
+]
