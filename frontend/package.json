@@ -7,19 +7,30 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --watchAll=false"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "@sentry/react": "^7.118.0",
+    "@tanstack/react-query": "^5.51.23",
+    "axios": "^1.7.7",
+    "clsx": "^2.1.1",
     "framer-motion": "^11.5.4",
     "lucide-react": "^0.445.0",
-    "zustand": "^4.4.7",
-    "@tanstack/react-query": "^5.51.23",
-    "@sentry/react": "^7.118.0",
-    "axios": "^1.7.7"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwind-merge": "^3.3.1",
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "@tailwindcss/forms": "^0.5.7",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^30.0.0",
     "@types/react": "^18.2.79",
     "@types/react-dom": "^18.2.25",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -29,10 +40,15 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.12",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
+    "jest-fetch-mock": "^3.0.3",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",
-    "@tailwindcss/forms": "^0.5.7",
+    "ts-jest": "^29.4.5",
     "typescript": "^5.6.2",
-    "vite": "^5.4.8"
+    "vite": "^5.4.8",
+    "whatwg-fetch": "^3.6.20"
   }
 }

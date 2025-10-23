@@ -145,7 +145,7 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({
         onMouseEnter={() => setIsVisible(true)}
         onMouseLeave={() => setIsVisible(false)}
         onClick={() => setIsVisible(!isVisible)}
-        className="inline-flex items-center justify-center w-5 h-5 text-xs bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-all duration-200 shadow-lg hover:shadow-purple-500/25 focus:outline-none focus:ring-1 focus:ring-purple-400 focus:ring-opacity-50"
+        className="inline-flex items-center justify-center w-4 h-4 text-[10px] bg-slate-500/60 text-slate-300 rounded-full hover:bg-slate-400/80 hover:text-white transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-slate-400 focus:ring-opacity-50"
         type="button"
         aria-label="Show help information"
       >
@@ -161,11 +161,11 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({
             transition={{ duration: 0.15 }}
             style={getTooltipStyles()}
           >
-            <div className="bg-gray-900 text-white text-sm rounded-lg px-4 py-3 shadow-2xl border border-gray-600 backdrop-blur-sm relative pointer-events-none">
+            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl border border-gray-600 backdrop-blur-sm relative pointer-events-none max-w-xs">
               {term && (
-                <div className="font-semibold text-blue-300 mb-2 text-xs uppercase tracking-wide">{term}</div>
+                <div className="font-medium text-blue-300 mb-1 text-[10px] uppercase tracking-wide">{term}</div>
               )}
-              <div className="leading-relaxed break-words">{content}</div>
+              <div className="leading-tight text-xs">{content}</div>
               
               {/* Arrow */}
               <div style={getArrowStyles()}></div>

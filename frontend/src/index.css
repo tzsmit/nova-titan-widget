@@ -1,3 +1,10 @@
+/* Import Google Fonts FIRST to prevent CSS @import errors */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+/* Import design tokens and Nova Titan styles */
+@import './styles/tokens.css';
+@import './styles/nova-titan-tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -16,15 +23,17 @@
 /* Nova Titan Custom Styles */
 
 @layer base {
-  /* Inter font loading */
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
   
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--nova-font-family);
+    background: var(--nova-bg-primary);
+    color: var(--nova-text-primary);
   }
   
   body {
     @apply antialiased;
+    background: var(--nova-bg-primary);
+    color: var(--nova-text-primary);
   }
   
   /* Scrollbar styling */
@@ -44,16 +53,142 @@
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-500;
   }
+
+  /* Nova Titan Search Input Styling */
+  .nova-search-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--nova-glass-bg);
+    border: 1px solid var(--nova-glass-border);
+    border-radius: var(--nova-radius-xl);
+    color: var(--nova-text-primary);
+    font-size: 0.875rem;
+    backdrop-filter: var(--nova-glass-backdrop);
+    -webkit-backdrop-filter: var(--nova-glass-backdrop);
+    transition: all var(--nova-transition-normal);
+  }
+
+  .nova-search-input::placeholder {
+    color: var(--nova-text-muted);
+  }
+
+  .nova-search-input:focus {
+    outline: none;
+    border-color: var(--nova-interactive-default);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  /* Hide scrollbars for better UX */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Screen reader only content */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Nova Titan Tab Button Styling */
+  .nova-tab-button {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--nova-radius-lg);
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-family: var(--nova-font-family);
+    min-width: fit-content;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  /* Nova Titan Filter Button Styling */
+  .nova-filter-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--nova-radius-lg);
+    font-size: 0.875rem;
+    font-weight: var(--nova-font-medium);
+    font-family: var(--nova-font-family);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
 }
 
 @layer components {
-  /* Button Components */
-  .btn-primary {
-    @apply bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2;
+  /* Nova Titan Button Components */
+  .nova-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--nova-btn-padding-y) var(--nova-btn-padding-x);
+    background: linear-gradient(135deg, var(--nova-primary-600) 0%, var(--nova-cyan-500) 100%);
+    color: var(--nova-text-primary);
+    font-weight: var(--nova-font-semibold);
+    font-size: var(--nova-text-sm);
+    border-radius: var(--nova-radius-xl);
+    border: none;
+    cursor: pointer;
+    transition: all var(--nova-transition-normal);
+    box-shadow: var(--nova-shadow-md);
+    min-height: var(--nova-btn-height);
   }
   
-  .btn-secondary {
-    @apply bg-slate-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:bg-slate-600 transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2;
+  .nova-btn-primary:hover {
+    background: linear-gradient(135deg, var(--nova-primary-500) 0%, var(--nova-cyan-400) 100%);
+    box-shadow: var(--nova-shadow-lg);
+    transform: translateY(-2px);
+  }
+  
+  .nova-btn-primary:active {
+    transform: translateY(0);
+    box-shadow: var(--nova-shadow-md);
+  }
+  
+  .nova-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--nova-btn-padding-y) var(--nova-btn-padding-x);
+    background: var(--nova-glass-bg);
+    color: var(--nova-text-primary);
+    font-weight: var(--nova-font-medium);
+    font-size: var(--nova-text-sm);
+    border-radius: var(--nova-radius-xl);
+    border: 1px solid var(--nova-glass-border);
+    cursor: pointer;
+    transition: all var(--nova-transition-normal);
+    backdrop-filter: var(--nova-glass-backdrop);
+    -webkit-backdrop-filter: var(--nova-glass-backdrop);
+    min-height: var(--nova-btn-height);
+  }
+  
+  .nova-btn-secondary:hover {
+    border-color: var(--nova-interactive-default);
+    background: var(--nova-glass-border);
+    transform: translateY(-1px);
   }
 
   /* Card Components */
@@ -90,9 +225,205 @@
 
   /* Widget Specific */
   .widget-container {
-    @apply bg-gradient-to-br from-white via-slate-50 to-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden;
+    background: var(--nova-glass-bg);
+    border: var(--nova-card-border);
+    box-shadow: var(--nova-glass-shadow);
+    backdrop-filter: var(--nova-glass-backdrop);
+    -webkit-backdrop-filter: var(--nova-glass-backdrop);
+    border-radius: var(--nova-card-radius);
+    @apply overflow-hidden mobile-layout-safe;
     max-width: 100%;
     min-height: 500px;
+  }
+  
+  /* Nova Titan Button Components */
+  .nova-btn-primary {
+    background: var(--nova-interactive-default);
+    color: var(--nova-text-primary);
+    padding: var(--nova-btn-padding-y) var(--nova-btn-padding-x);
+    border-radius: var(--nova-radius-lg);
+    font-weight: var(--nova-font-semibold);
+    min-height: var(--nova-btn-height);
+    box-shadow: var(--nova-shadow-md);
+    transition: all var(--nova-transition-normal);
+    border: none;
+    cursor: pointer;
+  }
+  
+  .nova-btn-primary:hover {
+    background: var(--nova-interactive-hover);
+    box-shadow: var(--nova-shadow-lg);
+    transform: translateY(-1px);
+  }
+  
+  .nova-btn-primary:active {
+    background: var(--nova-interactive-active);
+    transform: translateY(0);
+  }
+  
+  /* Nova Titan Card Components */
+  .nova-card {
+    background: var(--nova-card-bg);
+    border: var(--nova-card-border);
+    border-radius: var(--nova-card-radius);
+    padding: var(--nova-card-padding);
+    box-shadow: var(--nova-shadow-md);
+    transition: all var(--nova-transition-normal);
+  }
+  
+  .nova-card:hover {
+    box-shadow: var(--nova-shadow-lg);
+    transform: translateY(-2px);
+  }
+  
+  /* Nova Titan Header Styles */
+  .nova-header {
+    background: var(--nova-glass-bg);
+    border-bottom: var(--nova-card-border);
+    backdrop-filter: var(--nova-glass-backdrop);
+    -webkit-backdrop-filter: var(--nova-glass-backdrop);
+    height: var(--nova-header-height);
+    position: sticky;
+    top: 0;
+    z-index: 2000;
+  }
+  
+  .nova-logo-text {
+    font-family: var(--nova-font-family);
+    font-weight: var(--nova-font-bold);
+    font-size: var(--nova-text-2xl);
+    background: linear-gradient(135deg, var(--nova-cyan-400) 0%, var(--nova-primary-400) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Nova Titan Navigation */
+  .nova-nav-item {
+    color: var(--nova-text-secondary);
+    padding: var(--nova-nav-item-padding);
+    height: var(--nova-nav-item-height);
+    border-radius: var(--nova-radius-lg);
+    transition: all var(--nova-transition-normal);
+    display: flex;
+    align-items: center;
+    gap: var(--nova-space-2);
+    text-decoration: none;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+  }
+  
+  .nova-nav-item:hover {
+    background: var(--nova-glass-border);
+    color: var(--nova-text-primary);
+  }
+  
+  .nova-nav-item.active {
+    background: var(--nova-interactive-default);
+    color: var(--nova-text-primary);
+  }
+  
+  /* Nova Titan Search Input */
+  .nova-search-input {
+    background: var(--nova-glass-bg);
+    border: var(--nova-card-border);
+    color: var(--nova-text-primary);
+    border-radius: var(--nova-radius-lg);
+    padding: var(--nova-space-3) var(--nova-space-4);
+    transition: all var(--nova-transition-normal);
+    outline: none;
+    width: 100%;
+  }
+  
+  .nova-search-input:focus {
+    border-color: var(--nova-interactive-default);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
+  
+  .nova-search-input::placeholder {
+    color: var(--nova-text-muted);
+  }
+  
+  /* Nova Titan Enhanced Card Hover Effects */
+  .nova-card-hover-lift {
+    transition: all var(--nova-transition-normal) var(--nova-spring-smooth);
+    cursor: pointer;
+  }
+  
+  .nova-card-hover-lift:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: var(--nova-shadow-xl);
+  }
+  
+  /* Nova Titan Pulse Animation */
+  .nova-pulse {
+    animation: nova-pulse 2s infinite;
+  }
+  
+  @keyframes nova-pulse {
+    0%, 100% { 
+      opacity: 1; 
+      transform: scale(1);
+    }
+    50% { 
+      opacity: 0.8; 
+      transform: scale(1.05);
+    }
+  }
+  
+  /* Nova Titan Gradient Text Enhanced */
+  .nova-text-gradient-enhanced {
+    background: linear-gradient(
+      45deg,
+      var(--nova-cyan-400) 0%,
+      var(--nova-primary-400) 25%,
+      var(--nova-purple-400) 50%,
+      var(--nova-cyan-500) 75%,
+      var(--nova-primary-500) 100%
+    );
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: nova-gradient-flow 3s ease infinite;
+  }
+  
+  @keyframes nova-gradient-flow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  
+  /* Nova Titan Status Badge Glow */
+  .nova-status-badge {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .nova-status-badge::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    border-radius: inherit;
+    animation: nova-shimmer 2s infinite;
+  }
+  
+  @keyframes nova-shimmer {
+    0% { transform: translateX(-100%); }
+    50%, 100% { transform: translateX(100%); }
+  }
+  
+  /* Global mobile overflow prevention */
+  .nova-titan-widget * {
+    box-sizing: border-box;
+  }
+  
+  .nova-titan-widget {
+    @apply mobile-layout-safe;
   }
   
   /* Mobile Layout Fixes */
@@ -103,6 +434,8 @@
   .mobile-scrollable {
     @apply overflow-y-auto overflow-x-hidden;
     -webkit-overflow-scrolling: touch;
+    /* Ensure minimum touch target size on iOS */
+    min-height: 44px;
   }
   
   .mobile-safe-area {
@@ -112,42 +445,300 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
   
+  /* Prevent horizontal scroll issues */
+  .prevent-horizontal-scroll {
+    @apply overflow-x-hidden;
+    width: 100%;
+    max-width: 100%;
+  }
+  
   /* Fix flex children overflow */
   .flex-child-fix {
     @apply min-h-0;
   }
-
-  /* Scrollbar hide utility */
-  .scrollbar-hide {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* Internet Explorer 10+ */
+  
+  /* iOS specific fixes */
+  input, textarea, select {
+    /* Prevent iOS zoom on input focus */
+    font-size: 16px !important;
   }
   
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none; /* WebKit */
+  /* Touch-friendly button sizing */
+  button, .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Enhanced mobile overflow fixes */
+  .mobile-overflow-fix {
+    @apply overflow-x-hidden;
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+  
+  /* Comprehensive mobile layout protection */
+  .mobile-layout-safe {
+    @apply w-full max-w-full overflow-x-hidden;
+    box-sizing: border-box;
+  }
+  
+  /* Responsive grid system */
+  .responsive-grid-1-2-3 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  @screen sm {
+    .responsive-grid-1-2-3 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @screen lg {
+    .responsive-grid-1-2-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  .responsive-grid-1-2-4 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  @screen sm {
+    .responsive-grid-1-2-4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @screen lg {
+    .responsive-grid-1-2-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  
+  /* Responsive text truncation */
+  .mobile-truncate {
+    @apply truncate;
+    max-width: 120px;
+  }
+  
+  @screen sm {
+    .mobile-truncate {
+      max-width: none;
+    }
+  }
+  
+  /* Enhanced games grid layout */
+  .games-grid-responsive {
+    display: grid;
+    gap: 1rem;
+    width: 100%;
+    padding: 0 0.25rem;
+  }
+  
+  @screen sm {
+    .games-grid-responsive {
+      padding: 0;
+    }
+  }
+  
+  /* Prevent card overflow on mobile */
+  .card-mobile-safe {
+    @apply min-w-0 overflow-hidden;
+    box-sizing: border-box;
+  }
+  
+  /* Mobile-first responsive odds display */
+  .odds-grid-mobile {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  @screen sm {
+    .odds-grid-mobile {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @screen lg {
+    .odds-grid-mobile {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  /* Prevent text overflow and ensure proper wrapping */
+  .text-mobile-safe {
+    @apply break-words;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  
+  /* Mobile table fixes */
+  .table-mobile-scroll {
+    @apply overflow-x-auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .table-mobile-scroll table {
+    @apply min-w-full;
+    width: max-content;
+  }
+  
+  /* Button size fixes for mobile */
+  .btn-mobile-safe {
+    @apply px-3 py-2 text-sm;
+    min-height: 44px;
+  }
+  
+  @screen sm {
+    .btn-mobile-safe {
+      @apply px-4 py-2 text-base;
+    }
   }
 }
 
 @layer utilities {
-  /* Animation utilities */
+  /* Design System - Animation utilities */
   .animate-fade-in {
     animation: fadeIn 0.5s ease-in-out;
   }
-
-  /* Text utilities */
-  .text-gradient {
-    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+  
+  .animate-slide-up {
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .animate-scale-in {
+    animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  /* Mobile responsive fixes */
-  button, input, select {
-    width: 100%;
-    box-sizing: border-box;
+  /* Design System - Typography Scale */
+  .text-gradient-primary {
+    @apply bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-success {
+    @apply bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-warning {
+    @apply bg-gradient-to-r from-yellow-400 to-amber-400 bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-danger {
+    @apply bg-gradient-to-r from-red-400 to-rose-400 bg-clip-text text-transparent;
+  }
+
+  /* Design System - Enhanced Typography */
+  .heading-xl {
+    @apply text-3xl sm:text-4xl font-bold leading-tight tracking-tight;
+  }
+  
+  .heading-lg {
+    @apply text-2xl sm:text-3xl font-bold leading-tight tracking-tight;
+  }
+  
+  .heading-md {
+    @apply text-xl sm:text-2xl font-semibold leading-tight;
+  }
+  
+  .heading-sm {
+    @apply text-lg sm:text-xl font-semibold leading-snug;
+  }
+  
+  .body-lg {
+    @apply text-base sm:text-lg leading-relaxed;
+  }
+  
+  .body-md {
+    @apply text-sm sm:text-base leading-normal;
+  }
+  
+  .body-sm {
+    @apply text-xs sm:text-sm leading-normal;
+  }
+  
+  /* Design System - Interactive Elements */
+  .interactive-scale {
+    @apply transform transition-transform duration-200 hover:scale-105 active:scale-95;
+  }
+  
+  .interactive-lift {
+    @apply transform transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+  }
+  
+  .interactive-glow {
+    @apply transition-all duration-300;
+  }
+  
+  .interactive-glow:hover {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+
+  /* Design System - Glassmorphism Effects */
+  .glass-card {
+    @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl;
+  }
+  
+  .glass-dark {
+    @apply bg-slate-900/70 backdrop-blur-lg border border-slate-700/50;
+  }
+  
+  .glass-light {
+    @apply bg-white/80 backdrop-blur-lg border border-white/50;
+  }
+
+  /* Design System - Gradient Backgrounds */
+  .bg-gradient-primary {
+    @apply bg-gradient-to-br from-blue-600 via-purple-600 to-cyan-600;
+  }
+  
+  .bg-gradient-success {
+    @apply bg-gradient-to-br from-green-600 to-emerald-600;
+  }
+  
+  .bg-gradient-warning {
+    @apply bg-gradient-to-br from-yellow-600 to-amber-600;
+  }
+  
+  .bg-gradient-danger {
+    @apply bg-gradient-to-br from-red-600 to-rose-600;
+  }
+  
+  .bg-gradient-dark {
+    @apply bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800;
   }
 
   @keyframes fadeIn {
     0% { opacity: 0; }
     100% { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    0% { 
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes scaleIn {
+    0% { 
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    100% { 
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 }
 

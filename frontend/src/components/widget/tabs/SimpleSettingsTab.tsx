@@ -13,13 +13,19 @@ import {
   Sun,
   DollarSign,
   Bell,
-  Shield
+  Shield,
+  Lock,
+  Crown,
+  Star,
+  Target
 } from 'lucide-react';
+import { UserTrackingPanel } from '../../tracking/UserTrackingPanel';
 
 export const SimpleSettingsTab: React.FC = () => {
   const { config, updateConfig } = useWidgetStore();
   const [localConfig, setLocalConfig] = useState(config);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [activeSection, setActiveSection] = useState<'settings' | 'tracking'>('settings');
 
   const handleSave = async () => {
     setSaveStatus('saving');
@@ -43,221 +49,305 @@ export const SimpleSettingsTab: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-screen-sm sm:max-w-screen-md mx-auto p-2 sm:p-4 flex flex-col gap-4">
-      {/* Simple Header */}
-      <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-3 sm:p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <h1 className="text-lg sm:text-xl font-bold text-white">Settings</h1>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-            <button
-              onClick={handleReset}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm box-border"
+    <div 
+      className="w-full max-w-screen-lg mx-auto p-2 sm:p-4 flex flex-col gap-4 h-full overflow-hidden"
+      style={{ 
+        fontFamily: 'var(--nova-font-family)',
+        color: 'var(--nova-text-primary)'
+      }}
+    >
+      {/* Nova Titan Header */}
+      <div 
+        className="flex-shrink-0 p-6 rounded-2xl nova-animate-fade-in"
+        style={{
+          background: 'var(--nova-glass-bg)',
+          border: 'var(--nova-card-border)',
+          backdropFilter: 'var(--nova-glass-backdrop)',
+          WebkitBackdropFilter: 'var(--nova-glass-backdrop)',
+          boxShadow: 'var(--nova-shadow-lg)'
+        }}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="nova-text-gradient text-2xl sm:text-3xl font-bold mb-2">
+              ⚙️ Nova Titan Settings
+            </h1>
+            <p 
+              className="text-sm sm:text-base"
+              style={{ color: 'var(--nova-text-secondary)' }}
             >
-              <RotateCcw className="h-4 w-4" />
-              Reset
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saveStatus === 'saving'}
-              className={`w-full sm:w-auto flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm box-border ${
-                saveStatus === 'saved' 
-                  ? 'bg-green-600 text-white' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
-            >
-              <Save className="h-4 w-4" />
-              {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved!' : 'Save'}
-            </button>
+              Customize your Nova Titan experience - secure, optimize, innovate
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Section Toggle */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setActiveSection('settings')}
+                className={activeSection === 'settings' ? 'nova-btn-primary' : 'nova-btn-secondary'}
+              >
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">Settings</span>
+              </button>
+              <button
+                onClick={() => setActiveSection('tracking')}
+                className={activeSection === 'tracking' ? 'nova-btn-primary' : 'nova-btn-secondary'}
+              >
+                <Star className="h-4 w-4" />
+                <span className="hidden sm:inline">Tracking</span>
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleReset}
+                className="nova-btn-secondary"
+              >
+                <RotateCcw className="h-4 w-4" />
+                <span className="hidden sm:inline">Reset</span>
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saveStatus === 'saving'}
+                className={saveStatus === 'saved' 
+                  ? 'nova-btn-primary' 
+                  : 'nova-btn-primary'
+                }
+                style={{
+                  background: saveStatus === 'saved' 
+                    ? 'linear-gradient(135deg, var(--nova-success) 0%, #10b981 100%)'
+                    : undefined,
+                  borderColor: saveStatus === 'saved' 
+                    ? 'var(--nova-success)'
+                    : undefined
+                }}
+              >
+                <Save className="h-4 w-4" />
+                <span className="hidden sm:inline">
+                  {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved!' : 'Save'}
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Settings Content */}
-      <div className="w-full flex flex-col gap-4">
-          
-        {/* Theme Settings */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-slate-800/50 border border-slate-700 rounded-xl p-3 sm:p-4"
-          >
-          <div className="flex items-center gap-3 mb-4">
-            <Moon className="h-5 w-5 text-blue-400" />
-            <h2 className="text-base sm:text-lg font-semibold text-white">Theme</h2>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-            {[
-              { value: 'dark', label: 'Dark', icon: Moon },
-              { value: 'light', label: 'Light', icon: Sun }
-            ].map(({ value, label, icon: Icon }) => (
-              <button
-                key={value}
-                onClick={() => setLocalConfig({...localConfig, theme: value as any})}
-                className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-3 rounded-lg border transition-all text-sm box-border ${
-                  localConfig.theme === value
-                    ? 'bg-blue-600 border-blue-500 text-white'
-                    : 'bg-slate-700 border-slate-600 text-slate-300 hover:border-slate-500'
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                <span>{label}</span>
-              </button>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Display Settings */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-slate-800/50 border border-slate-700 rounded-xl p-3 sm:p-4"
-          >
-          <div className="flex items-center gap-3 mb-4">
-            <DollarSign className="h-5 w-5 text-green-400" />
-            <h2 className="text-base sm:text-lg font-semibold text-white">Display</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-2">Currency</label>
-              <select
-                value={localConfig.currency}
-                onChange={(e) => setLocalConfig({...localConfig, currency: e.target.value})}
-                className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 box-border"
-              >
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-                <option value="CAD">CAD ($)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-2">Odds Format</label>
-              <select
-                value={localConfig.odds_format}
-                onChange={(e) => setLocalConfig({...localConfig, odds_format: e.target.value as any})}
-                className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 box-border"
-              >
-                <option value="american">American (+/-)</option>
-                <option value="decimal">Decimal (1.50)</option>
-                <option value="fractional">Fractional (1/2)</option>
-              </select>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Timezone Settings */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-slate-800/50 border border-slate-700 rounded-xl p-3 sm:p-4"
-          >
-          <div className="flex items-center gap-3 mb-4">
-            <Settings className="h-5 w-5 text-purple-400" />
-            <h2 className="text-base sm:text-lg font-semibold text-white">Time & Location</h2>
-          </div>
-          
-          <div>
-            <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-2">Timezone</label>
-            <select
-              value={localConfig.timezone}
-              onChange={(e) => setLocalConfig({...localConfig, timezone: e.target.value})}
-              className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 box-border"
-            >
-              <option value="America/Chicago">Central Time (CST)</option>
-              <option value="America/New_York">Eastern Time (EST)</option>
-              <option value="America/Los_Angeles">Pacific Time (PST)</option>
-              <option value="America/Denver">Mountain Time (MST)</option>
-            </select>
-          </div>
-        </motion.div>
-
-        {/* Notifications */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-slate-800/50 border border-slate-700 rounded-xl p-3 sm:p-4"
-          >
-          <div className="flex items-center gap-3 mb-4">
-            <Bell className="h-5 w-5 text-yellow-400" />
-            <h2 className="text-base sm:text-lg font-semibold text-white">Notifications</h2>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-white font-medium text-sm sm:text-base">Push Notifications</div>
-                <div className="text-xs sm:text-sm text-slate-400">Get alerts for important updates</div>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={localConfig.notifications || false}
-                  onChange={(e) => setLocalConfig({...localConfig, notifications: e.target.checked})}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-white font-medium text-sm sm:text-base">Auto Refresh</div>
-                <div className="text-xs sm:text-sm text-slate-400">Automatically update data</div>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={localConfig.autoRefresh || false}
-                  onChange={(e) => setLocalConfig({...localConfig, autoRefresh: e.target.checked})}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
-              </label>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Account Info */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-slate-800/50 border border-slate-700 rounded-xl p-3 sm:p-4"
-          >
-          <div className="flex items-center gap-3 mb-4">
-            <Shield className="h-5 w-5 text-green-400" />
-            <h2 className="text-base sm:text-lg font-semibold text-white">Account</h2>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-2">Brand Name</label>
-              <input
-                type="text"
-                value={localConfig.brandName}
-                onChange={(e) => setLocalConfig({...localConfig, brandName: e.target.value})}
-                className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 box-border"
-                placeholder="Nova Titan Sports"
-              />
-            </div>
+      {/* Nova Titan Content - Scrollable Container */}
+      <div className="flex-1 overflow-y-auto mobile-scrollable prevent-horizontal-scroll p-2">
+        {activeSection === 'settings' ? (
+          <div className="space-y-6 max-w-4xl mx-auto">
             
-            <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-3 sm:p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Shield className="h-4 w-4 text-blue-400" />
-                <span className="text-xs sm:text-sm font-medium text-blue-300">Elite Membership</span>
+            {/* Theme Settings */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="nova-card"
+              style={{
+                background: 'var(--nova-glass-bg)',
+                border: 'var(--nova-card-border)',
+                backdropFilter: 'var(--nova-glass-backdrop)',
+                WebkitBackdropFilter: 'var(--nova-glass-backdrop)',
+                boxShadow: 'var(--nova-shadow-md)'
+              }}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <Moon className="h-5 w-5 text-blue-400" />
+                <h2 className="text-lg font-semibold text-white">Theme</h2>
               </div>
-              <p className="text-xs text-slate-400">
-                Full access to all premium features and AI insights
-              </p>
-            </div>
+              
+              <div className="flex gap-3">
+                {[
+                  { value: 'dark', label: 'Dark', icon: Moon },
+                  { value: 'light', label: 'Light', icon: Sun }
+                ].map(({ value, label, icon: Icon }) => (
+                  <button
+                    key={value}
+                    onClick={() => setLocalConfig({...localConfig, theme: value as any})}
+                    className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all ${
+                      localConfig.theme === value
+                        ? 'bg-blue-600 border-blue-500 text-white'
+                        : 'bg-slate-700 border-slate-600 text-slate-300 hover:border-slate-500'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{label}</span>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Display Settings */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-slate-800 rounded-lg border border-slate-700 p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <DollarSign className="h-5 w-5 text-green-400" />
+                <h2 className="text-lg font-semibold text-white">Display</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Currency</label>
+                  <select
+                    value={localConfig.currency}
+                    onChange={(e) => setLocalConfig({...localConfig, currency: e.target.value})}
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                    <option value="CAD">CAD ($)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Odds Format</label>
+                  <select
+                    value={localConfig.odds_format}
+                    onChange={(e) => setLocalConfig({...localConfig, odds_format: e.target.value as any})}
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="american">American (+/-)</option>
+                    <option value="decimal">Decimal (1.50)</option>
+                    <option value="fractional">Fractional (1/2)</option>
+                  </select>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Timezone Settings */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-slate-800 rounded-lg border border-slate-700 p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <Settings className="h-5 w-5 text-purple-400" />
+                <h2 className="text-lg font-semibold text-white">Time & Location</h2>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Timezone</label>
+                <select
+                  value={localConfig.timezone}
+                  onChange={(e) => setLocalConfig({...localConfig, timezone: e.target.value})}
+                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="America/Chicago">Central Time (CST)</option>
+                  <option value="America/New_York">Eastern Time (EST)</option>
+                  <option value="America/Los_Angeles">Pacific Time (PST)</option>
+                  <option value="America/Denver">Mountain Time (MST)</option>
+                </select>
+              </div>
+            </motion.div>
+
+            {/* Notifications */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-slate-800 rounded-lg border border-slate-700 p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <Bell className="h-5 w-5 text-yellow-400" />
+                <h2 className="text-lg font-semibold text-white">Notifications</h2>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-white font-medium">Push Notifications</div>
+                    <div className="text-sm text-slate-400">Get alerts for important updates</div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={localConfig.notifications || false}
+                      onChange={(e) => setLocalConfig({...localConfig, notifications: e.target.checked})}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
+                  </label>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-white font-medium">Auto Refresh</div>
+                    <div className="text-sm text-slate-400">Automatically update data</div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={localConfig.autoRefresh || false}
+                      onChange={(e) => setLocalConfig({...localConfig, autoRefresh: e.target.checked})}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
+                  </label>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Account Info */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-slate-800 rounded-lg border border-slate-700 p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <Shield className="h-5 w-5 text-green-400" />
+                <h2 className="text-lg font-semibold text-white">Account</h2>
+              </div>
+              
+              <div className="space-y-4">
+                {/* Locked Branding Section */}
+                <div className="relative">
+                  <label className="block text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
+                    Brand Name
+                    <Lock className="w-3 h-3 text-yellow-500" />
+                    <span className="text-xs text-yellow-500 bg-yellow-500/20 px-2 py-1 rounded">
+                      LOCKED
+                    </span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={localConfig.brandName || 'Nova Titan Sports'}
+                      disabled={true}
+                      className="w-full bg-slate-800 border border-slate-700 text-slate-400 rounded-lg px-3 py-2 cursor-not-allowed opacity-60"
+                      placeholder="Nova Titan Sports"
+                    />
+                    <div className="absolute inset-y-0 right-3 flex items-center">
+                      <Lock className="w-4 h-4 text-slate-500" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1 flex items-center gap-2">
+                    <Crown className="w-3 h-3 text-yellow-500" />
+                    Branding customization available in Pro tier after production release
+                  </p>
+                </div>
+                
+                <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-700/50 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield className="h-4 w-4 text-blue-400" />
+                    <span className="text-sm font-medium text-blue-300">Elite Membership</span>
+                    <Crown className="h-3 w-3 text-yellow-500" />
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Full access to all premium features and AI insights. White-label branding coming in Pro tier.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
           </div>
-        </motion.div>
+        ) : (
+          <UserTrackingPanel />
+        )}
       </div>
 
       {/* Simple Footer */}

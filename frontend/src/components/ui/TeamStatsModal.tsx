@@ -29,6 +29,7 @@ interface TeamStatsModalProps {
   onClose: () => void;
   teamName: string;
   teamLogo: string;
+  sport?: string; // Added sport parameter for real data integration
   onViewFullStats?: () => void;
   onPlayerProps?: () => void;
 }
@@ -38,16 +39,37 @@ export const TeamStatsModal: React.FC<TeamStatsModalProps> = ({
   onClose,
   teamName,
   teamLogo,
+  sport,
   onViewFullStats,
   onPlayerProps
 }) => {
-  // Fetch real team stats using React Query
+  // Fetch real team stats using React Query with sport detection
   const { data: teamStats, isLoading, error } = useQuery({
-    queryKey: ['team-stats', teamName],
-    queryFn: () => teamStatsService.getTeamStats(teamName),
+    queryKey: ['team-stats', teamName, sport],
+    queryFn: () => teamStatsService.getTeamStats(teamName, sport),
     enabled: isOpen, // Only fetch when modal is open
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Auto-scroll to highlight key stats when modal opens
+  useEffect(() => {
+    if (isOpen && teamStats) {
+      const timer = setTimeout(() => {
+        const quickStatsElement = document.getElementById('team-quick-stats');
+        if (quickStatsElement) {
+          // Briefly highlight the key stats section
+          quickStatsElement.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+          quickStatsElement.style.transition = 'background-color 0.5s ease';
+          
+          setTimeout(() => {
+            quickStatsElement.style.backgroundColor = '';
+          }, 1500);
+        }
+      }, 800); // Small delay to let the modal animation complete
+
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, teamStats]);
 
   // Handle button clicks
   const handleViewFullStats = () => {
@@ -135,10 +157,11 @@ export const TeamStatsModal: React.FC<TeamStatsModalProps> = ({
             </div>
           </div>
 
-          {/* Content */}
-          <div className="p-6 overflow-y-auto max-h-[70vh] space-y-8">
-            {/* Recent Form & Games */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Content - Improved Layout with Fixed Right Rail */}
+          <div className="flex h-[70vh]">
+            {/* Main Content - Left Side with Auto-Scroll */}
+            <div className="flex-1 p-6 overflow-y-auto space-y-6" id="team-stats-main-content">
+              {/* Recent Form */}
               <div className="bg-slate-700/40 rounded-xl p-6">
                 <div className="flex items-center space-x-3 mb-4">
                   <Activity className="w-5 h-5 text-blue-400" />
@@ -159,92 +182,222 @@ export const TeamStatsModal: React.FC<TeamStatsModalProps> = ({
                 <div className="space-y-2 text-sm">
                   <p className="text-slate-300">Last: {teamStats.lastGame}</p>
                   <p className="text-slate-300">Next: {teamStats.nextGame}</p>
-                </div>
-              </div>
-
-              <div className="bg-slate-700/40 rounded-xl p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <BarChart3 className="w-5 h-5 text-green-400" />
-                  <h3 className="text-lg font-bold text-white">Key Statistics</h3>
-                </div>
-                <div className="space-y-3">
-                  {teamStats.keyStats.map((stat, i) => (
-                    <div key={i} className="flex items-center justify-between">
-                      <span className="text-slate-300 text-sm">{stat.label}</span>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-white font-bold">{stat.value}</span>
-                        {stat.trend === 'up' && <TrendingUp className="w-4 h-4 text-green-400" />}
-                        {stat.trend === 'down' && <TrendingUp className="w-4 h-4 text-red-400 rotate-180" />}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Top Players */}
-            <div className="bg-slate-700/40 rounded-xl p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <Star className="w-5 h-5 text-yellow-400" />
-                <h3 className="text-lg font-bold text-white">Top Players</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {teamStats.topPlayers.map((player, i) => (
-                  <div key={i} className="bg-slate-600/40 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-white">{player.name}</span>
-                      <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">{player.position}</span>
-                    </div>
-                    <p className="text-slate-300 text-sm">{player.stats}</p>
+                  <div className="mt-4 pt-4 border-t border-slate-600">
+                    <button 
+                      onClick={() => {
+                        const quickStatsElement = document.getElementById('team-quick-stats');
+                        if (quickStatsElement) {
+                          quickStatsElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                      }}
+                      className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors"
+                    >
+                      → View Key Stats
+                    </button>
                   </div>
-                ))}
+                </div>
               </div>
-            </div>
 
-            {/* Injury Report */}
-            {teamStats.injuries.length > 0 && (
+              {/* Top Players */}
               <div className="bg-slate-700/40 rounded-xl p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <Shield className="w-5 h-5 text-red-400" />
-                  <h3 className="text-lg font-bold text-white">Injury Report</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <Star className="w-5 h-5 text-yellow-400" />
+                    <h3 className="text-lg font-bold text-white">Top Players</h3>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const injuryElement = document.getElementById('team-injury-report');
+                      if (injuryElement) {
+                        injuryElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                      }
+                    }}
+                    className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    → Injury Report
+                  </button>
                 </div>
                 <div className="space-y-3">
-                  {teamStats.injuries.map((injury, i) => (
-                    <div key={i} className="flex items-center justify-between">
-                      <span className="text-white">{injury.player}</span>
-                      <div className="flex items-center space-x-3">
-                        <span className="text-slate-400 text-sm">{injury.injury}</span>
-                        <span className={`text-xs px-2 py-1 rounded ${
-                          injury.status === 'Out' ? 'bg-red-600 text-white' : 
-                          injury.status === 'Questionable' ? 'bg-yellow-600 text-white' : 
-                          'bg-green-600 text-white'
-                        }`}>
-                          {injury.status}
-                        </span>
+                  {teamStats.topPlayers.slice(0, 4).map((player, i) => (
+                    <div key={i} className="bg-slate-600/40 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-white text-sm">{player.name}</span>
+                        <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">{player.position}</span>
                       </div>
+                      <p className="text-slate-300 text-xs">{player.stats}</p>
+                    </div>
+                  ))}
+                  {teamStats.topPlayers.length > 4 && (
+                    <button 
+                      onClick={() => {
+                        const allPlayersElement = document.getElementById('team-all-players');
+                        if (allPlayersElement) {
+                          allPlayersElement.scrollIntoView({ behavior: 'smooth' });
+                        }
+                      }}
+                      className="w-full text-center text-blue-400 hover:text-blue-300 text-sm py-2 transition-colors"
+                    >
+                      Show All Players ({teamStats.topPlayers.length})
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* All Players (Hidden by default, shown when expanded) */}
+              <div id="team-all-players" className="bg-slate-700/40 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <Users className="w-5 h-5 text-green-400" />
+                    <h3 className="text-lg font-bold text-white">All Players</h3>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      document.getElementById('team-stats-main-content')?.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    ↑ Back to Top
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {teamStats.topPlayers.map((player, i) => (
+                    <div key={i} className="bg-slate-600/40 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-white text-sm">{player.name}</span>
+                        <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">{player.position}</span>
+                      </div>
+                      <p className="text-slate-300 text-xs">{player.stats}</p>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
+
+              {/* Injury Report */}
+              {teamStats.injuries.length > 0 && (
+                <div id="team-injury-report" className="bg-slate-700/40 rounded-xl p-6">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <Shield className="w-5 h-5 text-red-400" />
+                    <h3 className="text-lg font-bold text-white">Injury Report</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {teamStats.injuries.map((injury, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <span className="text-white text-sm">{injury.player}</span>
+                        <div className="flex items-center space-x-3">
+                          <span className="text-slate-400 text-xs">{injury.injury}</span>
+                          <span className={`text-xs px-2 py-1 rounded ${
+                            injury.status === 'Out' ? 'bg-red-600 text-white' : 
+                            injury.status === 'Questionable' ? 'bg-yellow-600 text-white' : 
+                            'bg-green-600 text-white'
+                          }`}>
+                            {injury.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Fixed Right Rail - Key Stats Always Visible */}
+            <div className="w-80 bg-slate-800/60 border-l border-slate-600/40 p-6 overflow-y-auto">
+              <div id="team-quick-stats" className="space-y-6">
+                {/* Quick Overview */}
+                <div>
+                  <div className="flex items-center space-x-3 mb-4">
+                    <BarChart3 className="w-5 h-5 text-green-400" />
+                    <h3 className="text-lg font-bold text-white">Key Statistics</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {teamStats.keyStats.slice(0, 6).map((stat, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <span className="text-slate-300 text-sm">{stat.label}</span>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-white font-bold text-sm">{stat.value}</span>
+                          {stat.trend === 'up' && <TrendingUp className="w-3 h-3 text-green-400" />}
+                          {stat.trend === 'down' && <TrendingUp className="w-3 h-3 text-red-400 rotate-180" />}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="bg-slate-700/40 rounded-xl p-4">
+                  <h4 className="text-white font-semibold mb-3 text-sm">Quick Actions</h4>
+                  <div className="space-y-2">
+                    <button 
+                      onClick={handleViewFullStats}
+                      className="w-full text-left px-3 py-2 text-blue-400 hover:text-blue-300 hover:bg-slate-600/40 rounded-lg transition-colors text-sm"
+                    >
+                      📊 View Full Stats & Analytics
+                    </button>
+                    <button 
+                      onClick={handlePlayerProps}
+                      className="w-full text-left px-3 py-2 text-green-400 hover:text-green-300 hover:bg-slate-600/40 rounded-lg transition-colors text-sm"
+                    >
+                      🎯 Player Props & Lines
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const allPlayersElement = document.getElementById('team-all-players');
+                        if (allPlayersElement) {
+                          allPlayersElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                      }}
+                      className="w-full text-left px-3 py-2 text-yellow-400 hover:text-yellow-300 hover:bg-slate-600/40 rounded-lg transition-colors text-sm"
+                    >
+                      👥 View All Players
+                    </button>
+                  </div>
+                </div>
+
+                {/* Additional Stats */}
+                {teamStats.keyStats.length > 6 && (
+                  <div>
+                    <h4 className="text-white font-semibold mb-3 text-sm">Additional Stats</h4>
+                    <div className="space-y-2">
+                      {teamStats.keyStats.slice(6).map((stat, i) => (
+                        <div key={i} className="flex items-center justify-between">
+                          <span className="text-slate-400 text-xs">{stat.label}</span>
+                          <div className="flex items-center space-x-1">
+                            <span className="text-slate-200 text-xs">{stat.value}</span>
+                            {stat.trend === 'up' && <TrendingUp className="w-3 h-3 text-green-400" />}
+                            {stat.trend === 'down' && <TrendingUp className="w-3 h-3 text-red-400 rotate-180" />}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Footer */}
-          <div className="bg-slate-800/60 p-4 border-t border-slate-600/40">
+          <div className="bg-slate-800/60 p-4 border-t border-slate-600/40 flex-shrink-0">
             <div className="flex items-center justify-between text-sm text-slate-400">
-              <span>Stats updated live • Nova Titan Elite</span>
+              <span>Stats updated live • Nova Titan Elite • Auto-scroll enabled</span>
               <div className="flex space-x-4">
                 <button 
-                  onClick={handleViewFullStats}
-                  className="text-blue-400 hover:text-blue-300 transition-colors font-medium hover:underline"
+                  onClick={() => {
+                    document.getElementById('team-stats-main-content')?.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="text-slate-400 hover:text-slate-300 transition-colors font-medium"
                 >
-                  View Full Stats
+                  ↑ Top
                 </button>
                 <button 
-                  onClick={handlePlayerProps}
-                  className="text-blue-400 hover:text-blue-300 transition-colors font-medium hover:underline"
+                  onClick={() => {
+                    const injuryElement = document.getElementById('team-injury-report');
+                    if (injuryElement) {
+                      injuryElement.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                  className="text-slate-400 hover:text-slate-300 transition-colors font-medium"
                 >
-                  Player Props
+                  ↓ Injuries
                 </button>
               </div>
             </div>

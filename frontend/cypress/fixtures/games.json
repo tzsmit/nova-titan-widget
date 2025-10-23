@@ -1,0 +1,149 @@
+[
+  {
+    "id": "game-1",
+    "sport_key": "americanfootball_nfl",
+    "sport_title": "NFL",
+    "commence_time": "2024-01-15T20:00:00Z",
+    "home_team": "Kansas City Chiefs", 
+    "away_team": "Buffalo Bills",
+    "bookmakers": [
+      {
+        "key": "draftkings",
+        "title": "DraftKings",
+        "markets": [
+          {
+            "key": "h2h",
+            "outcomes": [
+              {
+                "name": "Kansas City Chiefs",
+                "price": -150
+              },
+              {
+                "name": "Buffalo Bills", 
+                "price": 130
+              }
+            ]
+          },
+          {
+            "key": "spreads",
+            "outcomes": [
+              {
+                "name": "Kansas City Chiefs",
+                "price": -110,
+                "point": -7.5
+              },
+              {
+                "name": "Buffalo Bills",
+                "price": -110,
+                "point": 7.5
+              }
+            ]
+          },
+          {
+            "key": "totals",
+            "outcomes": [
+              {
+                "name": "Over",
+                "price": -110,
+                "point": 45.5
+              },
+              {
+                "name": "Under", 
+                "price": -110,
+                "point": 45.5
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "game-2",
+    "sport_key": "basketball_nba",
+    "sport_title": "NBA",
+    "commence_time": "2024-01-15T22:00:00Z",
+    "home_team": "Los Angeles Lakers",
+    "away_team": "Boston Celtics",
+    "bookmakers": [
+      {
+        "key": "fanduel",
+        "title": "FanDuel",
+        "markets": [
+          {
+            "key": "h2h", 
+            "outcomes": [
+              {
+                "name": "Los Angeles Lakers",
+                "price": 120
+              },
+              {
+                "name": "Boston Celtics",
+                "price": -140
+              }
+            ]
+          },
+          {
+            "key": "spreads",
+            "outcomes": [
+              {
+                "name": "Los Angeles Lakers",
+                "price": -110,
+                "point": 3.5
+              },
+              {
+                "name": "Boston Celtics", 
+                "price": -110,
+                "point": -3.5
+              }
+            ]
+          },
+          {
+            "key": "totals",
+            "outcomes": [
+              {
+                "name": "Over",
+                "price": -105,
+                "point": 225.5
+              },
+              {
+                "name": "Under",
+                "price": -115,
+                "point": 225.5
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "game-3",
+    "sport_key": "americanfootball_ncaaf",
+    "sport_title": "NCAAF",
+    "commence_time": "2024-01-16T19:00:00Z",
+    "home_team": "Alabama Crimson Tide",
+    "away_team": "Georgia Bulldogs",
+    "bookmakers": [
+      {
+        "key": "betmgm",
+        "title": "BetMGM",
+        "markets": [
+          {
+            "key": "h2h",
+            "outcomes": [
+              {
+                "name": "Alabama Crimson Tide",
+                "price": -200
+              },
+              {
+                "name": "Georgia Bulldogs",
+                "price": 170
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

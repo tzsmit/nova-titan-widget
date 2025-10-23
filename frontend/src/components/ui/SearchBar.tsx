@@ -5,7 +5,13 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, Filter } from 'lucide-react';
+import { Search, X, Filter, Zap } from 'lucide-react';
+import { 
+  performEnhancedFuzzySearch, 
+  EnhancedSearchResult, 
+  highlightMatch 
+} from '../../utils/fuzzySearchUtils';
+import { aiEntityExtraction, QueryAnalysis, ExtractedEntity } from '../../services/aiEntityExtraction';
 
 interface SearchResult {
   id: string;
@@ -19,8 +25,9 @@ interface SearchResult {
 interface SearchBarProps {
   placeholder?: string;
   onSearch: (query: string, filters: SearchFilters) => void;
-  onResultSelect?: (result: SearchResult) => void;
+  onResultSelect?: (result: SearchResult | EnhancedSearchResult) => void;
   className?: string;
+  enableFuzzySearch?: boolean; // Priority Fix #12: Enable enhanced fuzzy search
 }
 
 interface SearchFilters {
@@ -32,7 +39,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   placeholder = "Search teams, players, or games...",
   onSearch,
   onResultSelect,
-  className = ''
+  className = '',
+  enableFuzzySearch = true // Priority Fix #12: Default to fuzzy search enabled
 }) => {
   const [query, setQuery] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
@@ -41,8 +49,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     type: 'all',
     sport: 'all'
   });
-  const [results, setResults] = useState<SearchResult[]>([]);
+  const [results, setResults] = useState<EnhancedSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [fuzzyEnabled, setFuzzyEnabled] = useState(enableFuzzySearch);
+  const [queryAnalysis, setQueryAnalysis] = useState<QueryAnalysis | null>(null); // Priority Fix #13
 
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -202,8 +212,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     { id: 'game6', type: 'game', title: 'Dodgers vs Mets', subtitle: 'Friday 8:10 PM CST • FOX', image: 'https://a.espncdn.com/i/teamlogos/mlb/500/lad.png' }
   ];
 
-  // Real search function that works when deployed
-  const performSearch = async (searchQuery: string, searchFilters: SearchFilters): Promise<SearchResult[]> => {
+  // Enhanced search function with fuzzy matching - Priority Fix #12
+  const performSearch = async (searchQuery: string, searchFilters: SearchFilters): Promise<EnhancedSearchResult[]> => {
     if (!searchQuery.trim()) return [];
     
     setIsSearching(true);
@@ -211,13 +221,47 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     // Simulate realistic search delay
     await new Promise(resolve => setTimeout(resolve, 200));
     
-    // Perform comprehensive search
-    const filtered = searchDatabase.filter(result => {
-      const query = searchQuery.toLowerCase();
-      const matchesQuery = result.title.toLowerCase().includes(query) ||
-                          result.subtitle.toLowerCase().includes(query) ||
-                          result.title.toLowerCase().startsWith(query);
+    let searchResults: EnhancedSearchResult[];
+
+    if (fuzzyEnabled) {
+      // Use enhanced fuzzy search with alternate names
+      searchResults = performEnhancedFuzzySearch(searchQuery, searchDatabase, {
+        minScore: 25, // Lower threshold for more inclusive results
+        maxResults: 10,
+        includeAlternates: true
+      });
       
+      console.log(`🔍 Fuzzy Search: "${searchQuery}" found ${searchResults.length} results with scores:`, 
+        searchResults.map(r => ({ title: r.title, score: r.fuzzyScore, field: r.matchedField })));
+    } else {
+      // Fallback to original exact search
+      const filtered = searchDatabase.filter(result => {
+        const query = searchQuery.toLowerCase();
+        const matchesQuery = result.title.toLowerCase().includes(query) ||
+                            result.subtitle.toLowerCase().includes(query) ||
+                            result.title.toLowerCase().startsWith(query);
+        
+        const matchesType = searchFilters.type === 'all' || 
+                           (searchFilters.type === 'teams' && result.type === 'team') ||
+                           (searchFilters.type === 'players' && result.type === 'player') ||
+                           (searchFilters.type === 'games' && result.type === 'game');
+
+        const matchesSport = searchFilters.sport === 'all' || 
+                            result.subtitle.toLowerCase().includes(searchFilters.sport);
+
+        return matchesQuery && matchesType && matchesSport;
+      });
+
+      searchResults = filtered.map(item => ({
+        ...item,
+        fuzzyScore: 100,
+        matchedField: 'title' as const,
+        alternateNames: []
+      })).slice(0, 8);
+    }
+
+    // Apply filter constraints to fuzzy results
+    const filteredResults = searchResults.filter(result => {
       const matchesType = searchFilters.type === 'all' || 
                          (searchFilters.type === 'teams' && result.type === 'team') ||
                          (searchFilters.type === 'players' && result.type === 'player') ||
@@ -226,36 +270,32 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       const matchesSport = searchFilters.sport === 'all' || 
                           result.subtitle.toLowerCase().includes(searchFilters.sport);
 
-      return matchesQuery && matchesType && matchesSport;
-    });
-
-    // Sort by relevance (exact matches first)
-    const sorted = filtered.sort((a, b) => {
-      const aExact = a.title.toLowerCase().startsWith(searchQuery.toLowerCase());
-      const bExact = b.title.toLowerCase().startsWith(searchQuery.toLowerCase());
-      if (aExact && !bExact) return -1;
-      if (!aExact && bExact) return 1;
-      return 0;
+      return matchesType && matchesSport;
     });
 
     setIsSearching(false);
-    return sorted.slice(0, 8); // Return top 8 results
+    return filteredResults.slice(0, 8);
   };
 
-  // Handle search with real functionality
+  // Handle enhanced search with AI entity extraction - Priority Fix #13
   useEffect(() => {
     const searchTimeout = setTimeout(async () => {
       if (query.trim()) {
+        // Priority Fix #13: AI-powered entity extraction
+        const analysis = await aiEntityExtraction.extractEntities(query);
+        setQueryAnalysis(analysis);
+        
         const searchResults = await performSearch(query, filters);
         setResults(searchResults);
         onSearch(query, filters);
       } else {
         setResults([]);
+        setQueryAnalysis(null);
       }
     }, 300);
 
     return () => clearTimeout(searchTimeout);
-  }, [query, filters, onSearch]);
+  }, [query, filters, fuzzyEnabled, onSearch]);
 
   // Handle clicks outside to close
   useEffect(() => {
@@ -349,7 +389,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                 transition={{ duration: 0.2 }}
                 className="border-t border-slate-600 bg-slate-800/80 p-3"
               >
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 mb-3">
                   <div>
                     <label className="text-xs font-medium text-slate-300 mb-2 block">Type</label>
                     <select
@@ -380,6 +420,27 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                     </select>
                   </div>
                 </div>
+
+                {/* Priority Fix #12: Fuzzy Search Toggle */}
+                <div className="border-t border-slate-600 pt-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={fuzzyEnabled}
+                      onChange={(e) => {
+                        setFuzzyEnabled(e.target.checked);
+                        console.log(`🔍 Fuzzy Search: ${e.target.checked ? 'Enabled' : 'Disabled'}`);
+                      }}
+                      className="w-4 h-4 text-blue-500 bg-slate-700 border-slate-600 rounded focus:ring-blue-500 focus:ring-2"
+                    />
+                    <div className="flex items-center gap-1">
+                      <Zap className="w-3 h-3 text-amber-400" />
+                      <span className="text-xs font-medium text-slate-300">
+                        Smart Search (nicknames, fuzzy matching)
+                      </span>
+                    </div>
+                  </label>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -400,10 +461,36 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               <div className="p-4 text-center">
                 <div className="inline-flex items-center gap-2 text-slate-400">
                   <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                  <span>Searching...</span>
+                  <span>Analyzing query...</span>
                 </div>
               </div>
-            ) : results.length > 0 ? (
+            ) : (
+              <>
+                {/* Priority Fix #13: AI Entity Extraction Results */}
+                {queryAnalysis && queryAnalysis.entities.length > 0 && (
+                  <div className="p-3 border-b border-slate-600 bg-slate-800/50">
+                    <div className="text-xs font-medium text-slate-300 mb-2 flex items-center gap-1">
+                      🧠 AI Analysis ({queryAnalysis.confidence}% confidence)
+                    </div>
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {queryAnalysis.entities.slice(0, 4).map((entity, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-1 text-xs rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                        >
+                          {entity.type === 'player' ? '👤' : entity.type === 'team' ? '🏆' : entity.type === 'bet_type' ? '💰' : '🏈'} {entity.value}
+                        </span>
+                      ))}
+                    </div>
+                    {queryAnalysis.suggestedActions.length > 0 && (
+                      <div className="text-xs text-slate-400">
+                        💡 Try: {queryAnalysis.suggestedActions.slice(0, 3).join(', ')}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {results.length > 0 ? (
               <div className="p-2">
                 {results.map((result, index) => (
                   <motion.button
@@ -415,7 +502,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                     transition={{ delay: index * 0.05 }}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center text-lg">
+                      <div className="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center text-lg relative">
                         {result.image ? (
                           <img 
                             src={result.image} 
@@ -425,20 +512,53 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                         ) : (
                           <span>{getTypeIcon(result.type)}</span>
                         )}
+                        
+                        {/* Fuzzy match indicator - Priority Fix #12 */}
+                        {fuzzyEnabled && result.fuzzyScore < 90 && (
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full flex items-center justify-center">
+                            <Zap className="w-2 h-2 text-white" />
+                          </div>
+                        )}
                       </div>
+                      
                       <div className="flex-1">
-                        <div className="font-medium text-slate-200">{result.title}</div>
-                        <div className="text-sm text-slate-400">{result.subtitle}</div>
+                        <div className="font-medium text-slate-200">
+                          {result.title}
+                          {/* Show matched alternate name if applicable */}
+                          {result.matchedField === 'alternate' && result.alternateNames && (
+                            <span className="ml-2 text-xs text-amber-400">
+                              (matches "{result.alternateNames.find(alt => 
+                                alt.toLowerCase().includes(query.toLowerCase())
+                              )}")
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-sm text-slate-400 flex items-center gap-2">
+                          {result.subtitle}
+                          {/* Fuzzy score indicator for debugging */}
+                          {fuzzyEnabled && result.fuzzyScore < 90 && (
+                            <span className="text-xs px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded">
+                              {Math.round(result.fuzzyScore)}% match
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </motion.button>
                 ))}
               </div>
-            ) : query.trim() ? (
-              <div className="p-4 text-center text-slate-400">
-                No results found for "{query}"
-              </div>
-            ) : null}
+                ) : query.trim() ? (
+                  <div className="p-4 text-center text-slate-400">
+                    No results found for "{query}"
+                    {queryAnalysis && queryAnalysis.enhancedQuery && (
+                      <div className="text-xs mt-1 text-slate-500">
+                        Try searching: "{queryAnalysis.enhancedQuery}"
+                      </div>
+                    )}
+                  </div>
+                ) : null}
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { useWidgetStore } from '../../../stores/widgetStore';
+import { useParlayStore } from '../../../stores/parlayStore';
 import { HelpTooltip } from '../../ui/HelpTooltip';
 import { CornerHelpTooltip } from '../../ui/CornerHelpTooltip';
 import { realTimeOddsService } from '../../../services/realTimeOddsService';
@@ -79,8 +80,8 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
   const [selectedSport, setSelectedSport] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Saved parlays management
-  const [savedParlays, setSavedParlays] = useState<SavedParlay[]>([]);
+  // Saved parlays management using centralized store
+  const { savedParlays, deleteParlay: deleteParlayFromStore, getSavedParlays } = useParlayStore();
   const [showSavedParlays, setShowSavedParlays] = useState(false);
   const [parlayName, setParlayName] = useState('');
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -278,39 +279,60 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
     });
   };
 
-  // Save parlay
+  // Save parlay using centralized store
   const saveParlay = () => {
     if (parlayBuilder.legs.length === 0) {
       alert('Add some bets to your parlay first!');
       return;
     }
     
-    const name = parlayName.trim() || `Parlay ${savedParlays.length + 1}`;
-    const newParlay: SavedParlay = {
-      id: `parlay_${Date.now()}`,
-      name,
-      legs: [...parlayBuilder.legs],
-      stake: parlayBuilder.stake,
-      totalOdds: parlayBuilder.totalOdds,
-      potentialPayout: parlayBuilder.potentialPayout,
-      createdAt: new Date().toISOString(),
-      status: 'active'
-    };
+    // Convert parlay legs to store format
+    const picks = parlayBuilder.legs.map(leg => ({
+      id: leg.id,
+      gameId: leg.game.replace(/[^a-zA-Z0-9]/g, '_'),
+      type: leg.bet.toLowerCase().includes('spread') ? 'spread' as const : 
+            leg.bet.toLowerCase().includes('total') ? 'total' as const : 
+            leg.bet.toLowerCase().includes('prop') ? 'props' as const : 'moneyline' as const,
+      selection: leg.bet,
+      odds: leg.odds,
+      team: leg.team,
+      homeTeam: leg.game.split(' @ ')[1] || leg.team,
+      awayTeam: leg.game.split(' @ ')[0] || '',
+      gameTime: leg.gameDate || new Date().toISOString(),
+      sport: leg.sport
+    }));
     
-    setSavedParlays(prev => [...prev, newParlay]);
+    // Add picks to current parlay and set stake
+    picks.forEach(pick => useParlayStore.getState().addPickToCurrentParlay(pick));
+    useParlayStore.getState().setCurrentStake(parlayBuilder.stake);
+    
+    // Save the parlay
+    const name = parlayName.trim() || `Parlay ${savedParlays.length + 1}`;
+    useParlayStore.getState().saveCurrentParlay(name);
+    
     setParlayName('');
     setShowSaveDialog(false);
     
-    // Store in localStorage
-    localStorage.setItem('novaTitanParlays', JSON.stringify([...savedParlays, newParlay]));
-    
-    console.log('💾 Parlay saved:', newParlay);
+    console.log('💾 Parlay saved using centralized store');
   };
 
-  // Load parlay
-  const loadParlay = (parlay: SavedParlay) => {
+  // Load parlay from centralized store
+  const loadParlay = (parlay: any) => {
+    // Convert store format back to component format
+    const legs = parlay.picks.map((pick: any) => ({
+      id: pick.id,
+      game: `${pick.awayTeam} @ ${pick.homeTeam}`,
+      team: pick.team || pick.homeTeam,
+      bet: pick.selection,
+      odds: pick.odds,
+      sport: pick.sport,
+      gameDate: pick.gameTime,
+      venue: 'TBD',
+      bookmaker: 'Various'
+    }));
+    
     setParlayBuilder({
-      legs: [...parlay.legs],
+      legs,
       stake: parlay.stake,
       totalOdds: parlay.totalOdds,
       potentialPayout: parlay.potentialPayout,
@@ -319,33 +341,20 @@ export const NovaTitanEliteParlaysTab: React.FC = () => {
     });
     setShowSavedParlays(false);
     setShowParlayBuilder(true);
-    console.log('📂 Parlay loaded:', parlay);
+    console.log('📂 Parlay loaded from centralized store:', parlay);
   };
 
-  // Delete parlay
+  // Delete parlay using centralized store
   const deleteParlay = (parlayId: string) => {
-    const updatedParlays = savedParlays.filter(p => p.id !== parlayId);
-    setSavedParlays(updatedParlays);
-    localStorage.setItem('novaTitanParlays', JSON.stringify(updatedParlays));
-    console.log('🗑️ Parlay deleted:', parlayId);
+    deleteParlayFromStore(parlayId);
+    console.log('🗑️ Parlay deleted using centralized store:', parlayId);
   };
 
-  // Load saved parlays on mount with null checks
+  // Saved parlays are now managed by the centralized store
+  // No need for manual localStorage management
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('novaTitanParlays');
-      if (saved && saved !== 'null' && saved !== 'undefined') {
-        const parsedParlays = JSON.parse(saved);
-        if (Array.isArray(parsedParlays)) {
-          setSavedParlays(parsedParlays);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading saved parlays:', error);
-      // Initialize with empty array on error
-      setSavedParlays([]);
-    }
-  }, []);
+    console.log('🏪 NovaTitanEliteParlaysTab using centralized parlay store with', savedParlays.length, 'saved parlays');
+  }, [savedParlays.length]);
 
   // Elite animations
   const containerVariants = {
