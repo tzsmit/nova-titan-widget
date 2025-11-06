@@ -263,6 +263,8 @@ npm run build
 - **CDN**: Global edge network
 - **SSL**: Automatic HTTPS
 
+> **🔧 Recent Fix (Nov 6, 2024)**: Fixed Netlify deployment configuration issue that was causing builds to be canceled. Updated `netlify.toml` to use correct base path format and removed redundant npm install commands. See [NETLIFY_DEPLOYMENT_FIX.md](./NETLIFY_DEPLOYMENT_FIX.md) for details.
+
 ## 📚 Documentation
 
 - **[Developer Guide](./DEVELOPER.md)** - Comprehensive development documentation
