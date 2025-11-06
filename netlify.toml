@@ -1,6 +1,8 @@
 [build]
-  command = "cd frontend && npm install && npm run build"
-  publish = "frontend/dist"
+  base = "frontend"
+  command = "npm install && npm run build"
+  publish = "dist"
+  ignore = "exit 1"
 
 [build.environment]
   NODE_VERSION = "18"
@@ -28,7 +30,7 @@
     Cache-Control = "public, max-age=1800"
     
 [context.deploy-preview]
-  command = "cd frontend && npm install && npm run build"
+  command = "npm install && npm run build"
 
 [context.production]
-  command = "cd frontend && npm install && npm run build"
+  command = "npm install && npm run build"
