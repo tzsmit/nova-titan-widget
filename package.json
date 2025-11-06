@@ -13,8 +13,10 @@
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
     "clean": "rm -rf frontend/dist backend/dist frontend/node_modules backend/node_modules node_modules",
     "deploy": "npm run build:frontend",
-    "generate-report": "ts-node scripts/generateDailyReport.ts",
-    "generate-reports": "ts-node scripts/generateDailyReport.ts"
+    "generate-report": "node scripts/generate-daily-reports.js",
+    "generate-reports": "node scripts/generate-daily-reports.js",
+    "test": "cd frontend && npm test",
+    "lint": "cd frontend && npm run lint"
   },
   "workspaces": [
     "frontend",
