@@ -20,16 +20,19 @@ import { GeolocationService } from '../../services/GeolocationService';
 
 export interface GeolocationDetectionProps {
   autoDetect?: boolean; // Automatically detect on mount
+  platformType?: 'traditional' | 'sweepstakes'; // Platform type to validate against
   onDetected?: (state: string, isLegal: boolean) => void;
   onBlocked?: (state: string) => void;
 }
 
 const GeolocationDetection: React.FC<GeolocationDetectionProps> = ({
   autoDetect = true,
+  platformType = 'sweepstakes', // Default to sweepstakes (includes Texas!)
   onDetected,
   onBlocked,
 }) => {
-  const { geolocation, setGeolocation, setGeolocationError } = useComplianceStore();
+  const { geolocation, setGeolocation, setGeolocationError, platformType: storePlatformType } = useComplianceStore();
+  const activePlatformType = storePlatformType || platformType;
   const [isDetecting, setIsDetecting] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
@@ -58,14 +61,18 @@ const GeolocationDetection: React.FC<GeolocationDetectionProps> = ({
         return;
       }
 
-      const isLegal = result.isLegalState || false;
+      // Check if legal for current platform type
+      const isLegal = GeolocationService.isLegalBettingState(result.state, activePlatformType);
+      const availablePlatforms = GeolocationService.getAvailablePlatforms(result.state);
 
-      // Update store
+      // Update store with platform-specific validation
       setGeolocation(
         result.state,
         result.latitude,
         result.longitude,
-        isLegal
+        isLegal,
+        activePlatformType,
+        availablePlatforms
       );
 
       // Callbacks
@@ -209,15 +216,29 @@ const GeolocationDetection: React.FC<GeolocationDetectionProps> = ({
                     Location Verified
                   </h2>
                   <p className="text-gray-400">
-                    You're in <strong className="text-white">{geolocation.state}</strong>, 
-                    a legal sports betting state.
+                    You're in <strong className="text-white">{geolocation.state}</strong>
+                    {activePlatformType === 'sweepstakes' ? 
+                      ', where social gaming is legal!' : 
+                      ', a legal sports betting state.'}
                   </p>
                 </div>
 
                 {geolocation.state && (
                   <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-3">
                     <p className="text-xs text-gray-300">
-                      {GeolocationService.getStateDisclaimer(geolocation.state)}
+                      {GeolocationService.getStateDisclaimer(geolocation.state, activePlatformType)}
+                    </p>
+                  </div>
+                )}
+                
+                {/* Show available platform options */}
+                {geolocation.availablePlatforms && geolocation.availablePlatforms.length > 1 && (
+                  <div className="bg-green-900/30 border border-green-700 rounded-lg p-3">
+                    <p className="text-xs text-green-300 font-semibold mb-1">
+                      ✨ Multiple options available in {geolocation.state}!
+                    </p>
+                    <p className="text-xs text-gray-300">
+                      You can access both Traditional Sports Betting and Social Gaming platforms.
                     </p>
                   </div>
                 )}
@@ -242,7 +263,7 @@ const GeolocationDetection: React.FC<GeolocationDetectionProps> = ({
                     Location Not Supported
                   </h2>
                   <p className="text-gray-400">
-                    Sports betting is not currently legal in{' '}
+                    {activePlatformType === 'sweepstakes' ? 'Social gaming' : 'Sports betting'} is not currently legal in{' '}
                     <strong className="text-white">{geolocation.state}</strong>.
                   </p>
                 </div>
@@ -252,18 +273,36 @@ const GeolocationDetection: React.FC<GeolocationDetectionProps> = ({
                     <strong>We're sorry!</strong>
                   </p>
                   <p className="text-xs text-gray-300">
-                    Federal and state law requires us to block access to sports betting services 
-                    from states where it is not legal. This is to protect you and ensure compliance 
-                    with gambling regulations.
+                    Federal and state law requires us to block access from states where this activity 
+                    is not legal. This is to protect you and ensure compliance with regulations.
                   </p>
                 </div>
 
+                {/* Show alternative if available */}
+                {geolocation.availablePlatforms && geolocation.availablePlatforms.length > 0 && (
+                  <div className="bg-green-900/30 border border-green-700 rounded-lg p-4 space-y-2">
+                    <p className="text-sm text-green-300 font-semibold">
+                      ✨ Good news! Alternative available:
+                    </p>
+                    <p className="text-xs text-gray-300">
+                      While {activePlatformType === 'sweepstakes' ? 'social gaming' : 'traditional sports betting'} isn't 
+                      available in {geolocation.state}, you can access{' '}
+                      {geolocation.availablePlatforms.includes('sweepstakes') ? 
+                        'social gaming platforms (Stake.us, Underdog, PrizePicks)' : 
+                        'traditional sports betting'}!
+                    </p>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <p className="text-xs text-gray-400 text-center">
-                    Legal sports betting states include:
+                    {activePlatformType === 'sweepstakes' ? 'Social gaming legal in:' : 'Legal sports betting states:'}
                   </p>
                   <div className="flex flex-wrap gap-1 justify-center">
-                    {GeolocationService.LEGAL_BETTING_STATES.map((state) => (
+                    {(activePlatformType === 'sweepstakes' ? 
+                      GeolocationService.SOCIAL_GAMING_STATES : 
+                      GeolocationService.LEGAL_BETTING_STATES
+                    ).map((state) => (
                       <span
                         key={state}
                         className="px-2 py-0.5 bg-gray-700 text-gray-300 text-xs rounded"

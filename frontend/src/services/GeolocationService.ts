@@ -22,19 +22,39 @@ export interface GeolocationResult {
   error?: string;
 }
 
-// Legal sports betting states (as of 2025)
+// Platform types (determines which compliance rules apply)
+export type PlatformType = 'traditional' | 'sweepstakes';
+
+// Traditional sports betting states (real money, regulated)
 export const LEGAL_BETTING_STATES = [
   'AZ', 'CO', 'CT', 'IL', 'IN', 'IA', 'KS', 'LA', 'MI', 'NJ', 'NY', 
   'PA', 'TN', 'VA', 'WV', 'WY', 'AR', 'MD', 'MA', 'NV', 'OH', 'RI'
 ];
 
+// Social gaming / sweepstakes states (Stake.us, Underdog, PrizePicks model)
+// Legal in most states except: WA, ID, NV, MT (sometimes)
+export const SOCIAL_GAMING_STATES = [
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI',
+  'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN',
+  'MS', 'MO', 'NE', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK',
+  'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WV', 'WI', 'WY', 'DC'
+];
+
+// Restricted states for social gaming (typically: WA, ID, NV, MT)
+export const SOCIAL_GAMING_RESTRICTED = ['WA', 'ID', 'NV', 'MT'];
+
 // State-specific age requirements
 export const STATE_AGE_REQUIREMENTS: Record<string, number> = {
-  // Most states require 21+
+  // Traditional sports betting: 21+ everywhere
   'AZ': 21, 'CO': 21, 'CT': 21, 'IL': 21, 'IN': 21, 'IA': 21,
   'KS': 21, 'LA': 21, 'MI': 21, 'NJ': 21, 'NY': 21, 'PA': 21,
   'TN': 21, 'VA': 21, 'WV': 21, 'WY': 21, 'AR': 21, 'MD': 21,
   'MA': 21, 'NV': 21, 'OH': 21, 'RI': 21,
+  
+  // Social gaming: Mostly 18+, some states 19+ or 21+
+  'TX': 18, 'CA': 18, 'FL': 18, 'GA': 18, 'NC': 18, 'OK': 18,
+  'AL': 19, 'NE': 19, // 19+ states
+  // Most other states default to 18+ for social gaming
 };
 
 export class GeolocationService {
@@ -185,17 +205,66 @@ export class GeolocationService {
   }
 
   /**
-   * Check if a state allows sports betting
+   * Check if a state allows betting based on platform type
    */
-  static isLegalBettingState(state: string): boolean {
-    return LEGAL_BETTING_STATES.includes(state.toUpperCase());
+  static isLegalBettingState(state: string, platformType: PlatformType = 'traditional'): boolean {
+    const stateUpper = state.toUpperCase();
+    
+    if (platformType === 'traditional') {
+      // Traditional sports betting (DraftKings, FanDuel, BetMGM, etc.)
+      return LEGAL_BETTING_STATES.includes(stateUpper);
+    } else {
+      // Social gaming / sweepstakes (Stake.us, Underdog, PrizePicks)
+      return SOCIAL_GAMING_STATES.includes(stateUpper) && 
+             !SOCIAL_GAMING_RESTRICTED.includes(stateUpper);
+    }
   }
 
   /**
-   * Get age requirement for a specific state
+   * Get age requirement for a specific state and platform type
    */
-  static getAgeRequirement(state: string): number {
-    return STATE_AGE_REQUIREMENTS[state.toUpperCase()] || 21;
+  static getAgeRequirement(state: string, platformType: PlatformType = 'traditional'): number {
+    const stateUpper = state.toUpperCase();
+    
+    // If state-specific requirement exists, use it
+    if (STATE_AGE_REQUIREMENTS[stateUpper]) {
+      return STATE_AGE_REQUIREMENTS[stateUpper];
+    }
+    
+    // Default age requirements
+    if (platformType === 'traditional') {
+      return 21; // Traditional sports betting always 21+
+    } else {
+      // Social gaming defaults
+      if (['AL', 'NE'].includes(stateUpper)) {
+        return 19; // Alabama, Nebraska = 19+
+      }
+      return 18; // Most states = 18+ for social gaming
+    }
+  }
+  
+  /**
+   * Get platform type display name
+   */
+  static getPlatformTypeName(platformType: PlatformType): string {
+    return platformType === 'traditional' ? 'Sports Betting' : 'Social Gaming';
+  }
+  
+  /**
+   * Get available platforms for a state
+   */
+  static getAvailablePlatforms(state: string): PlatformType[] {
+    const platforms: PlatformType[] = [];
+    
+    if (this.isLegalBettingState(state, 'traditional')) {
+      platforms.push('traditional');
+    }
+    
+    if (this.isLegalBettingState(state, 'sweepstakes')) {
+      platforms.push('sweepstakes');
+    }
+    
+    return platforms;
   }
 
   /**
@@ -257,25 +326,45 @@ export class GeolocationService {
   }
 
   /**
-   * Get state-specific disclaimers
+   * Get state-specific disclaimers based on platform type
    */
-  static getStateDisclaimer(state: string): string {
-    const disclaimers: Record<string, string> = {
-      'NY': 'New York residents: Must be 21+ and physically located within NY state borders to place bets.',
-      'NJ': 'New Jersey residents: Must be 21+ and physically located within NJ state borders to place bets.',
-      'PA': 'Pennsylvania residents: Must be 21+ and physically located within PA state borders to place bets.',
-      'IL': 'Illinois residents: Must be 21+ and physically located within IL state borders to place bets.',
-      'MI': 'Michigan residents: Must be 21+ and physically located within MI state borders to place bets.',
-      'CO': 'Colorado residents: Must be 21+ and physically located within CO state borders to place bets.',
-      'IN': 'Indiana residents: Must be 21+ and physically located within IN state borders to place bets.',
-      'TN': 'Tennessee residents: Must be 21+ and physically located within TN state borders to place bets.',
-      'VA': 'Virginia residents: Must be 21+ and physically located within VA state borders to place bets.',
-      'IA': 'Iowa residents: Must be 21+ and physically located within IA state borders to place bets.',
-    };
+  static getStateDisclaimer(state: string, platformType: PlatformType = 'traditional'): string {
+    const stateUpper = state.toUpperCase();
+    const ageReq = this.getAgeRequirement(state, platformType);
+    
+    if (platformType === 'traditional') {
+      // Traditional sports betting disclaimers
+      const disclaimers: Record<string, string> = {
+        'NY': `New York residents: Must be ${ageReq}+ and physically located within NY state borders to place bets.`,
+        'NJ': `New Jersey residents: Must be ${ageReq}+ and physically located within NJ state borders to place bets.`,
+        'PA': `Pennsylvania residents: Must be ${ageReq}+ and physically located within PA state borders to place bets.`,
+        'IL': `Illinois residents: Must be ${ageReq}+ and physically located within IL state borders to place bets.`,
+        'MI': `Michigan residents: Must be ${ageReq}+ and physically located within MI state borders to place bets.`,
+        'CO': `Colorado residents: Must be ${ageReq}+ and physically located within CO state borders to place bets.`,
+        'IN': `Indiana residents: Must be ${ageReq}+ and physically located within IN state borders to place bets.`,
+        'TN': `Tennessee residents: Must be ${ageReq}+ and physically located within TN state borders to place bets.`,
+        'VA': `Virginia residents: Must be ${ageReq}+ and physically located within VA state borders to place bets.`,
+        'IA': `Iowa residents: Must be ${ageReq}+ and physically located within IA state borders to place bets.`,
+      };
 
-    return (
-      disclaimers[state.toUpperCase()] ||
-      `${state} residents: Must be 21+ and physically located within state borders to place bets.`
-    );
+      return (
+        disclaimers[stateUpper] ||
+        `${state} residents: Must be ${ageReq}+ and physically located within state borders to place bets.`
+      );
+    } else {
+      // Social gaming / sweepstakes disclaimers
+      const disclaimers: Record<string, string> = {
+        'TX': `Texas residents: Must be ${ageReq}+ to participate. Social gaming operates under sweepstakes model, not traditional gambling. No purchase necessary.`,
+        'CA': `California residents: Must be ${ageReq}+ to participate. Operates as skill-based contests and sweepstakes.`,
+        'FL': `Florida residents: Must be ${ageReq}+ to participate. Social gaming and daily fantasy sports available.`,
+        'GA': `Georgia residents: Must be ${ageReq}+ to participate. Skill-based gaming and sweepstakes permitted.`,
+        'NC': `North Carolina residents: Must be ${ageReq}+ to participate. Daily fantasy sports and social gaming available.`,
+      };
+
+      return (
+        disclaimers[stateUpper] ||
+        `${state} residents: Must be ${ageReq}+ to participate in social gaming. Operates under sweepstakes model.`
+      );
+    }
   }
 }

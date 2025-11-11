@@ -21,14 +21,18 @@ export interface AgeVerificationState {
   method?: 'self-declaration' | 'id-verification';
 }
 
+export type PlatformType = 'traditional' | 'sweepstakes';
+
 export interface GeolocationState {
   isDetected: boolean;
-  state?: string; // Two-letter state code (e.g., "NY", "NJ")
+  state?: string; // Two-letter state code (e.g., "NY", "NJ", "TX")
   isLegalState?: boolean;
   latitude?: number;
   longitude?: number;
   detectedAt?: Date;
   error?: string;
+  platformType?: PlatformType; // Which platform model is being used
+  availablePlatforms?: PlatformType[]; // Which platforms are legal in this state
 }
 
 export interface ResponsibleGamingLimits {
@@ -49,6 +53,9 @@ export interface ComplianceState {
   
   // Geolocation
   geolocation: GeolocationState;
+  
+  // Platform Settings
+  platformType: PlatformType; // Current platform mode
   
   // Responsible Gaming
   responsibleGaming: {
@@ -75,8 +82,9 @@ export interface ComplianceState {
   
   // Actions
   setAgeVerified: (dob: Date, method: 'self-declaration' | 'id-verification') => void;
-  setGeolocation: (state: string, latitude: number, longitude: number, isLegal: boolean) => void;
+  setGeolocation: (state: string, latitude: number, longitude: number, isLegal: boolean, platformType?: PlatformType, availablePlatforms?: PlatformType[]) => void;
   setGeolocationError: (error: string) => void;
+  setPlatformType: (platformType: PlatformType) => void;
   setResponsibleGamingLimit: (limit: Partial<ResponsibleGamingLimits>) => void;
   startSession: () => void;
   endSession: () => void;
@@ -113,6 +121,8 @@ export const useComplianceStore = create<ComplianceState>()(
         isDetected: false,
       },
       
+      platformType: 'sweepstakes', // Default to sweepstakes (more states supported)
+      
       responsibleGaming: {
         limits: {},
         currentSession: {
@@ -146,7 +156,7 @@ export const useComplianceStore = create<ComplianceState>()(
         }
       },
       
-      setGeolocation: (state: string, latitude: number, longitude: number, isLegal: boolean) => {
+      setGeolocation: (state: string, latitude: number, longitude: number, isLegal: boolean, platformType?: PlatformType, availablePlatforms?: PlatformType[]) => {
         set({
           geolocation: {
             isDetected: true,
@@ -156,8 +166,38 @@ export const useComplianceStore = create<ComplianceState>()(
             longitude,
             detectedAt: new Date(),
             error: undefined,
+            platformType,
+            availablePlatforms,
           },
         });
+      },
+      
+      setPlatformType: (platformType: PlatformType) => {
+        set({ platformType });
+        
+        // Re-validate geolocation with new platform type
+        const state = get();
+        if (state.geolocation.isDetected && state.geolocation.state) {
+          // Import GeolocationService dynamically to avoid circular dependency
+          import('../services/GeolocationService').then(({ GeolocationService }) => {
+            const isLegal = GeolocationService.isLegalBettingState(
+              state.geolocation.state!,
+              platformType
+            );
+            const availablePlatforms = GeolocationService.getAvailablePlatforms(
+              state.geolocation.state!
+            );
+            
+            set({
+              geolocation: {
+                ...state.geolocation,
+                isLegalState: isLegal,
+                platformType,
+                availablePlatforms,
+              },
+            });
+          });
+        }
       },
       
       setGeolocationError: (error: string) => {

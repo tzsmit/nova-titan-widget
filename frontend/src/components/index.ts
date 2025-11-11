@@ -26,3 +26,4 @@ export { default as GeolocationDetection } from './compliance/GeolocationDetecti
 export { default as ResponsibleGaming } from './compliance/ResponsibleGaming';
 export { default as CookieConsent } from './compliance/CookieConsent';
 export { default as DisclaimerBanner } from './compliance/DisclaimerBanner';
+export { default as PlatformSelector } from './compliance/PlatformSelector';
