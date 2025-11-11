@@ -19,3 +19,10 @@ export { default as LiveScoreWidget } from './live/LiveScoreWidget';
 
 // Filter Components
 export { default as FilterBar } from './filters/FilterBar';
+
+// Compliance Components
+export { default as AgeVerification } from './compliance/AgeVerification';
+export { default as GeolocationDetection } from './compliance/GeolocationDetection';
+export { default as ResponsibleGaming } from './compliance/ResponsibleGaming';
+export { default as CookieConsent } from './compliance/CookieConsent';
+export { default as DisclaimerBanner } from './compliance/DisclaimerBanner';
