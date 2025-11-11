@@ -1,0 +1,121 @@
+# Dependabot configuration for automated dependency updates
+version: 2
+updates:
+  # Frontend dependencies
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "tzsmit"
+    assignees:
+      - "tzsmit"
+    commit-message:
+      prefix: "chore(frontend)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "frontend"
+    ignore:
+      # Ignore major version updates for breaking changes
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      # Group React-related dependencies
+      react:
+        patterns:
+          - "react*"
+          - "@types/react*"
+      # Group testing dependencies
+      testing:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "@testing-library/*"
+      # Group build tools
+      build-tools:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+          - "typescript"
+
+  # Backend dependencies
+  - package-ecosystem: "npm"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "tzsmit"
+    assignees:
+      - "tzsmit"
+    commit-message:
+      prefix: "chore(backend)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "backend"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      # Group security dependencies
+      security:
+        patterns:
+          - "@sentry/*"
+          - "helmet"
+          - "express-rate-limit"
+      # Group database dependencies
+      database:
+        patterns:
+          - "@prisma/*"
+          - "prisma"
+      # Group testing dependencies
+      testing:
+        patterns:
+          - "jest"
+          - "ts-jest"
+          - "@types/jest"
+          - "supertest"
+
+  # Root dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "tzsmit"
+    assignees:
+      - "tzsmit"
+    commit-message:
+      prefix: "chore(root)"
+    labels:
+      - "dependencies"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "tzsmit"
+    commit-message:
+      prefix: "chore(ci)"
+    labels:
+      - "dependencies"
+      - "ci/cd"
