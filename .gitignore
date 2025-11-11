@@ -112,3 +112,14 @@ jspm_packages/
 
 # DynamoDB Local files
 .dynamodb/
+
+# Vercel
+.vercel
+.vercel.json
+
+# Test artifacts
+*.test.js.snap
+__snapshots__/
+
+# Sentry
+.sentryclirc
