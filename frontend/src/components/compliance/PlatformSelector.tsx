@@ -28,7 +28,13 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
   const { platformType, setPlatformType, geolocation } = useComplianceStore();
   const [showDetails, setShowDetails] = useState(false);
 
-  const handleSelect = (type: PlatformType) => {
+  const handleSelect = (type: PlatformType, isAvailable: boolean) => {
+    if (!isAvailable) {
+      // Show alert explaining why it's locked
+      alert(`This platform is not available in ${geolocation.state || 'your state'}. Please use the ${type === 'traditional' ? 'Social Gaming' : 'Traditional'} option instead.`);
+      return;
+    }
+    
     setPlatformType(type);
     if (onChange) {
       onChange(type);
@@ -63,14 +69,13 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
         <motion.button
           whileHover={{ scale: isTraditionalAvailable ? 1.02 : 1 }}
           whileTap={{ scale: isTraditionalAvailable ? 0.98 : 1 }}
-          onClick={() => isTraditionalAvailable && handleSelect('traditional')}
-          disabled={!isTraditionalAvailable}
+          onClick={() => handleSelect('traditional', isTraditionalAvailable)}
           className={`relative p-6 rounded-lg border-2 transition-all text-left ${
             platformType === 'traditional'
               ? 'border-blue-500 bg-blue-900/30'
               : isTraditionalAvailable
-              ? 'border-gray-700 bg-gray-800 hover:border-gray-600'
-              : 'border-gray-800 bg-gray-900 opacity-50 cursor-not-allowed'
+              ? 'border-gray-700 bg-gray-800 hover:border-gray-600 cursor-pointer'
+              : 'border-red-700/50 bg-gray-900/80 cursor-not-allowed'
           }`}
         >
           {/* Selected Badge */}
@@ -83,43 +88,53 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
 
           {/* Unavailable Badge */}
           {!isTraditionalAvailable && (
-            <div className="absolute -top-2 -right-2 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-              Not Available
+            <div className="absolute -top-2 -right-2 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+              🔒 Locked
             </div>
           )}
 
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Trophy size={24} className="text-white" />
+            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+              isTraditionalAvailable ? 'bg-blue-600' : 'bg-gray-700'
+            }`}>
+              <Trophy size={24} className={isTraditionalAvailable ? 'text-white' : 'text-gray-500'} />
             </div>
             <div>
-              <h4 className="text-white font-bold">Traditional</h4>
+              <h4 className={isTraditionalAvailable ? 'text-white font-bold' : 'text-gray-400 font-bold'}>Traditional</h4>
               <p className="text-xs text-gray-400">Sports Betting</p>
             </div>
           </div>
 
-          <p className="text-sm text-gray-300 mb-3">
+          <p className={`text-sm mb-3 ${isTraditionalAvailable ? 'text-gray-300' : 'text-gray-500'}`}>
             Real money sports betting with licensed bookmakers like DraftKings, FanDuel, BetMGM.
           </p>
 
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              <Check size={14} className="text-green-400" />
+            <div className={`flex items-center gap-2 text-xs ${isTraditionalAvailable ? 'text-gray-400' : 'text-gray-600'}`}>
+              <Check size={14} className={isTraditionalAvailable ? 'text-green-400' : 'text-gray-600'} />
               <span>Regulated sportsbooks</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              <Check size={14} className="text-green-400" />
+            <div className={`flex items-center gap-2 text-xs ${isTraditionalAvailable ? 'text-gray-400' : 'text-gray-600'}`}>
+              <Check size={14} className={isTraditionalAvailable ? 'text-green-400' : 'text-gray-600'} />
               <span>Real money wagering</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              <Check size={14} className="text-green-400" />
+            <div className={`flex items-center gap-2 text-xs ${isTraditionalAvailable ? 'text-gray-400' : 'text-gray-600'}`}>
+              <Check size={14} className={isTraditionalAvailable ? 'text-green-400' : 'text-gray-600'} />
               <span>21+ only, 22 states</span>
             </div>
           </div>
 
           {geolocation.state && !isTraditionalAvailable && (
-            <div className="mt-3 p-2 bg-red-900/30 border border-red-700 rounded text-xs text-red-300">
-              Not legal in {geolocation.state}
+            <div className="mt-3 p-3 bg-red-900/30 border border-red-700 rounded">
+              <div className="flex items-start gap-2">
+                <span className="text-lg">🔒</span>
+                <div>
+                  <p className="text-xs font-semibold text-red-300 mb-1">Not Available in {geolocation.state}</p>
+                  <p className="text-xs text-gray-400">
+                    Traditional sports betting is not yet legal in your state. Use Social Gaming instead!
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </motion.button>
@@ -128,14 +143,13 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
         <motion.button
           whileHover={{ scale: isSweepstakesAvailable ? 1.02 : 1 }}
           whileTap={{ scale: isSweepstakesAvailable ? 0.98 : 1 }}
-          onClick={() => isSweepstakesAvailable && handleSelect('sweepstakes')}
-          disabled={!isSweepstakesAvailable}
+          onClick={() => handleSelect('sweepstakes', isSweepstakesAvailable)}
           className={`relative p-6 rounded-lg border-2 transition-all text-left ${
             platformType === 'sweepstakes'
               ? 'border-purple-500 bg-purple-900/30'
               : isSweepstakesAvailable
-              ? 'border-gray-700 bg-gray-800 hover:border-gray-600'
-              : 'border-gray-800 bg-gray-900 opacity-50 cursor-not-allowed'
+              ? 'border-gray-700 bg-gray-800 hover:border-gray-600 cursor-pointer'
+              : 'border-red-700/50 bg-gray-900/80 cursor-not-allowed'
           }`}
         >
           {/* Selected Badge */}
@@ -155,36 +169,38 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
 
           {/* Unavailable Badge */}
           {!isSweepstakesAvailable && (
-            <div className="absolute -top-2 -right-2 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-              Not Available
+            <div className="absolute -top-2 -right-2 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+              🔒 Locked
             </div>
           )}
 
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
-              <Sparkles size={24} className="text-white" />
+            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+              isSweepstakesAvailable ? 'bg-purple-600' : 'bg-gray-700'
+            }`}>
+              <Sparkles size={24} className={isSweepstakesAvailable ? 'text-white' : 'text-gray-500'} />
             </div>
             <div>
-              <h4 className="text-white font-bold">Social Gaming</h4>
+              <h4 className={isSweepstakesAvailable ? 'text-white font-bold' : 'text-gray-400 font-bold'}>Social Gaming</h4>
               <p className="text-xs text-gray-400">Sweepstakes Model</p>
             </div>
           </div>
 
-          <p className="text-sm text-gray-300 mb-3">
+          <p className={`text-sm mb-3 ${isSweepstakesAvailable ? 'text-gray-300' : 'text-gray-500'}`}>
             Skill-based gaming and sweepstakes platforms like Stake.us, Underdog, PrizePicks.
           </p>
 
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              <Check size={14} className="text-green-400" />
+            <div className={`flex items-center gap-2 text-xs ${isSweepstakesAvailable ? 'text-gray-400' : 'text-gray-600'}`}>
+              <Check size={14} className={isSweepstakesAvailable ? 'text-green-400' : 'text-gray-600'} />
               <span>Sweepstakes model</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              <Check size={14} className="text-green-400" />
+            <div className={`flex items-center gap-2 text-xs ${isSweepstakesAvailable ? 'text-gray-400' : 'text-gray-600'}`}>
+              <Check size={14} className={isSweepstakesAvailable ? 'text-green-400' : 'text-gray-600'} />
               <span>No purchase necessary</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              <Check size={14} className="text-green-400" />
+            <div className={`flex items-center gap-2 text-xs ${isSweepstakesAvailable ? 'text-gray-400' : 'text-gray-600'}`}>
+              <Check size={14} className={isSweepstakesAvailable ? 'text-green-400' : 'text-gray-600'} />
               <span>18+ (varies), 46+ states</span>
             </div>
           </div>
@@ -197,8 +213,16 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
           )}
 
           {geolocation.state && !isSweepstakesAvailable && (
-            <div className="mt-3 p-2 bg-red-900/30 border border-red-700 rounded text-xs text-red-300">
-              Not legal in {geolocation.state}
+            <div className="mt-3 p-3 bg-red-900/30 border border-red-700 rounded">
+              <div className="flex items-start gap-2">
+                <span className="text-lg">🔒</span>
+                <div>
+                  <p className="text-xs font-semibold text-red-300 mb-1">Not Available in {geolocation.state}</p>
+                  <p className="text-xs text-gray-400">
+                    Social gaming is restricted in your state ({geolocation.state}). Try Traditional betting if available.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </motion.button>
