@@ -1,47 +1,22 @@
-// Nova Titan Sports Widget Backend API
-import express from 'express';
+/**
+ * Nova Titan Backend - Main Server Entry Point
+ * Real-time sports betting odds aggregation platform
+ */
+
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
-import { PrismaClient } from '@prisma/client';
-import * as Sentry from '@sentry/node';
-import dotenv from 'dotenv';
+import config from './config/env';
+import apiRoutes from './routes/api';
+import parlayAdvancedRoutes from './routes/parlay-advanced';
 
-// Load environment variables
-dotenv.config();
-
-// Import routes
-import gamesRouter from './routes/games';
-import predictionsRouter from './routes/predictions';
-import parlayRouter from './routes/parlay';
-import oddsRouter from './routes/odds';
-import playersRouter from './routes/players';
-import teamsRouter from './routes/teams';
-import healthRouter from './routes/health';
-
-// Import middleware
-import { errorHandler } from './middleware/errorHandler';
-import { requestLogger } from './middleware/requestLogger';
-import { validateApiKey } from './middleware/auth';
-
-// Import services
-import { initializeDatabase } from './services/database';
-import { initializeRedis } from './services/cache';
-import { startBackgroundJobs } from './services/scheduler';
-import { logger } from './utils/logger';
-
+// Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3001;
 
-// Initialize Sentry for error tracking
-if (process.env.SENTRY_DSN) {
-  Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-    environment: process.env.NODE_ENV || 'development',
-    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-  });
-}
+// Trust proxy (for rate limiting behind reverse proxy)
+app.set('trust proxy', 1);
 
 // Security middleware
 app.use(helmet({
@@ -50,130 +25,186 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'"]
-    }
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'", 'https://api.the-odds-api.com', 'https://*.upstash.io'],
+    },
   },
-  crossOriginEmbedderPolicy: false
+  crossOriginEmbedderPolicy: false,
 }));
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.CORS_ORIGIN || 'https://yourdomain.com']
-    : true,
+  origin: (origin: string | undefined, callback: Function) => {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = config.CORS_ORIGIN.split(',').map(o => o.trim());
+    
+    // Development: allow localhost
+    if (config.NODE_ENV === 'development') {
+      allowedOrigins.push('http://localhost:3000', 'http://localhost:5173');
+    }
+    
+    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
-  optionsSuccessStatus: 200
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Signature'],
 };
+
 app.use(cors(corsOptions));
 
-// Compression and parsing
+// Compression
 app.use(compression());
+
+// Body parsing
 app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.API_RATE_LIMIT || '100'),
-  message: 'Too many requests from this IP',
+  windowMs: config.RATE_LIMIT_WINDOW_MS,
+  max: config.RATE_LIMIT_MAX_REQUESTS,
+  message: {
+    success: false,
+    error: 'Too many requests from this IP, please try again later.',
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use('/api', limiter);
 
-// Request logging
-if (process.env.ENABLE_REQUEST_LOGGING === 'true') {
-  app.use(requestLogger);
+app.use('/api/', limiter);
+
+// Request logging (development only)
+if (config.NODE_ENV === 'development') {
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const start = Date.now();
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      console.log(`${req.method} ${req.path} ${res.statusCode} ${duration}ms`);
+    });
+    next();
+  });
 }
 
-// API Routes
-app.use('/api/health', healthRouter);
-app.use('/api/games', gamesRouter);
-app.use('/api/predictions', predictionsRouter);
-app.use('/api/parlay', parlayRouter);
-app.use('/api/odds', oddsRouter);
-app.use('/api/players', playersRouter);
-app.use('/api/teams', teamsRouter);
-
-// Widget serving (for development)
-if (process.env.NODE_ENV === 'development') {
-  app.use('/widget', express.static('public'));
-}
-
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    error: {
-      code: 'NOT_FOUND',
-      message: 'Endpoint not found'
-    },
-    timestamp: new Date().toISOString()
+// Health check (before rate limiting)
+app.get('/', (req: Request, res: Response) => {
+  res.json({
+    service: 'Nova Titan Backend',
+    version: '1.0.0',
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
   });
 });
 
-// Error handling
-app.use(errorHandler);
+// API routes
+app.use('/api', apiRoutes);
+app.use('/api/parlay', parlayAdvancedRoutes);
 
-// Initialize services and start server
-async function startServer() {
-  try {
-    // Initialize database
-    await initializeDatabase();
-    logger.info('Database initialized');
+// 404 handler
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    success: false,
+    error: 'Endpoint not found',
+    path: req.path,
+    timestamp: new Date().toISOString(),
+  });
+});
 
-    // Initialize Redis cache (optional)
-    if (process.env.ENABLE_REDIS === 'true') {
-      await initializeRedis();
-      logger.info('Redis cache initialized');
-    }
+// Error handler
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error('Error:', err);
 
-    // Start background jobs
-    startBackgroundJobs();
-    logger.info('Background jobs started');
+  // Don't leak error details in production
+  const message = config.NODE_ENV === 'production' 
+    ? 'Internal server error' 
+    : err.message;
 
-    // Start server
-    app.listen(PORT, () => {
-      logger.info(`Nova Titan API server started on port ${PORT}`);
-      logger.info(`Environment: ${process.env.NODE_ENV}`);
-      logger.info(`API URL: http://localhost:${PORT}/api`);
-      
-      if (process.env.NODE_ENV === 'development') {
-        logger.info(`Health check: http://localhost:${PORT}/api/health`);
-        logger.info(`Widget demo: http://localhost:${PORT}/widget`);
-      }
-    });
+  res.status(500).json({
+    success: false,
+    error: message,
+    timestamp: new Date().toISOString(),
+  });
+});
 
-  } catch (error) {
-    logger.error('Failed to start server:', error);
-    process.exit(1);
-  }
-}
+// Start server
+const PORT = config.PORT;
+const HOST = config.HOST;
+
+const server = app.listen(PORT, HOST, () => {
+  console.log(`
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                    🚀 NOVA TITAN BACKEND - RUNNING                          ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  Environment: ${config.NODE_ENV}
+  Server:      http://${HOST}:${PORT}
+  Health:      http://${HOST}:${PORT}/api/health
+  
+  API Endpoints:
+    GET  /api/sports              - List available sports
+    GET  /api/events              - Get live events
+    GET  /api/events/:eventId     - Get event odds
+    GET  /api/bookmakers          - List bookmakers
+    GET  /api/props/:eventId      - Get player props
+    POST /api/price/parlay        - Calculate parlay
+    GET  /api/insights            - Market insights
+    GET  /api/quota               - API quota info
+    GET  /api/health              - Health check
+    GET  /api/cache/stats         - Cache statistics
+    POST /api/cache/invalidate    - Invalidate cache
+  
+  Advanced Parlay Endpoints (Phase 2):
+    POST /api/parlay/optimize           - Multi-book optimization
+    POST /api/parlay/live-recalculate   - Live odds recalculation
+    POST /api/parlay/edge-detection     - Edge detection per leg
+    POST /api/parlay/bet-sizing         - Bet sizing recommendations
+    POST /api/parlay/line-movement      - Track line movements
+    GET  /api/parlay/line-movement/:id  - Line movement history
+    POST /api/parlay/sgp-validate       - Same Game Parlay validation
+  
+  Configuration:
+    Cache:       ${config.CACHE_ENABLED ? 'Enabled' : 'Disabled'}
+    Cache TTL:   ${config.CACHE_DEFAULT_TTL}s
+    Rate Limit:  ${config.RATE_LIMIT_MAX_REQUESTS} requests per ${config.RATE_LIMIT_WINDOW_MS / 60000} minutes
+    CORS:        ${config.CORS_ORIGIN}
+  
+  Ready to serve real-time odds! 🎯
+  `);
+});
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  logger.info('SIGTERM received, shutting down gracefully');
-  process.exit(0);
+  console.log('SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
 });
 
 process.on('SIGINT', () => {
-  logger.info('SIGINT received, shutting down gracefully');
-  process.exit(0);
+  console.log('SIGINT signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
 });
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
-  logger.error('Uncaught Exception:', error);
+  console.error('Uncaught Exception:', error);
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
   process.exit(1);
 });
-
-// Start the server
-startServer();
 
 export default app;
