@@ -39,6 +39,7 @@ export interface ParlayAnalysis {
     difference: string;
   };
   expectedValue: number;
+  independenceScore: number; // 0-100, higher = more independent (REAL calculation, not static)
   riskScore: number; // 0-100, lower is better
 }
 
@@ -56,13 +57,16 @@ export class ParlayOptimizer {
   /**
    * Analyze a parlay for correlations and value
    */
-  analyzePar lay(legs: ParlayLeg[]): ParlayAnalysis {
+  analyzeParlay(legs: ParlayLeg[]): ParlayAnalysis {
     if (legs.length > this.MAX_PARLAY_LEGS) {
       console.warn(`Parlay has ${legs.length} legs, maximum recommended is ${this.MAX_PARLAY_LEGS}`);
     }
     
     // Detect correlations
     const correlationWarnings = this.detectCorrelations(legs);
+    
+    // Calculate independence score (REAL calculation, not static 100)
+    const independenceScore = this.calculateIndependenceScore(legs, correlationWarnings);
     
     // Calculate true odds
     const trueOdds = this.calculateTrueOdds(legs, correlationWarnings);
@@ -76,12 +80,15 @@ export class ParlayOptimizer {
     // Generate recommendations
     const recommendations = this.generateRecommendations(legs, correlationWarnings);
     
+    console.log(`📊 Parlay Analysis: Independence ${independenceScore}/100, Risk ${riskScore}/100, EV: ${expectedValue.toFixed(2)}`);
+    
     return {
       legs,
       correlationWarnings,
       recommendations,
       trueOdds,
       expectedValue,
+      independenceScore,
       riskScore
     };
   }
@@ -317,6 +324,53 @@ export class ParlayOptimizer {
     return payouts[Math.min(legCount, 5)] || 2000;
   }
   
+  /**
+   * Calculate independence score (0-100) - REAL calculation based on correlations
+   * 100 = fully independent legs (different games, no correlations)
+   * 0 = highly correlated (same game, same team, related props)
+   */
+  private calculateIndependenceScore(legs: ParlayLeg[], warnings: CorrelationWarning[]): number {
+    if (legs.length <= 1) return 100;
+    
+    // Calculate average correlation across all leg pairs
+    let totalCorrelation = 0;
+    let pairCount = 0;
+    
+    for (let i = 0; i < legs.length; i++) {
+      for (let j = i + 1; j < legs.length; j++) {
+        const correlation = this.calculateCorrelation(legs[i], legs[j]);
+        totalCorrelation += Math.abs(correlation);
+        pairCount++;
+      }
+    }
+    
+    const avgCorrelation = pairCount > 0 ? totalCorrelation / pairCount : 0;
+    
+    // Convert to 0-100 score (0 correlation = 100 score, 1 correlation = 0 score)
+    const score = Math.round((1 - avgCorrelation) * 100);
+    
+    // Additional penalties for same-game parlays
+    const gameGroups = legs.reduce((acc, leg) => {
+      if (!acc[leg.gameId]) acc[leg.gameId] = 0;
+      acc[leg.gameId]++;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const sameGamePenalty = Object.values(gameGroups).reduce((penalty, count) => {
+      if (count > 1) {
+        // 10 points penalty per additional leg in same game
+        penalty += (count - 1) * 10;
+      }
+      return penalty;
+    }, 0);
+    
+    const finalScore = Math.max(0, Math.min(100, score - sameGamePenalty));
+    
+    console.log(`🎯 Independence Score: ${finalScore}/100 (avg correlation: ${(avgCorrelation * 100).toFixed(1)}%, same-game penalty: ${sameGamePenalty})`);
+    
+    return finalScore;
+  }
+
   /**
    * Calculate risk score
    */
