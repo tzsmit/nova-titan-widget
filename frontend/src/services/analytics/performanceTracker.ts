@@ -178,42 +178,68 @@ export class PerformanceTracker {
   }
 
   /**
-   * Backtest algorithm on historical data
+   * Backtest algorithm on REAL historical data from localStorage
+   * NO MOCK DATA - Uses only actual tracked picks
    */
   async backtestAlgorithm(days: number = 30): Promise<BacktestResult> {
-    // In production, fetch real historical data
-    // For now, simulate backtest results
     const period = `Last ${days} days`;
+    const cutoffDate = subDays(new Date(), days);
     
-    const mockPicks = this.generateMockBacktestData(days);
-    const wins = mockPicks.filter(p => p.result === 'WIN').length;
-    const losses = mockPicks.filter(p => p.result === 'LOSS').length;
+    // Get REAL historical picks from localStorage (no fake data)
+    const historicalPicks = this.picks.filter(pick => {
+      const pickDate = parseISO(pick.date);
+      return pickDate >= cutoffDate && pick.result !== 'PENDING';
+    });
+
+    // If no real data exists, return empty state
+    if (historicalPicks.length === 0) {
+      console.log('⚠️ No historical picks available for backtesting');
+      return {
+        period,
+        totalPicks: 0,
+        winRate: 0,
+        roi: '+0.0%',
+        profitLoss: 0,
+        bestCategory: 'No data',
+        worstCategory: 'No data',
+        calibrationScore: 0
+      };
+    }
+
+    console.log(`📊 Backtesting ${historicalPicks.length} REAL picks from last ${days} days`);
     
-    const totalStaked = mockPicks.reduce((sum, p) => sum + p.stake, 0);
-    const profitLoss = mockPicks.reduce((sum, p) => sum + p.profit, 0);
-    const roi = (profitLoss / totalStaked) * 100;
+    const wins = historicalPicks.filter(p => p.result === 'WIN').length;
+    const losses = historicalPicks.filter(p => p.result === 'LOSS').length;
+    
+    const totalStaked = historicalPicks.reduce((sum, p) => sum + p.stake, 0);
+    const profitLoss = historicalPicks.reduce((sum, p) => sum + p.profit, 0);
+    const roi = totalStaked > 0 ? (profitLoss / totalStaked) * 100 : 0;
 
     // Category analysis
-    const byCategory = this.getStatsByCategory(mockPicks);
+    const byCategory = this.getStatsByCategory(historicalPicks);
     const categories = Object.entries(byCategory);
     
-    const bestCategory = categories.reduce((best, [cat, stats]) => 
-      stats.winRate > (byCategory[best]?.winRate || 0) ? cat : best, 
-      categories[0]?.[0] || 'Unknown'
-    );
+    const bestCategory = categories.length > 0
+      ? categories.reduce((best, [cat, stats]) => 
+          stats.winRate > (byCategory[best]?.winRate || 0) ? cat : best, 
+          categories[0][0]
+        )
+      : 'No data';
     
-    const worstCategory = categories.reduce((worst, [cat, stats]) => 
-      stats.winRate < (byCategory[worst]?.winRate || 1) ? cat : worst,
-      categories[0]?.[0] || 'Unknown'
-    );
+    const worstCategory = categories.length > 0
+      ? categories.reduce((worst, [cat, stats]) => 
+          stats.winRate < (byCategory[worst]?.winRate || 1) ? cat : worst,
+          categories[0][0]
+        )
+      : 'No data';
 
     // Calibration score
-    const calibrationScore = this.calculateCalibrationScore(mockPicks);
+    const calibrationScore = this.calculateCalibrationScore(historicalPicks);
 
     return {
       period,
-      totalPicks: mockPicks.length,
-      winRate: wins / (wins + losses),
+      totalPicks: historicalPicks.length,
+      winRate: wins + losses > 0 ? wins / (wins + losses) : 0,
       roi: `${roi >= 0 ? '+' : ''}${roi.toFixed(1)}%`,
       profitLoss,
       bestCategory,
@@ -434,47 +460,7 @@ export class PerformanceTracker {
     return Math.max(0, 100 - mae);
   }
 
-  private generateMockBacktestData(days: number): PickRecord[] {
-    const mockPicks: PickRecord[] = [];
-    const today = new Date();
-
-    // Generate ~5 picks per day
-    for (let i = 0; i < days; i++) {
-      const date = format(subDays(today, i), 'yyyy-MM-dd');
-      const picksPerDay = 4 + Math.floor(Math.random() * 3);
-
-      for (let j = 0; j < picksPerDay; j++) {
-        const safetyScore = 60 + Math.random() * 40;
-        const confidence = 50 + Math.random() * 45;
-        
-        // Higher safety/confidence = higher win rate
-        const winProb = (safetyScore + confidence) / 200;
-        const result = Math.random() < winProb ? 'WIN' : 'LOSS';
-        
-        const odds = -110;
-        const stake = 100;
-        const profit = result === 'WIN' ? this.calculateProfit(odds, stake) : -stake;
-
-        mockPicks.push({
-          id: `backtest_${i}_${j}`,
-          date: `${date}T12:00:00Z`,
-          player: `Player ${j + 1}`,
-          prop: ['points', 'rebounds', 'assists', 'yards'][Math.floor(Math.random() * 4)],
-          line: 10 + Math.random() * 20,
-          pick: Math.random() > 0.5 ? 'HIGHER' : 'LOWER',
-          actualValue: 15 + Math.random() * 10,
-          result: result as 'WIN' | 'LOSS',
-          confidence,
-          safetyScore,
-          odds,
-          stake,
-          profit
-        });
-      }
-    }
-
-    return mockPicks;
-  }
+  // generateMockBacktestData REMOVED - Now uses REAL picks from localStorage only
 
   private getEmptyStats(): PerformanceStats {
     return {
