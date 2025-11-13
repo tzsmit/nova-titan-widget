@@ -58,17 +58,24 @@ export class InjuryNewsMonitor {
     if (cached) return cached;
 
     try {
-      console.log(`📋 Fetching ${sport} injury report...`);
+      console.log(`📋 Fetching REAL ${sport} injury report from ESPN...`);
       
-      // In production, fetch from ESPN API
-      // For now, generate realistic injury data
-      const injuries = this.generateMockInjuryData(sport);
+      // Fetch from ESPN API - REAL DATA ONLY
+      const sportPath = sport === 'NBA' ? 'basketball/nba' : 'football/nfl';
+      const response = await axios.get(
+        `${this.ESPN_INJURY_API}/${sportPath}/injuries`,
+        { timeout: 10000 }
+      );
       
+      const injuries = this.parseESPNInjuries(response.data);
       this.setCache(cacheKey, injuries);
+      
+      console.log(`✅ Fetched ${injuries.length} REAL injury reports`);
       return injuries;
-    } catch (error) {
-      console.error(`Error fetching ${sport} injury report:`, error);
-      return this.generateMockInjuryData(sport);
+    } catch (error: any) {
+      console.error(`❌ Error fetching ${sport} injury report:`, error.message);
+      // Return empty array instead of fake data
+      return [];
     }
   }
 
@@ -84,16 +91,24 @@ export class InjuryNewsMonitor {
     if (cached) return cached;
 
     try {
-      console.log(`📰 Fetching ${sport} player news...`);
+      console.log(`📰 Fetching REAL ${sport} player news from ESPN...`);
       
-      // In production, integrate with news APIs (NewsAPI, Twitter, RSS)
-      const news = this.generateMockNewsData(sport, playerNames);
+      // Fetch from ESPN News API - REAL DATA ONLY
+      const sportPath = sport === 'NBA' ? 'basketball/nba' : 'football/nfl';
+      const response = await axios.get(
+        `${this.ESPN_INJURY_API}/${sportPath}/news`,
+        { timeout: 10000 }
+      );
       
+      const news = this.parseESPNNews(response.data, playerNames);
       this.setCache(cacheKey, news);
+      
+      console.log(`✅ Fetched ${news.length} REAL news items`);
       return news;
-    } catch (error) {
-      console.error(`Error fetching ${sport} news:`, error);
-      return this.generateMockNewsData(sport, playerNames);
+    } catch (error: any) {
+      console.error(`❌ Error fetching ${sport} news:`, error.message);
+      // Return empty array instead of fake data
+      return [];
     }
   }
 
@@ -219,124 +234,132 @@ export class InjuryNewsMonitor {
 
   // ============ PRIVATE METHODS ============
 
-  private generateMockInjuryData(sport: 'NBA' | 'NFL'): InjuryReport[] {
-    const injuries: InjuryReport[] = [];
-    
-    if (sport === 'NBA') {
-      injuries.push(
-        {
-          playerId: 'nba_1',
-          playerName: 'Kevin Durant',
-          team: 'PHX',
-          status: 'questionable',
-          injury: 'Right ankle sprain',
-          lastUpdate: new Date().toISOString(),
-          estimatedReturn: format(new Date(Date.now() + 86400000 * 2), 'yyyy-MM-dd'),
-          impactLevel: 'high'
-        },
-        {
-          playerId: 'nba_2',
-          playerName: 'Kawhi Leonard',
-          team: 'LAC',
-          status: 'out',
-          injury: 'Knee management',
-          lastUpdate: new Date().toISOString(),
-          estimatedReturn: format(new Date(Date.now() + 86400000 * 7), 'yyyy-MM-dd'),
-          impactLevel: 'high'
-        },
-        {
-          playerId: 'nba_3',
-          playerName: 'Zion Williamson',
-          team: 'NOP',
-          status: 'probable',
-          injury: 'Hamstring tightness',
-          lastUpdate: new Date().toISOString(),
-          estimatedReturn: 'Today',
-          impactLevel: 'low'
+  /**
+   * Parse ESPN injury data - REAL DATA ONLY
+   */
+  private parseESPNInjuries(data: any): InjuryReport[] {
+    try {
+      const injuries: InjuryReport[] = [];
+      
+      // Parse ESPN injury report structure
+      const teams = data?.teams || [];
+      
+      for (const team of teams) {
+        const teamInjuries = team?.injuries || [];
+        
+        for (const injury of teamInjuries) {
+          const athlete = injury?.athlete || {};
+          const status = injury?.status?.toLowerCase() || 'healthy';
+          
+          injuries.push({
+            playerId: athlete?.id || '',
+            playerName: athlete?.displayName || athlete?.name || '',
+            team: team?.team?.abbreviation || '',
+            status: this.normalizeInjuryStatus(status),
+            injury: injury?.longComment || injury?.shortComment || injury?.details || '',
+            lastUpdate: injury?.date || new Date().toISOString(),
+            estimatedReturn: null,
+            impactLevel: this.assessImpactLevel(status)
+          });
         }
-      );
-    } else {
-      injuries.push(
-        {
-          playerId: 'nfl_1',
-          playerName: 'Christian McCaffrey',
-          team: 'SF',
-          status: 'questionable',
-          injury: 'Calf strain',
-          lastUpdate: new Date().toISOString(),
-          estimatedReturn: 'This week',
-          impactLevel: 'high'
-        },
-        {
-          playerId: 'nfl_2',
-          playerName: 'Justin Jefferson',
-          team: 'MIN',
-          status: 'out',
-          injury: 'Hamstring',
-          lastUpdate: new Date().toISOString(),
-          estimatedReturn: format(new Date(Date.now() + 86400000 * 14), 'yyyy-MM-dd'),
-          impactLevel: 'high'
-        }
-      );
+      }
+      
+      return injuries;
+    } catch (error) {
+      console.error('Error parsing ESPN injuries:', error);
+      return [];
     }
-
-    return injuries;
   }
 
-  private generateMockNewsData(sport: 'NBA' | 'NFL', playerNames?: string[]): NewsItem[] {
-    const news: NewsItem[] = [];
-    
-    news.push(
-      {
-        id: 'news_1',
-        playerId: 'player_1',
-        playerName: 'Luka Doncic',
-        team: 'DAL',
-        headline: 'Luka Doncic named Western Conference Player of the Week',
-        summary: 'Averaged 32.5 points, 9.2 assists, and 8.1 rebounds over the past week',
-        source: 'ESPN',
-        publishedAt: new Date().toISOString(),
-        sentiment: 'positive',
-        impactLevel: 'medium',
-        keywords: ['performance', 'award', 'hot streak']
-      },
-      {
-        id: 'news_2',
-        playerId: 'player_2',
-        playerName: 'Joel Embiid',
-        team: 'PHI',
-        headline: 'Joel Embiid to have minutes restriction tonight',
-        summary: 'Coach confirms Embiid will be on 28-minute limit as part of rest management',
-        source: 'The Athletic',
-        publishedAt: new Date().toISOString(),
-        sentiment: 'negative',
-        impactLevel: 'high',
-        keywords: ['minutes', 'restriction', 'rest']
-      },
-      {
-        id: 'news_3',
-        playerId: 'player_3',
-        playerName: 'Patrick Mahomes',
-        team: 'KC',
-        headline: 'Chiefs announce Travis Kelce will play despite ankle issue',
-        summary: 'Kelce practiced fully Friday and is expected to have full workload',
-        source: 'NFL Network',
-        publishedAt: new Date().toISOString(),
-        sentiment: 'positive',
-        impactLevel: 'medium',
-        keywords: ['injury', 'cleared', 'full go']
+  /**
+   * Parse ESPN news data - REAL DATA ONLY
+   */
+  private parseESPNNews(data: any, playerNames?: string[]): NewsItem[] {
+    try {
+      const news: NewsItem[] = [];
+      const articles = data?.articles || [];
+      
+      for (const article of articles) {
+        const headline = article?.headline || '';
+        const description = article?.description || '';
+        
+        // Filter by player names if provided
+        if (playerNames && playerNames.length > 0) {
+          const matchesPlayer = playerNames.some(name => 
+            headline.toLowerCase().includes(name.toLowerCase()) ||
+            description.toLowerCase().includes(name.toLowerCase())
+          );
+          if (!matchesPlayer) continue;
+        }
+        
+        news.push({
+          id: article?.id || `news_${Date.now()}`,
+          playerId: '', // ESPN doesn't always provide player ID in news
+          playerName: this.extractPlayerName(headline),
+          team: '',
+          headline: headline,
+          summary: description,
+          source: article?.source?.name || 'ESPN',
+          publishedAt: article?.published || new Date().toISOString(),
+          sentiment: this.analyzeSentiment(headline + ' ' + description),
+          impactLevel: this.assessNewsImpact(headline + ' ' + description),
+          keywords: article?.keywords || []
+        });
       }
-    );
-
-    if (playerNames && playerNames.length > 0) {
-      return news.filter(item => 
-        playerNames.some(name => 
-          item.playerName.toLowerCase().includes(name.toLowerCase())
-        )
-      );
+      
+      return news;
+    } catch (error) {
+      console.error('Error parsing ESPN news:', error);
+      return [];
     }
+  }
 
-    return news;
+  private normalizeInjuryStatus(status: string): 'out' | 'questionable' | 'doubtful' | 'probable' | 'healthy' {
+    const lower = status.toLowerCase();
+    if (lower.includes('out')) return 'out';
+    if (lower.includes('questionable') || lower.includes('q')) return 'questionable';
+    if (lower.includes('doubtful') || lower.includes('d')) return 'doubtful';
+    if (lower.includes('probable') || lower.includes('p')) return 'probable';
+    return 'healthy';
+  }
+
+  private assessImpactLevel(status: string): 'high' | 'medium' | 'low' {
+    const lower = status.toLowerCase();
+    if (lower.includes('out') || lower.includes('doubtful')) return 'high';
+    if (lower.includes('questionable')) return 'medium';
+    return 'low';
+  }
+
+  private assessNewsImpact(text: string): 'high' | 'medium' | 'low' {
+    const lower = text.toLowerCase();
+    const highImpact = ['trade', 'injured', 'out', 'suspended', 'mvp', 'record'];
+    const mediumImpact = ['questionable', 'limited', 'returns', 'starts'];
+    
+    if (highImpact.some(word => lower.includes(word))) return 'high';
+    if (mediumImpact.some(word => lower.includes(word))) return 'medium';
+    return 'low';
+  }
+
+  private analyzeSentiment(text: string): 'positive' | 'negative' | 'neutral' {
+    const lower = text.toLowerCase();
+    const positive = ['returns', 'cleared', 'healthy', 'mvp', 'wins', 'scores'];
+    const negative = ['injured', 'out', 'suspended', 'loses', 'struggles'];
+    
+    const positiveCount = positive.filter(word => lower.includes(word)).length;
+    const negativeCount = negative.filter(word => lower.includes(word)).length;
+    
+    if (positiveCount > negativeCount) return 'positive';
+    if (negativeCount > positiveCount) return 'negative';
+    return 'neutral';
+  }
+
+  private extractPlayerName(headline: string): string {
+    // Simple extraction - assumes player name is at start of headline
+    const words = headline.split(' ');
+    if (words.length >= 2) {
+      return `${words[0]} ${words[1]}`;
+    }
+    return '';
   }
 
   private getFromCache(key: string): any | null {
