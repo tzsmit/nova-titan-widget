@@ -4,7 +4,6 @@
  */
 
 import { PropAnalysis } from './propAnalysisEngine';
-import * as _ from 'lodash';
 
 export interface StreakPick {
   rank: number;
@@ -58,7 +57,12 @@ export class StreakOptimizer {
     );
     
     // Sort by safety score
-    const sortedPicks = _.orderBy(safePicks, ['safetyScore', 'confidence'], ['desc', 'desc']);
+    const sortedPicks = safePicks.sort((a, b) => {
+      if (b.safetyScore !== a.safetyScore) {
+        return b.safetyScore - a.safetyScore;
+      }
+      return b.confidence - a.confidence;
+    });
     
     // Generate recommended picks
     const recommended = this.generateRecommendedPicks(sortedPicks, topCount);
@@ -144,19 +148,23 @@ export class StreakOptimizer {
   findUncorrelatedPicks(analyses: PropAnalysis[], count: number = 3): PropAnalysis[] {
     const safePicks = analyses.filter(a => a.safetyScore >= 80);
     
-    // Group by team to avoid correlated picks
-    const byTeam = _.groupBy(safePicks, 'player');
+    // Group by player to avoid correlated picks
+    const byPlayer = safePicks.reduce((acc, pick) => {
+      if (!acc[pick.player]) acc[pick.player] = [];
+      acc[pick.player].push(pick);
+      return acc;
+    }, {} as Record<string, PropAnalysis[]>);
     
-    // Take one pick per team
+    // Take one pick per player
     const uncorrelated: PropAnalysis[] = [];
-    for (const [, teamPicks] of Object.entries(byTeam)) {
+    for (const playerPicks of Object.values(byPlayer)) {
       if (uncorrelated.length >= count) break;
       
-      // Take highest safety pick from each team
-      const bestPick = _.maxBy(teamPicks, 'safetyScore');
-      if (bestPick) {
-        uncorrelated.push(bestPick);
-      }
+      // Take highest safety pick from each player
+      const bestPick = playerPicks.reduce((max, pick) => 
+        pick.safetyScore > max.safetyScore ? pick : max
+      );
+      uncorrelated.push(bestPick);
     }
     
     return uncorrelated.slice(0, count);

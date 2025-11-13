@@ -4,7 +4,6 @@
  */
 
 import { PropAnalysis } from './propAnalysisEngine';
-import * as _ from 'lodash';
 
 export interface ParlayLeg {
   player: string;
@@ -95,7 +94,11 @@ export class ParlayOptimizer {
     targetLegs: number = 3
   ): ParlayRecommendation {
     // Group by game to identify potential correlations
-    const byGame = _.groupBy(availableLegs, 'gameId');
+    const byGame = availableLegs.reduce((acc, leg) => {
+      if (!acc[leg.gameId]) acc[leg.gameId] = [];
+      acc[leg.gameId].push(leg);
+      return acc;
+    }, {} as Record<string, ParlayLeg[]>);
     
     // Select one leg per game to avoid same-game correlations
     const selectedLegs: ParlayLeg[] = [];
@@ -104,7 +107,9 @@ export class ParlayOptimizer {
       if (selectedLegs.length >= targetLegs) break;
       
       // Pick the best value leg from this game
-      const bestLeg = _.maxBy(gameLegs, leg => this.calculateLegValue(leg));
+      const bestLeg = gameLegs.reduce((max, leg) => 
+        this.calculateLegValue(leg) > this.calculateLegValue(max) ? leg : max
+      );
       if (bestLeg) {
         selectedLegs.push(bestLeg);
       }
@@ -155,7 +160,11 @@ export class ParlayOptimizer {
     const warnings: CorrelationWarning[] = [];
     
     // Check same-game correlations
-    const gameGroups = _.groupBy(legs, 'gameId');
+    const gameGroups = legs.reduce((acc, leg) => {
+      if (!acc[leg.gameId]) acc[leg.gameId] = [];
+      acc[leg.gameId].push(leg);
+      return acc;
+    }, {} as Record<string, ParlayLeg[]>);
     
     for (const [gameId, gameLegs] of Object.entries(gameGroups)) {
       if (gameLegs.length > 1) {
@@ -321,8 +330,12 @@ export class ParlayOptimizer {
     risk += warnings.length * 10;
     
     // Add risk for same-game parlays
-    const gameGroups = _.groupBy(legs, 'gameId');
-    const sameGameLegs = Object.values(gameGroups).filter(g => g.length > 1).length;
+    const gameGroupsForRisk = legs.reduce((acc, leg) => {
+      if (!acc[leg.gameId]) acc[leg.gameId] = [];
+      acc[leg.gameId].push(leg);
+      return acc;
+    }, {} as Record<string, ParlayLeg[]>);
+    const sameGameLegs = Object.values(gameGroupsForRisk).filter(g => g.length > 1).length;
     risk += sameGameLegs * 20;
     
     return Math.min(100, risk);

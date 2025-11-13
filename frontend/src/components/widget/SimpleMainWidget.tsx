@@ -15,6 +15,7 @@ import { NovaTitanEliteAIInsightsTab } from './tabs/NovaTitanEliteAIInsightsTab'
 import { SimpleParlaysTab } from './tabs/SimpleParlaysTab';
 import { SimpleSettingsTab } from './tabs/SimpleSettingsTab';
 import { SimplePlayerPropsTab } from './tabs/SimplePlayerPropsTab';
+import { StreakOptimizerTab } from './tabs/StreakOptimizerTab';
 import { LegalDisclaimer } from '../legal/LegalDisclaimer';
 import { TerminologyGuide } from '../ui/TerminologyGuide';
 import { CacheStatsIndicator } from '../ui/CacheStatsIndicator';
@@ -76,6 +77,8 @@ export const SimpleMainWidget: React.FC = () => {
         return <SimplePlayerPropsTab />;
       case 'ai-insights':
         return <NovaTitanEliteAIInsightsTab />;
+      case 'streak-optimizer':
+        return <StreakOptimizerTab />;
       case 'parlays':
         return <SimpleParlaysTab />;
       case 'settings':

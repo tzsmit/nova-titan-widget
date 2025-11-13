@@ -94,7 +94,7 @@ export interface Prediction {
   reasoning: string;
 }
 
-export type WidgetTab = 'games' | 'predictions' | 'player-props' | 'ai-insights' | 'parlays' | 'settings';
+export type WidgetTab = 'games' | 'predictions' | 'player-props' | 'ai-insights' | 'parlays' | 'streak-optimizer' | 'settings';
 
 interface WidgetStore {
   // Configuration

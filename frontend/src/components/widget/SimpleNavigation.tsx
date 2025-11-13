@@ -24,6 +24,11 @@ const TABS = [
     icon: '🧠'
   },
   {
+    id: 'streak-optimizer' as WidgetTab,
+    name: 'Streaks',
+    icon: '🔥'
+  },
+  {
     id: 'parlays' as WidgetTab,
     name: 'Parlays',
     icon: '💰'

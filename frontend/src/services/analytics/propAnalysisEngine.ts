@@ -4,7 +4,6 @@
  */
 
 import { mean, standardDeviation } from 'simple-statistics';
-import * as _ from 'lodash';
 
 export interface PlayerPropData {
   player: string;
@@ -140,7 +139,13 @@ export class PropAnalysisEngine {
    * Get top safe picks (for streak building)
    */
   getTopSafePicks(analyses: PropAnalysis[], count: number = 10): PropAnalysis[] {
-    return _.orderBy(analyses, ['safetyScore', 'confidence'], ['desc', 'desc'])
+    return analyses
+      .sort((a, b) => {
+        if (b.safetyScore !== a.safetyScore) {
+          return b.safetyScore - a.safetyScore;
+        }
+        return b.confidence - a.confidence;
+      })
       .slice(0, count);
   }
   
