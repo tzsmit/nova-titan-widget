@@ -5,7 +5,7 @@
 
 import axios from 'axios';
 
-const ODDS_API_KEY = import.meta.env.VITE_ODDS_API_KEY || 'effdb0775abef82ff5dd944ae2180cae';
+const ODDS_API_KEY = import.meta.env.VITE_NOVA_TITAN_API_KEY || import.meta.env.VITE_ODDS_API_KEY || 'effdb0775abef82ff5dd944ae2180cae';
 const BASE_URL = 'https://api.the-odds-api.com/v4';
 
 export interface LiveOdds {
