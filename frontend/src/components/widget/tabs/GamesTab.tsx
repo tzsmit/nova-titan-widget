@@ -2,7 +2,7 @@
  * Games Tab Component - Shows live games with odds
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../../../utils/apiClient';
@@ -12,6 +12,7 @@ import { LoadingSpinner } from '../../ui/LoadingSpinner';
 import { HelpTooltip } from '../../ui/HelpTooltip';
 import { CornerHelpTooltip } from '../../ui/CornerHelpTooltip';
 import { LiveOddsDisplay } from '../LiveOddsDisplay';
+import { LiveTimestamp } from '../../ui/LiveTimestamp';
 
 // Mock game data for demo
 const MOCK_GAMES = [
@@ -91,6 +92,14 @@ const MOCK_GAMES = [
 
 export const GamesTab: React.FC = () => {
   const { config, games, isLoadingGames } = useWidgetStore();
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+
+  // Update last refresh timestamp when games data changes
+  useEffect(() => {
+    if (games && games.length > 0) {
+      setLastUpdate(new Date());
+    }
+  }, [games]);
 
   // Transform real games data to display format - no mock data used
   const safeGames = Array.isArray(games) ? games : [];
@@ -174,17 +183,26 @@ export const GamesTab: React.FC = () => {
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">Today's Games</h2>
-          <p className="text-sm text-gray-600">
-            Live odds and AI predictions from 10+ sportsbooks including Underdog Fantasy
-            <HelpTooltip content="Real-time odds from major platforms like Underdog Fantasy, DraftKings, FanDuel, and more with AI-powered predictions" />
-          </p>
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Today's Games</h2>
+            <p className="text-sm text-gray-600">
+              Live odds and AI predictions from 10+ sportsbooks including Underdog Fantasy
+              <HelpTooltip content="Real-time odds from major platforms like Underdog Fantasy, DraftKings, FanDuel, and more with AI-powered predictions" />
+            </p>
+          </div>
+          <div className="text-sm text-gray-500">
+            {displayGames.length} games available
+          </div>
         </div>
-        <div className="text-sm text-gray-500">
-          {displayGames.length} games available
-        </div>
+        
+        {/* Live Timestamp */}
+        <LiveTimestamp 
+          lastUpdate={lastUpdate}
+          autoRefresh={true}
+          label="Games data"
+        />
       </div>
 
       {/* Live Odds Comparison */}

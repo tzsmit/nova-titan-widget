@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWidgetStore } from '../../../stores/widgetStore';
 import { HelpTooltip } from '../../ui/HelpTooltip';
 import { CornerHelpTooltip } from '../../ui/CornerHelpTooltip';
+import { parlayOptimizer, type ParlayLeg as OptimizerParlayLeg } from '../../../services/analytics/parlayOptimizer';
 import { 
   Plus, 
   Trash2, 
@@ -31,6 +32,8 @@ interface ParlayBuilder {
   potentialPayout: number;
   impliedProbability: number;
   expectedValue: number;
+  independenceScore?: number;
+  correlationWarnings?: string[];
 }
 
 // Comprehensive sport-specific betting options
@@ -207,7 +210,9 @@ export const ParlaysTab: React.FC = () => {
         totalOdds: 0,
         potentialPayout: 0,
         impliedProbability: 0,
-        expectedValue: 0
+        expectedValue: 0,
+        independenceScore: undefined,
+        correlationWarnings: []
       }));
       return;
     }
@@ -234,13 +239,46 @@ export const ParlaysTab: React.FC = () => {
     const expectedValue = (combinedImpliedProb * profit) - ((1 - combinedImpliedProb) * stake);
     const expectedValuePercent = (expectedValue / stake) * 100;
 
+    // ✅ NEW: Calculate REAL independence score using parlayOptimizer
+    let independenceScore: number | undefined;
+    let correlationWarnings: string[] = [];
+    
+    if (legs.length >= 2) {
+      try {
+        // Convert ParlayLeg to OptimizerParlayLeg format
+        const optimizerLegs: OptimizerParlayLeg[] = legs.map(leg => ({
+          game: leg.game,
+          team: leg.team,
+          prop: leg.bet,
+          odds: leg.odds,
+          sport: leg.sport as 'NBA' | 'NFL'
+        }));
+        
+        // Use parlayOptimizer to get real correlation analysis
+        const analysis = parlayOptimizer.analyzeParlay(optimizerLegs);
+        independenceScore = analysis.independenceScore;
+        correlationWarnings = analysis.warnings.map(w => w.description);
+        
+        console.log('🔍 Parlay Analysis:', {
+          legs: legs.length,
+          independenceScore,
+          warnings: correlationWarnings.length
+        });
+      } catch (error) {
+        console.error('❌ Error calculating independence score:', error);
+        independenceScore = undefined;
+      }
+    }
+
     setParlay({
       legs,
       stake,
       totalOdds: americanOdds,
       potentialPayout,
       impliedProbability: combinedImpliedProb * 100,
-      expectedValue: expectedValuePercent
+      expectedValue: expectedValuePercent,
+      independenceScore,
+      correlationWarnings
     });
   };
 
@@ -323,9 +361,28 @@ export const ParlaysTab: React.FC = () => {
           </div>
           
           <div className="bg-gray-900/50 rounded-lg p-3">
-            <div className="text-yellow-400 font-bold text-lg">Low Correlation</div>
-            <div className="text-gray-300 text-sm">Independent outcomes selected</div>
-            <button className="mt-2 text-blue-400 text-xs hover:text-blue-300">Why This Matters →</button>
+            {parlay.independenceScore !== undefined ? (
+              <>
+                <div className={`font-bold text-lg ${
+                  parlay.independenceScore >= 80 ? 'text-green-400' :
+                  parlay.independenceScore >= 60 ? 'text-yellow-400' :
+                  'text-red-400'
+                }`}>
+                  {parlay.independenceScore}/100 Independence
+                </div>
+                <div className="text-gray-300 text-sm">
+                  {parlay.independenceScore >= 80 ? 'Excellent' :
+                   parlay.independenceScore >= 60 ? 'Moderate' :
+                   'High'} correlation risk
+                </div>
+                <HelpTooltip content={`Independence score shows how uncorrelated your parlay legs are. 100 = completely independent outcomes. ${parlay.correlationWarnings?.length || 0} correlation(s) detected.`} />
+              </>
+            ) : (
+              <>
+                <div className="text-gray-400 font-bold text-lg">Add 2+ Legs</div>
+                <div className="text-gray-400 text-sm">Independence score requires multiple legs</div>
+              </>
+            )}
           </div>
           
           <div className="bg-gray-900/50 rounded-lg p-3">
@@ -335,12 +392,32 @@ export const ParlaysTab: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-3 p-3 bg-blue-900/10 border border-blue-600/20 rounded">
-          <div className="text-blue-300 text-sm font-medium mb-1">🧠 Nova TitanAI Suggestion</div>
-          <div className="text-gray-200 text-sm">
-            Replace "Jokic Triple-Double" with "Nuggets -4.5" for 23% better expected value while maintaining similar payout structure.
+        {/* Real Correlation Warnings */}
+        {parlay.correlationWarnings && parlay.correlationWarnings.length > 0 && (
+          <div className="mt-3 p-3 bg-yellow-900/10 border border-yellow-600/20 rounded">
+            <div className="text-yellow-300 text-sm font-medium mb-2 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              ⚠️ Correlation Detected
+            </div>
+            <div className="space-y-1">
+              {parlay.correlationWarnings.map((warning, idx) => (
+                <div key={idx} className="text-gray-200 text-xs">
+                  • {warning}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+        
+        {/* Show suggestion when no warnings */}
+        {(!parlay.correlationWarnings || parlay.correlationWarnings.length === 0) && parlay.legs.length >= 2 && (
+          <div className="mt-3 p-3 bg-green-900/10 border border-green-600/20 rounded">
+            <div className="text-green-300 text-sm font-medium mb-1">✅ Well-Optimized Parlay</div>
+            <div className="text-gray-200 text-sm">
+              Your selections show low correlation. Good independence between outcomes!
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

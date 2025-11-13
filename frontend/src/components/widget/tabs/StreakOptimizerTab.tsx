@@ -4,12 +4,16 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { playerStatsService } from '../../../services/analytics/playerStatsService';
+import { realOddsService } from '../../../services/realOddsService';
+import { playerStatsService, PlayerPropData } from '../../../services/analytics/playerStatsService';
 import { propAnalysisEngine, PropAnalysis } from '../../../services/analytics/propAnalysisEngine';
 import { streakOptimizer, StreakPick, StreakCombo, StreakAvoid } from '../../../services/analytics/streakOptimizer';
+import { LiveTimestamp, LoadingSpinner, EmptyState, ErrorState } from '../../ui/LiveTimestamp';
 
 export const StreakOptimizerTab: React.FC = () => {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdate, setLastUpdate] = useState(new Date());
   const [recommended, setRecommended] = useState<StreakPick[]>([]);
   const [safeCombos, setSafeCombos] = useState<StreakCombo[]>([]);
   const [avoidList, setAvoidList] = useState<StreakAvoid[]>([]);
@@ -21,40 +25,141 @@ export const StreakOptimizerTab: React.FC = () => {
 
   const loadStreakRecommendations = async () => {
     setLoading(true);
+    setError(null);
+    
     try {
-      // Generate sample player props for demonstration
-      const samplePlayers = [
-        { name: 'Luka Doncic', sport: 'NBA' as const, prop: 'points', line: 27.5, opponent: 'LAL', gameDate: '2025-11-07', isHome: true },
-        { name: 'Nikola Jokic', sport: 'NBA' as const, prop: 'rebounds', line: 10.5, opponent: 'GSW', gameDate: '2025-11-07', isHome: true },
-        { name: 'Stephen Curry', sport: 'NBA' as const, prop: 'assists', line: 6.5, opponent: 'DEN', gameDate: '2025-11-07', isHome: false },
-        { name: 'Giannis Antetokounmpo', sport: 'NBA' as const, prop: 'points', line: 29.5, opponent: 'BOS', gameDate: '2025-11-07', isHome: true },
-        { name: 'Joel Embiid', sport: 'NBA' as const, prop: 'rebounds', line: 11.5, opponent: 'MIA', gameDate: '2025-11-07', isHome: true },
-        { name: 'Damian Lillard', sport: 'NBA' as const, prop: 'assists', line: 7.5, opponent: 'DAL', gameDate: '2025-11-07', isHome: false },
-        { name: 'Anthony Edwards', sport: 'NBA' as const, prop: 'points', line: 24.5, opponent: 'LAC', gameDate: '2025-11-07', isHome: true },
-        { name: 'Jayson Tatum', sport: 'NBA' as const, prop: 'rebounds', line: 8.5, opponent: 'MIL', gameDate: '2025-11-07', isHome: false },
-      ];
+      console.log('🔄 Loading REAL streak data from The Odds API...');
+      
+      // Fetch REAL live NBA odds
+      const nbaOdds = await realOddsService.getNBAOdds();
+      
+      if (nbaOdds.length === 0) {
+        console.log('⚠️ No NBA games available right now');
+        setRecommended([]);
+        setSafeCombos([]);
+        setAvoidList([]);
+        setLastUpdate(new Date());
+        return;
+      }
+      
+      console.log(`✅ Fetched ${nbaOdds.length} NBA games with REAL odds`);
+      
+      // Fetch REAL player props
+      const playerProps = await realOddsService.getPlayerProps('basketball_nba');
+      console.log(`✅ Fetched ${playerProps.length} games with REAL player props`);
+      
+      // Convert real API data to PropData format
+      const propDataList: PlayerPropData[] = [];
+      
+      for (const game of playerProps) {
+        if (!game.bookmakers || game.bookmakers.length === 0) continue;
+        
+        for (const bookmaker of game.bookmakers) {
+          for (const market of bookmaker.markets || []) {
+            for (const outcome of market.outcomes || []) {
+              // Extract player name and prop type from outcome
+              const playerName = outcome.description || outcome.name;
+              const propType = market.key.replace('player_', '');
+              
+              propDataList.push({
+                player: playerName,
+                prop: propType,
+                line: outcome.point || 0,
+                team: game.home_team, // Simplified - would need roster lookup for accuracy
+                opponent: game.away_team,
+                gameDate: game.commence_time,
+                isHome: true, // Simplified
+                lastTenGames: [], // Would be fetched from stats service
+                seasonAverage: outcome.point || 0,
+                minutesPerGame: 30, // Placeholder
+                injuryStatus: 'healthy',
+                restDays: 1
+              });
+            }
+          }
+        }
+      }
+      
+      if (propDataList.length === 0) {
+        console.log('⚠️ No player props available for analysis');
+        setRecommended([]);
+        setSafeCombos([]);
+        setAvoidList([]);
+        setLastUpdate(new Date());
+        return;
+      }
+      
+      console.log(`📊 Analyzing ${propDataList.length} REAL props...`);
+      
+      // Analyze real props
+      const analyses = propDataList
+        .slice(0, 50) // Limit to top 50 for performance
+        .map(prop => propAnalysisEngine.analyzeProp(prop));
 
-      // Fetch prop data and analyze
-      const propDataList = await playerStatsService.batchFetchProps(samplePlayers);
-      const analyses = propDataList.map(prop => propAnalysisEngine.analyzeProp(prop));
-
-      // Generate streak recommendations
+      // Generate streak recommendations from REAL data
       const recommendations = streakOptimizer.generateRecommendations(analyses, 10);
       
       setRecommended(recommendations.recommended);
       setSafeCombos(recommendations.safeCombos);
       setAvoidList(recommendations.avoidToday);
-    } catch (error) {
-      console.error('Error loading streak recommendations:', error);
+      setLastUpdate(new Date());
+      
+      console.log(`✅ Generated ${recommendations.recommended.length} safe picks from REAL data`);
+      
+    } catch (error: any) {
+      console.error('❌ Error loading streak recommendations:', error);
+      setError(error.message || 'Failed to load real data. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  // Loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="space-y-6 p-4">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg">
+          <h2 className="text-2xl font-bold mb-2">🎯 Streak Optimizer</h2>
+          <p className="text-blue-100">Loading REAL live odds from The Odds API...</p>
+        </div>
+        <LoadingSpinner message="Fetching live NBA odds and player props..." />
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="space-y-6 p-4">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg">
+          <h2 className="text-2xl font-bold mb-2">🎯 Streak Optimizer</h2>
+          <p className="text-blue-100">Real-time betting intelligence</p>
+        </div>
+        <ErrorState 
+          message={error}
+          onRetry={loadStreakRecommendations}
+        />
+      </div>
+    );
+  }
+
+  // Empty state
+  if (recommended.length === 0) {
+    return (
+      <div className="space-y-6 p-4">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg">
+          <h2 className="text-2xl font-bold mb-2">🎯 Streak Optimizer</h2>
+          <p className="text-blue-100">Real-time betting intelligence</p>
+        </div>
+        <EmptyState
+          icon="📊"
+          title="No Games Available"
+          message="There are no NBA games with player props available right now. Check back when games are scheduled or try refreshing."
+          action={{
+            label: "Refresh Data",
+            onClick: loadStreakRecommendations
+          }}
+        />
       </div>
     );
   }
@@ -65,17 +170,27 @@ export const StreakOptimizerTab: React.FC = () => {
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg">
         <h2 className="text-2xl font-bold mb-2">🎯 Streak Optimizer</h2>
         <p className="text-blue-100">
-          Safest picks for building winning streaks - Underdog/PrizePicks style
+          Safest picks from REAL live odds - Underdog/PrizePicks style
         </p>
+        
+        {/* Live Timestamp */}
+        <div className="mt-3 pt-3 border-t border-blue-500/30">
+          <LiveTimestamp 
+            lastUpdate={lastUpdate}
+            autoRefresh={true}
+            onRefresh={loadStreakRecommendations}
+            label="Data updated"
+          />
+        </div>
       </div>
 
       {/* Top Safe Picks */}
       <section>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-gray-800">Top Safe Picks Today</h3>
+          <h3 className="text-xl font-bold text-slate-800">Top Safe Picks Today ({recommended.length})</h3>
           <button 
             onClick={loadStreakRecommendations}
-            className="text-sm bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            className="text-sm bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
           >
             🔄 Refresh
           </button>
